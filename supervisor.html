@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="UTF-8">
+<title>لوحة المشرف - نظام راصد</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+body{font-family:Calibri;background:#eef2f7;margin:0}
+.header{background:#1976d2;color:#fff;text-align:center;padding:15px}
+.container{max-width:1100px;margin:25px auto;padding:10px}
+.box{background:#fff;border-radius:14px;padding:20px;margin-bottom:18px}
+
+h3{color:#1976d2;border-right:4px solid #1976d2;padding-right:8px}
+
+button{padding:8px 15px;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+.btn-secondary{background:#757575;color:#fff}
+
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #ccc;text-align:center;padding:6px}
+th{background:#1976d2;color:#fff}
+
+select{width:100%;padding:6px}
+</style>
+
+<style id="rased-mobile-friendly">
+*{box-sizing:border-box;}
+html{width:100%;overflow-x:hidden;}
+body{width:100%;max-width:100%;overflow-x:hidden;}
+img{max-width:100%;height:auto;}
+button,input,select,textarea{max-width:100%;}
+.table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{max-width:100%;}
+@media (max-width:768px){
+  body{font-size:15px;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper,.card,.panel{max-width:100%;}
+  header,.header,.topbar,.navbar,.nav{height:auto;min-height:0;}
+  header,.header,.topbar,.navbar,.nav,.toolbar,.actions,.filters,.filter-row,.form-row,.button-row,.stats,.cards,.grid,.controls{flex-wrap:wrap;}
+  header,.header,.topbar,.navbar,.nav{padding-left:12px!important;padding-right:12px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{width:100%!important;padding-left:12px!important;padding-right:12px!important;}
+  .card,.panel,.box,.section{margin-left:0!important;margin-right:0!important;}
+  .grid,.cards{grid-template-columns:1fr!important;}
+  .filters,.filter-row,.form-row,.button-row,.toolbar,.actions{gap:8px!important;}
+  .filters>* ,.filter-row>* ,.form-row>*{min-width:0!important;width:100%!important;max-width:100%!important;}
+  input,select,textarea{width:100%;min-height:44px;font-size:16px;}
+  button{min-height:44px;font-size:15px;}
+  .button-row button,.actions button,.toolbar button{width:100%;}
+  .table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{overflow-x:auto!important;}
+  table{min-width:600px;}
+  th,td{white-space:nowrap;}
+  .modal,.dialog,.popup{max-width:calc(100vw - 24px)!important;width:auto!important;}
+  .modal-content,.dialog-content{max-width:100%;}
+  .logo{max-width:110px!important;height:auto!important;}
+  h1{font-size:clamp(22px,6vw,32px)!important;}
+  h2{font-size:clamp(19px,5vw,27px)!important;}
+  h3{font-size:clamp(17px,4.5vw,23px)!important;}
+  .parent-progress-box,.parent-subject-picker{max-width:100%;}
+}
+@media (max-width:420px){
+  body{font-size:14px;}
+  header,.header,.topbar,.navbar,.nav{padding:8px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{padding-left:8px!important;padding-right:8px!important;}
+  table{min-width:560px;}
+  th,td{padding:7px 6px!important;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>مدارس الفلاح الأهلية</h1>
+  <h2>لوحة المشرف</h2>
+</div>
+
+<div class="container">
+
+  <!-- بيانات المشرف -->
+  <div class="box">
+    <h3>بيانات المشرف</h3>
+
+    <div>
+      <span id="sup_name"></span> |
+      <span id="sup_email"></span> |
+      عدد المعلمين: <span id="sup_t_count"></span>
+    </div>
+
+    <br>
+    <button class="btn-secondary" onclick="printStudents()">طباعة / PDF</button>
+  </div>
+
+  <!-- المعلمين -->
+  <div class="box">
+    <h3>المعلمون التابعون للمشرف</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>المعلم</th>
+          <th>اختيار الفصل</th>
+        </tr>
+      </thead>
+      <tbody id="sup_teachers_body"></tbody>
+    </table>
+  </div>
+
+  <!-- الطلاب -->
+  <div class="box">
+    <h3>طلاب الفصل المحدد</h3>
+
+    <div>
+      <span id="currentClassInfo"></span>
+    </div>
+
+    <table id="sup_students_table" style="display:none">
+      <thead>
+        <tr>
+          <th>كود</th>
+          <th>اسم الطالب</th>
+          <th>الصف</th>
+          <th>الشعبة</th>
+          <th>الدرجة</th>
+        </tr>
+      </thead>
+      <tbody id="sup_students_body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+var firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+
+let currentEmail="";
+let teachersMap={};
+let currentTeacherName="";
+let currentTitle="";
+
+/* 🔒 نفس نظام المشرف */
+function ensureSupervisorGuard(){
+  let r=localStorage.getItem("currentUserRole");
+  if(r!=="supervisor"){
+    alert("هذه الصفحة للمشرفين فقط");
+    location="index.html";
+  }
+  currentEmail=localStorage.getItem("currentUserEmail");
+}
+
+async function loadSupervisor(){
+  let doc=await db.collection("supervisors").doc(currentEmail).get();
+  let data=doc.data()||{teachers:[]};
+
+  document.getElementById("sup_name").innerText=data.name;
+  document.getElementById("sup_email").innerText=data.email;
+  document.getElementById("sup_t_count").innerText=data.teachers.length;
+
+  loadSupervisorTeachers(data.teachers);
+}
+
+/* ✅ المعلمين الخاصين بالمشرف فقط */
+async function loadSupervisorTeachers(list){
+  let body=document.getElementById("sup_teachers_body");
+  body.innerHTML="";
+
+  for(let email of list){
+    let tDoc=await db.collection("teachers").doc(email).get();
+    if(!tDoc.exists) continue;
+
+    let t=tDoc.data();
+    teachersMap[email]=t;
+
+    let options="";
+    (t.assignments||[]).forEach((a,i)=>{
+      options+=`<option value="${email}|${i}">
+        ${a.grade} - ${a.section} - ${a.subject}
+      </option>`;
+    });
+
+    let tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${t.name}</td>
+      <td>
+        <select onchange="selectClass(this.value)">
+          <option>اختر</option>
+          ${options}
+        </select>
+      </td>`;
+    body.appendChild(tr);
+  }
+}
+
+function selectClass(val){
+  if(!val) return;
+
+  let [email, idx]=val.split("|");
+  idx=parseInt(idx);
+
+  let t=teachersMap[email];
+  let assign=t.assignments[idx];
+
+  currentTeacherName = t.name;
+  currentTitle = `${assign.grade} - ${assign.section} - ${assign.subject}`;
+
+  loadStudents(assign);
+}
+
+async function loadStudents(assign){
+
+  document.getElementById("currentClassInfo").innerText = currentTitle;
+
+  let table=document.getElementById("sup_students_table");
+  let body=document.getElementById("sup_students_body");
+
+  body.innerHTML="";
+  table.style.display="none";
+
+  let q=db.collection("students")
+    .where("grade","==",assign.grade)
+    .where("section","==",assign.section);
+
+  let snap=await q.get();
+
+  snap.forEach(doc=>{
+    let s=doc.data();
+    let mark=s.subjects?.[assign.subject]?.mark || 0;
+
+    let tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${s.code}</td>
+      <td>${s.name}</td>
+      <td>${s.grade}</td>
+      <td>${s.section}</td>
+      <td>${mark}</td>`;
+    body.appendChild(tr);
+  });
+
+  table.style.display="table";
+}
+
+/* 🔥 طباعة بدون مشاكل */
+function printStudents(){
+
+  let rows = document.getElementById("sup_students_body").innerHTML;
+
+  if(!rows){
+    alert("اختار فصل الأول");
+    return;
+  }
+
+  let win = window.open('', '', 'width=900,height=700');
+
+  win.document.write(`
+    <html>
+    <head>
+      <title>طباعة</title>
+      <style>
+        body { font-family: Calibri; padding:20px; text-align:center; }
+        table { width:100%; border-collapse:collapse; margin-top:15px; }
+        th,td { border:1px solid black; padding:8px; text-align:center; }
+        th { background:#eee; }
+      </style>
+    </head>
+    <body>
+
+      <h2>المعلم: ${currentTeacherName}</h2>
+      <h3>${currentTitle}</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>كود</th>
+            <th>اسم الطالب</th>
+            <th>الصف</th>
+            <th>الشعبة</th>
+            <th>الدرجة</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <script>
+        window.onload = function(){
+          window.print();
+          window.close();
+        }
+      <\/script>
+
+    </body>
+    </html>
+  `);
+
+  win.document.close();
+}
+
+ensureSupervisorGuard();
+loadSupervisor();
+</script>
+
+</body>
+</html>

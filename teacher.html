@@ -1,0 +1,3651 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>راصد - صفحة المعلم</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+:root{
+    --navy:#073b68;
+    --navy2:#0d558c;
+    --blue:#1671bd;
+    --gold:#d6a821;
+    --green:#198754;
+    --red:#dc3545;
+    --light:#f4f7fb;
+    --border:#d7e0e8;
+    --text:#172b3f;
+}
+
+body{
+    margin:0;
+    font-family:Tahoma,Arial,sans-serif;
+    background:#f3f6f9;
+    color:var(--text);
+}
+
+/* ======================================================
+   HEADER
+====================================================== */
+
+.header{
+    min-height:112px;
+    background:linear-gradient(135deg,#06365f,#0a558b);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:14px 170px;
+    box-shadow:0 3px 12px rgba(0,0,0,.18);
+}
+
+.header-center{
+    display:flex;
+    align-items:center;
+    gap:17px;
+}
+
+.logo{
+    width:78px;
+    height:78px;
+    object-fit:contain;
+    background:#fff;
+    border-radius:50%;
+    padding:4px;
+    border:2px solid rgba(255,255,255,.8);
+}
+
+.header-title{
+    text-align:center;
+}
+
+.header-title h1{
+    margin:0;
+    font-size:27px;
+}
+
+.header-title p{
+    margin:7px 0 0;
+    color:#f2c94c;
+    font-size:15px;
+    font-weight:bold;
+}
+
+.user-card{
+    position:absolute;
+    right:25px;
+    top:27px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:10px;
+    padding:10px 13px;
+    font-size:12px;
+}
+
+.user-icon{
+    font-size:25px;
+}
+
+.user-name{
+    font-weight:bold;
+}
+
+.logout{
+    position:absolute;
+    left:25px;
+    top:34px;
+    background:#fff;
+    color:#163a5b;
+    border:0;
+    border-radius:8px;
+    padding:12px 17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* ======================================================
+   CONTAINER
+====================================================== */
+
+.container{
+    width:min(1180px,96%);
+    margin:20px auto 45px;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #e0e6ec;
+    border-radius:12px;
+    box-shadow:0 3px 14px rgba(0,0,0,.06);
+    margin-bottom:17px;
+    overflow:hidden;
+}
+
+.card-title{
+    padding:16px 20px 13px;
+    font-size:18px;
+    font-weight:bold;
+    color:#0a4779;
+    border-bottom:1px solid #e5e9ed;
+}
+
+.card-body{
+    padding:18px 20px;
+}
+
+/* ======================================================
+   SELECTORS
+====================================================== */
+
+.filters{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+}
+
+.field label{
+    display:block;
+    text-align:center;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:7px;
+    color:#26394b;
+}
+
+select{
+    width:100%;
+    height:46px;
+    border:1px solid #bfcbd6;
+    background:#fff;
+    border-radius:7px;
+    padding:7px 12px;
+    font-family:Tahoma,Arial,sans-serif;
+    font-size:13px;
+    color:#111;
+    direction:rtl;
+    text-align:right;
+}
+
+select:focus{
+    outline:none;
+    border-color:#1671bd;
+    box-shadow:0 0 0 3px rgba(22,113,189,.10);
+}
+
+/* ======================================================
+   TEST INFO
+====================================================== */
+
+.test-info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:17px;
+}
+
+.info-box{
+    background:#f7f9fb;
+    border:1px solid #dfe5eb;
+    border-radius:8px;
+    text-align:center;
+    padding:12px;
+}
+
+.info-box-title{
+    font-size:12px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.info-box-value{
+    font-size:20px;
+    font-weight:bold;
+    color:#0a4779;
+}
+
+/* ======================================================
+   BUTTONS
+====================================================== */
+
+.actions{
+    display:grid;
+    grid-template-columns:1fr 1fr 1.6fr 1fr;
+    gap:12px;
+    margin-top:18px;
+}
+
+button{
+    font-family:Tahoma,Arial,sans-serif;
+}
+
+.action-btn{
+    min-height:52px;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:bold;
+    transition:.15s;
+}
+
+.action-btn:hover{
+    transform:translateY(-1px);
+    opacity:.94;
+}
+
+.save-btn{
+    background:#06477a;
+    color:#fff;
+}
+
+.clear-btn{
+    background:#e8edf2;
+    color:#21364a;
+}
+
+.delete-btn{
+    background:#dc3545;
+    color:#fff;
+    border:3px solid #ff8c95;
+    box-shadow:0 0 0 2px #dc3545;
+}
+
+.print-btn{
+    background:#1671bd;
+    color:#fff;
+}
+
+.analysis-btn{
+    background:#6f42c1;
+    color:#fff;
+}
+
+/* ======================================================
+   WARNING
+====================================================== */
+
+.delete-warning{
+    margin-top:18px;
+    padding:13px 15px;
+    text-align:center;
+    background:#fff8df;
+    border:1px solid #f3d36c;
+    border-radius:8px;
+    color:#755500;
+    font-size:12px;
+    line-height:1.8;
+}
+
+/* ======================================================
+   SUMMARY
+====================================================== */
+
+.summary{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    margin:16px 0;
+}
+
+.summary-box{
+    border:1px solid #dde4ea;
+    border-radius:7px;
+    padding:8px;
+    text-align:center;
+    background:#fafcfd;
+}
+
+.summary-box strong{
+    display:block;
+    font-size:18px;
+    color:#0a4779;
+}
+
+.summary-box span{
+    display:block;
+    margin-top:3px;
+    font-size:10px;
+    color:#68798a;
+}
+
+/* ======================================================
+   TABLE
+====================================================== */
+
+.table-wrap{
+    overflow:auto;
+    border:1px solid #d8dfe6;
+    border-radius:7px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:820px;
+}
+
+th{
+    background:#edf2f6;
+    color:#172c40;
+    font-size:12px;
+    padding:10px 7px;
+    border-left:1px solid #d8dfe6;
+    border-bottom:1px solid #c9d2db;
+}
+
+td{
+    text-align:center;
+    padding:7px;
+    font-size:12px;
+    border-left:1px solid #e1e6eb;
+    border-bottom:1px solid #e1e6eb;
+}
+
+tbody tr:nth-child(even){
+    background:#f9fbfc;
+}
+
+.student-name{
+    font-weight:bold;
+    text-align:right;
+}
+
+.mark-input{
+    width:75px;
+    height:35px;
+    text-align:center;
+    border:1px solid #bdc8d2;
+    border-radius:5px;
+    font-weight:bold;
+}
+
+.attendance-select{
+    width:100px;
+    height:35px;
+    padding:3px 7px;
+}
+
+.absent-row{
+    background:#eeeeee !important;
+}
+
+.status-saved{
+    color:#198754;
+    font-weight:bold;
+}
+
+.status-unsaved{
+    color:#8b98a5;
+}
+
+.whatsapp{
+    border:0;
+    background:#198754;
+    color:#fff;
+    border-radius:5px;
+    padding:7px 10px;
+    cursor:pointer;
+    font-size:11px;
+}
+
+
+/* ======================================================
+   PARENT MESSAGES
+====================================================== */
+
+.parent-actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.whatsapp-result,.whatsapp-custom,.whatsapp-file{border:0;color:#fff;border-radius:5px;padding:7px 9px;cursor:pointer;font-size:10px;font-weight:bold}
+.whatsapp-result{background:#198754}.whatsapp-custom{background:#0b7285}.whatsapp-file{background:#6f42c1}
+.messages-btn{background:#0b7285;color:#fff}
+.message-tools{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:12px}
+.message-search{width:100%;height:42px;border:1px solid #bdc8d2;border-radius:7px;padding:8px 11px;font-family:Tahoma,Arial,sans-serif}
+.message-log-text{text-align:right;white-space:pre-wrap;line-height:1.6;min-width:250px;max-width:390px}
+.message-log-table{min-width:950px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:9999;align-items:center;justify-content:center;padding:15px}
+.modal-overlay.show{display:flex}.modal-box{width:min(620px,96%);background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.25);overflow:hidden}
+.modal-head{background:#073b68;color:#fff;padding:15px 18px;font-weight:bold;font-size:16px}.modal-body{padding:18px}
+.modal-student{background:#f3f7fa;border:1px solid #d9e2ea;border-radius:7px;padding:10px;margin-bottom:12px;font-size:13px;line-height:1.7}
+.modal-body textarea{width:100%;min-height:160px;resize:vertical;border:1px solid #bdc8d2;border-radius:7px;padding:12px;font-family:Tahoma,Arial,sans-serif;font-size:14px;line-height:1.8;direction:rtl}
+.modal-actions{display:flex;gap:10px;justify-content:flex-start;margin-top:12px}.modal-actions button{border:0;border-radius:7px;padding:10px 18px;font-weight:bold;cursor:pointer}.send-custom-btn{background:#198754;color:#fff}.cancel-modal-btn{background:#e8edf2;color:#21364a}
+@media(max-width:700px){.message-tools{grid-template-columns:1fr}}
+
+/* ======================================================
+   EMPTY
+====================================================== */
+
+.empty{
+    padding:45px 15px;
+    text-align:center;
+    color:#82909e;
+    background:#fafbfc;
+    border-radius:8px;
+}
+
+/* ======================================================
+   FOOTER
+====================================================== */
+
+.footer-note{
+    margin-top:20px;
+    background:#e8f3ff;
+    border:1px solid #bdd9f5;
+    border-radius:7px;
+    color:#174f7c;
+    text-align:center;
+    padding:12px;
+    font-size:11px;
+    line-height:1.7;
+}
+
+.footer{
+    text-align:center;
+    font-size:11px;
+    color:#778899;
+    padding:20px 10px;
+}
+
+/* ======================================================
+   PRINT HEADER
+====================================================== */
+
+.print-header{
+    display:none;
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+@media(max-width:850px){
+
+    .header{
+        padding:15px;
+        flex-direction:column;
+    }
+
+    .header-center{
+        flex-direction:column;
+        gap:6px;
+    }
+
+    .user-card,
+    .logout{
+        position:static;
+        margin-top:8px;
+    }
+
+    .filters{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .actions{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .summary{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:520px){
+
+    .filters{
+        grid-template-columns:1fr;
+    }
+
+    .test-info{
+        grid-template-columns:1fr;
+    }
+
+}
+
+/* ======================================================
+   PRINT - A4 PORTRAIT / ONE PAGE TARGET
+====================================================== */
+
+@media print{
+
+    @page{
+        size:A4 portrait;
+        margin:6mm;
+    }
+
+    html,
+    body{
+        margin:0;
+        padding:0;
+        background:#fff;
+    }
+
+    .header,
+    .selector-card,
+    .actions,
+    .delete-warning,
+    .footer-note,
+    .footer,
+    .whatsapp-col,
+    .summary,
+    .messages-card,
+    .modal-overlay{
+        display:none !important;
+    }
+
+    .container{
+        width:100%;
+        margin:0;
+        padding:0;
+    }
+
+    .card{
+        margin:0;
+        border:0;
+        border-radius:0;
+        box-shadow:none;
+    }
+
+    .card-title{
+        display:none;
+    }
+
+    .card-body{
+        padding:0;
+    }
+
+    .print-header{
+        display:block;
+        text-align:center;
+        margin-bottom:5px;
+    }
+
+    .print-logo{
+        width:48px;
+        height:48px;
+        object-fit:contain;
+    }
+
+    .print-header h2{
+        margin:0;
+        font-size:15px;
+    }
+
+    .print-header h3{
+        margin:2px 0 4px;
+        font-size:11px;
+    }
+
+    .print-meta{
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:2px;
+        margin-bottom:5px;
+    }
+
+    .print-meta div{
+        border:1px solid #777;
+        padding:3px;
+        font-size:7.5px;
+    }
+
+    .table-wrap{
+        overflow:visible;
+        border:0;
+        border-radius:0;
+    }
+
+    table{
+        min-width:0;
+        width:100%;
+        table-layout:fixed;
+    }
+
+    th,
+    td{
+        border:1px solid #777;
+        padding:3px 2px;
+        font-size:7px;
+    }
+
+    th{
+        background:#eee !important;
+        color:#000 !important;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1){
+        width:5%;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2){
+        width:16%;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3){
+        width:36%;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4){
+        width:18%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5){
+        width:13%;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6){
+        width:12%;
+    }
+
+    .mark-input,
+    .attendance-select{
+        width:100%;
+        height:auto;
+        padding:0;
+        border:0;
+        background:transparent;
+        font-size:7px;
+        appearance:none;
+        -webkit-appearance:none;
+    }
+
+    tr{
+        break-inside:avoid;
+        page-break-inside:avoid;
+    }
+
+    .print-footer{
+        margin-top:5px;
+        display:flex !important;
+        justify-content:space-between;
+        font-size:7px;
+        border-top:1px solid #777;
+        padding-top:3px;
+    }
+
+}
+
+
+.file-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:15px}
+.file-modal{background:#fff;width:min(560px,100%);border-radius:16px;box-shadow:0 15px 45px rgba(0,0,0,.25);overflow:hidden}
+.file-modal-head{background:#174f7c;color:#fff;padding:14px 18px;font-weight:bold;font-size:18px}
+.file-modal-body{padding:18px}
+.file-modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:15px}
+.file-progress{display:none;margin-top:12px;padding:10px;border-radius:8px;background:#eef4fa;color:#174f7c;font-weight:bold}
+.file-link{display:inline-block;padding:5px 8px;border-radius:6px;background:#e7f1ff;color:#084298;text-decoration:none;font-weight:bold}
+
+/* ===== تطور مستوى الطالب ===== */
+.progress-panel{background:#fff;border:1px solid #dbe5ef;border-radius:12px;padding:14px;margin-top:12px}
+.progress-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}
+.progress-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.progress-stat{background:#f6f9fc;border:1px solid #e1e8ef;border-radius:10px;padding:12px;text-align:center}
+.progress-stat b{display:block;font-size:20px;color:#174f7c;margin-top:4px}
+.progress-chart{width:100%;height:280px;border:1px solid #e1e8ef;border-radius:12px;background:#fff;overflow:hidden}
+.progress-chart svg{width:100%;height:100%;display:block}
+.progress-trend{font-weight:bold;font-size:15px;text-align:center;padding:10px;border-radius:9px;background:#eef4fa;color:#174f7c;margin:10px 0}
+.progress-table{width:100%;border-collapse:collapse;min-width:620px}
+.progress-table th,.progress-table td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:center}
+.progress-table th{background:#174f7c;color:#fff}
+@media(max-width:700px){.progress-stats{grid-template-columns:repeat(2,1fr)}.progress-chart{height:230px}}
+
+</style>
+
+<style id="rased-mobile-friendly">
+*{box-sizing:border-box;}
+html{width:100%;overflow-x:hidden;}
+body{width:100%;max-width:100%;overflow-x:hidden;}
+img{max-width:100%;height:auto;}
+button,input,select,textarea{max-width:100%;}
+.table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{max-width:100%;}
+@media (max-width:768px){
+  body{font-size:15px;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper,.card,.panel{max-width:100%;}
+  header,.header,.topbar,.navbar,.nav{height:auto;min-height:0;}
+  header,.header,.topbar,.navbar,.nav,.toolbar,.actions,.filters,.filter-row,.form-row,.button-row,.stats,.cards,.grid,.controls{flex-wrap:wrap;}
+  header,.header,.topbar,.navbar,.nav{padding-left:12px!important;padding-right:12px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{width:100%!important;padding-left:12px!important;padding-right:12px!important;}
+  .card,.panel,.box,.section{margin-left:0!important;margin-right:0!important;}
+  .grid,.cards{grid-template-columns:1fr!important;}
+  .filters,.filter-row,.form-row,.button-row,.toolbar,.actions{gap:8px!important;}
+  .filters>* ,.filter-row>* ,.form-row>*{min-width:0!important;width:100%!important;max-width:100%!important;}
+  input,select,textarea{width:100%;min-height:44px;font-size:16px;}
+  button{min-height:44px;font-size:15px;}
+  .button-row button,.actions button,.toolbar button{width:100%;}
+  .table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{overflow-x:auto!important;}
+  table{min-width:600px;}
+  th,td{white-space:nowrap;}
+  .modal,.dialog,.popup{max-width:calc(100vw - 24px)!important;width:auto!important;}
+  .modal-content,.dialog-content{max-width:100%;}
+  .logo{max-width:110px!important;height:auto!important;}
+  h1{font-size:clamp(22px,6vw,32px)!important;}
+  h2{font-size:clamp(19px,5vw,27px)!important;}
+  h3{font-size:clamp(17px,4.5vw,23px)!important;}
+  .parent-progress-box,.parent-subject-picker{max-width:100%;}
+}
+@media (max-width:420px){
+  body{font-size:14px;}
+  header,.header,.topbar,.navbar,.nav{padding:8px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{padding-left:8px!important;padding-right:8px!important;}
+  table{min-width:560px;}
+  th,td{padding:7px 6px!important;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="header">
+
+<div class="user-card">
+
+<div class="user-icon">👤</div>
+
+<div>
+<div>أهلًا بالمعلم</div>
+<div class="user-name" id="headerTeacherName">...</div>
+</div>
+
+</div>
+
+<div class="header-center">
+
+<img src="logo.jpeg" class="logo">
+
+<div class="header-title">
+
+<h1>مدارس الفلاح الأهلية</h1>
+
+<p>نظام راصد - صفحة المعلم</p>
+
+</div>
+
+</div>
+
+<button class="logout" onclick="logout()">
+خروج ←
+</button>
+
+</header>
+
+
+<div class="container">
+
+<!-- =====================================================
+     SELECT TEST
+===================================================== -->
+
+<div class="card selector-card">
+
+<div class="card-title">
+📖 تسجيل درجات الاختبار
+</div>
+
+<div class="card-body">
+
+<div class="filters">
+
+<div class="field">
+
+<label>المادة</label>
+
+<select id="subjectSelect" onchange="subjectChanged()">
+<option value="">اختر المادة</option>
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>الصف</label>
+
+<select id="gradeSelect" onchange="gradeChanged()">
+<option value="">اختر الصف</option>
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>الشعبة</label>
+
+<select id="sectionSelect" onchange="sectionChanged()">
+<option value="">اختر الشعبة</option>
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>الاختبار</label>
+
+<select id="testSelect" onchange="testChanged()">
+<option value="">اختر الاختبار</option>
+</select>
+
+</div>
+
+</div>
+
+
+<div class="test-info">
+
+<div class="info-box">
+
+<div class="info-box-title">
+تاريخ الاختبار
+</div>
+
+<div class="info-box-value" id="testDate">
+-
+</div>
+
+</div>
+
+
+<div class="info-box">
+
+<div class="info-box-title">
+الدرجة النهائية
+</div>
+
+<div class="info-box-value" id="fullMark">
+-
+</div>
+
+</div>
+
+</div>
+
+
+<div class="actions">
+
+<button class="action-btn save-btn" onclick="saveAllGrades()">
+💾 حفظ الدرجات
+</button>
+<button class="action-btn" style="background:#0d6efd;color:#fff" onclick="setAttendanceForAll('present')">
+✅ الكل حاضر
+</button>
+
+<button class="action-btn" style="background:#6c757d;color:#fff" onclick="setAttendanceForAll('absent')">
+🚫 الكل غائب
+</button>
+
+<button class="action-btn" style="background:#198754;color:#fff" onclick="fillFullMarkForAll()">
+⭐ الدرجة النهائية للجميع
+</button>
+
+<button class="action-btn clear-btn" onclick="clearInputs()">
+🧹 مسح الكل
+</button>
+
+<button class="action-btn delete-btn" onclick="deleteAllClassGrades()">
+🗑️ حذف جميع درجات هذا الفصل
+</button>
+
+<button class="action-btn print-btn" onclick="printReport()">
+🖨️ طباعة
+</button>
+
+</div>
+
+
+<div class="actions" style="grid-template-columns:1fr 1fr;margin-top:10px">
+
+<button class="action-btn analysis-btn" onclick="openAnalysis()">
+📊 تحليل نتائج هذا الفصل
+</button>
+
+<button id="examPlatformBtn" class="action-btn" style="background:#c69a2b;color:#fff;display:none" onclick="openExamPlatform()">
+📝 منصة الاختبارات الإلكترونية
+</button>
+
+</div>
+
+<div class="actions" style="grid-template-columns:1fr;margin-top:10px">
+<button class="action-btn messages-btn" onclick="scrollToMessages()">
+📨 سجل رسائلي لأولياء الأمور
+</button>
+
+<button class="action-btn" style="background:#6f42c1;color:#fff" onclick="openUploadLinkModal()">
+📎 رفع ملف وتوليد رابط
+</button>
+</div>
+
+
+<div class="delete-warning">
+
+⚠️ سيتم حذف جميع درجات الطلاب في
+<strong>هذا الاختبار لهذا الصف والشعبة فقط</strong>.
+لا يؤثر الحذف على درجات الاختبارات الأخرى.
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     GRADES
+===================================================== -->
+
+<div class="card">
+
+<div class="card-title">
+👨‍🎓 الطلاب والرسائل والحضور والدرجات
+</div>
+
+<div class="card-body">
+
+<div class="print-header">
+
+<img src="logo.jpeg" class="print-logo">
+
+<h2>مدارس الفلاح الأهلية</h2>
+
+<h3>كشف درجات الطلاب</h3>
+
+<div class="print-meta">
+
+<div>
+<strong>المعلم:</strong>
+<span id="printTeacher">-</span>
+</div>
+
+<div>
+<strong>المادة:</strong>
+<span id="printSubject">-</span>
+</div>
+
+<div>
+<strong>الفصل:</strong>
+<span id="printClass">-</span>
+</div>
+
+<div>
+<strong>الاختبار:</strong>
+<span id="printTest">-</span>
+</div>
+
+<div>
+<strong>تاريخ الاختبار:</strong>
+<span id="printTestDate">-</span>
+</div>
+
+<div>
+<strong>الدرجة النهائية:</strong>
+<span id="printFullMark">-</span>
+</div>
+
+</div>
+
+</div>
+
+
+<div id="summaryArea" class="summary" style="display:none">
+
+<div class="summary-box">
+<strong id="summaryTotal">0</strong>
+<span>عدد الطلاب</span>
+</div>
+
+<div class="summary-box">
+<strong id="summaryPresent">0</strong>
+<span>حاضر</span>
+</div>
+
+<div class="summary-box">
+<strong id="summaryAbsent">0</strong>
+<span>غائب</span>
+</div>
+
+<div class="summary-box">
+<strong id="summaryEntered">0</strong>
+<span>تم الرصد</span>
+</div>
+
+<div class="summary-box">
+<strong id="summaryAverage">-</strong>
+<span>المتوسط</span>
+</div>
+
+</div>
+
+
+<div id="studentsArea">
+
+<div class="empty">
+اختر المادة والصف والشعبة لعرض الطلاب وإرسال الرسائل.
+</div>
+
+</div>
+
+
+<div class="footer-note">
+
+<strong>ملاحظة:</strong>
+حذف جميع الدرجات يؤثر على درجات هذا الاختبار وهذا الفصل فقط،
+ولا يؤثر على درجات أي اختبار آخر.
+
+</div>
+
+
+<div class="print-footer" style="display:none">
+
+<span id="printFooterTeacher"></span>
+
+<span>نظام راصد - مدارس الفلاح الأهلية</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="card" id="studentProgressSection">
+<div class="card-title">📈 تطور مستوى الطالب</div>
+<div class="card-body">
+<div class="note">يعرض هذا التحليل نتائج الطالب في المادة المختارة فقط، ضمن المواد والفصول المسندة إليك. الغياب لا يُحسب صفرًا.</div>
+<div class="progress-controls">
+<div><label>المادة</label><select id="teacherProgressSubject" onchange="fillTeacherProgressClasses()"><option value="">اختر المادة</option></select></div>
+<div><label>الفصل</label><select id="teacherProgressClass" onchange="fillTeacherProgressStudents()"><option value="">اختر الفصل</option></select></div>
+<div><label>الطالب</label><select id="teacherProgressStudent"><option value="">اختر الطالب</option></select></div>
+<div><button class="action-btn analysis-btn" style="width:100%" onclick="loadTeacherStudentProgress()">📊 عرض تطور المستوى</button></div>
+</div>
+<div id="teacherProgressResult" class="progress-panel" style="display:none"></div>
+</div>
+</div>
+
+<div class="card messages-card" id="messagesSection">
+<div class="card-title">📨 سجل رسائلي لأولياء الأمور</div>
+<div class="card-body">
+<div class="message-tools">
+<input id="messageLogSearch" class="message-search" placeholder="بحث باسم الطالب أو نص الرسالة" oninput="renderMessageLogs()">
+<button class="action-btn print-btn" onclick="printMessageLog()">🖨️ طباعة سجل الرسائل</button>
+<button class="action-btn danger-btn" onclick="deleteAllMyMessageLogs()">🗑️ حذف جميع رسائلي</button>
+</div>
+<div class="table-wrap">
+<table class="message-log-table">
+<thead><tr><th>#</th><th>التاريخ والوقت</th><th>الطالب</th><th>الفصل</th><th>المادة</th><th>الاختبار / النوع</th><th>جوال ولي الأمر</th><th>الرسالة</th><th>حذف</th></tr></thead>
+<tbody id="messageLogsBody"><tr><td colspan="9">جاري تحميل السجل...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="customMessageModal" onclick="modalBackdropClose(event)">
+<div class="modal-box">
+<div class="modal-head">✉️ إرسال رسالة لولي الأمر</div>
+<div class="modal-body">
+<div class="modal-student" id="customMessageStudentInfo"></div>
+<textarea id="customMessageText" placeholder="اكتب رسالتك لولي الأمر هنا..."></textarea>
+<div class="modal-actions">
+<button class="send-custom-btn" onclick="sendCustomMessage()">إرسال عبر واتساب</button>
+<button class="cancel-modal-btn" onclick="closeCustomMessage()">إلغاء</button>
+</div>
+</div>
+</div>
+</div>
+
+
+
+<div class="file-modal-overlay" id="uploadLinkModalOverlay">
+  <div class="file-modal">
+    <div class="file-modal-head">📎 رفع ملف وتوليد رابط</div>
+    <div class="file-modal-body">
+      <p style="margin:0 0 14px;color:#475569;line-height:1.8">
+        ارفع الملف مرة واحدة، ثم انسخ الرابط وضعه داخل رسالة أي ولي أمر.
+      </p>
+
+      <label style="display:block;font-weight:bold;margin-bottom:7px">اختر الملف</label>
+      <input type="file" id="generalUploadFile"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.txt"
+        style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px">
+
+      <div id="generalUploadProgress" class="file-progress"></div>
+
+      <div id="generatedFileArea" style="display:none;margin-top:14px">
+        <div style="font-weight:bold;margin-bottom:8px">
+          تم رفع: <span id="generatedFileName"></span>
+        </div>
+        <input type="text" id="generatedFileLink" readonly
+          style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px;direction:ltr;text-align:left">
+        <button class="action-btn save-btn" style="width:100%;margin-top:9px"
+          onclick="copyGeneratedFileLink()">📋 نسخ الرابط</button>
+      </div>
+
+      <div class="file-modal-actions">
+        <button class="action-btn clear-btn" onclick="closeUploadLinkModal()">إغلاق</button>
+        <button class="action-btn" style="background:#6f42c1;color:#fff"
+          id="generateLinkBtn" onclick="uploadFileAndGenerateLink()">⬆️ رفع وتوليد الرابط</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+تصميم محمد عامر أحمد - نظام راصد 2026
+</div>
+
+</div>
+
+
+<script>
+
+
+function rasedProgressSort(items){
+ return items.slice().sort((a,b)=>{
+  const da=String(a.testDate||a.date||""),dbb=String(b.testDate||b.date||"");
+  if(da!==dbb)return da.localeCompare(dbb);
+  return String(a.testName||"").localeCompare(String(b.testName||""),"ar");
+ });
+}
+function rasedProgressPercent(r){
+ const m=Number(r.mark),f=Number(r.fullMark);
+ return r.attendance==="present" && r.mark!==null && r.mark!==undefined && r.mark!=="" && !Number.isNaN(m) && !Number.isNaN(f) && f>0 ? (m/f)*100 : null;
+}
+function rasedProgressTrend(values){
+ if(values.length<2)return "➡️ بيانات غير كافية لتحديد الاتجاه";
+ const n=values.length, xm=(n-1)/2, ym=values.reduce((a,b)=>a+b,0)/n;
+ let num=0,den=0;
+ values.forEach((y,i)=>{num+=(i-xm)*(y-ym);den+=(i-xm)*(i-xm)});
+ const slope=den?num/den:0;
+ if(slope>1)return "📈 المستوى في اتجاه تصاعدي";
+ if(slope<-1)return "📉 المستوى في اتجاه تنازلي";
+ return "➡️ المستوى مستقر تقريبًا";
+}
+function rasedProgressSvg(items){
+ const pts=items.map((r,i)=>({label:r.testName||("اختبار "+(i+1)),v:rasedProgressPercent(r)})).filter(x=>x.v!==null);
+ if(!pts.length)return '<div style="padding:90px 15px;text-align:center;color:#6b7280">لا توجد درجات مرصودة لرسم التطور.</div>';
+ const W=900,H=270,L=55,R=25,T=20,B=48,iw=W-L-R,ih=H-T-B;
+ const x=i=>pts.length===1?L+iw/2:L+(i/(pts.length-1))*iw;
+ const y=v=>T+ih-(Math.max(0,Math.min(100,v))/100)*ih;
+ let grid="";
+ [0,25,50,75,100].forEach(v=>{grid+=`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="#e5e7eb"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#64748b">${v}%</text>`});
+ const poly=pts.map((p,i)=>`${x(i)},${y(p.v)}`).join(" ");
+ const dots=pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="5" fill="#174f7c"/><text x="${x(i)}" y="${y(p.v)-10}" text-anchor="middle" font-size="11" font-weight="bold" fill="#174f7c">${p.v.toFixed(0)}%</text><text x="${x(i)}" y="${H-17}" text-anchor="middle" font-size="10" fill="#475569">${String(p.label).slice(0,15)}</text>`).join("");
+ return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}<line x1="${L}" y1="${T}" x2="${L}" y2="${H-B}" stroke="#94a3b8"/><line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="#94a3b8"/>${pts.length>1?`<polyline points="${poly}" fill="none" stroke="#174f7c" stroke-width="3"/>`:""}${dots}</svg>`;
+}
+function rasedProgressHtml(items,escFn){
+ const sorted=rasedProgressSort(items), vals=sorted.map(rasedProgressPercent).filter(v=>v!==null);
+ const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+ const high=vals.length?Math.max(...vals):null, low=vals.length?Math.min(...vals):null;
+ const rows=sorted.map((r,i)=>{
+  const p=rasedProgressPercent(r),abs=r.attendance==="absent";
+  return `<tr><td>${i+1}</td><td>${escFn(r.testName||"-")}</td><td>${escFn(r.testDate||"-")}</td><td>${abs?"غائب":(r.mark===null||r.mark===undefined||r.mark===""?"غير مرصود":escFn(r.mark+" / "+r.fullMark))}</td><td>${p===null?"—":p.toFixed(1)+"%"}</td></tr>`;
+ }).join("");
+ return `<div class="progress-stats"><div class="progress-stat">الاختبارات<b>${sorted.length}</b></div><div class="progress-stat">المتوسط<b>${avg===null?"—":avg.toFixed(1)+"%"}</b></div><div class="progress-stat">أعلى نتيجة<b>${high===null?"—":high.toFixed(1)+"%"}</b></div><div class="progress-stat">أقل نتيجة<b>${low===null?"—":low.toFixed(1)+"%"}</b></div></div><div class="progress-trend">${rasedProgressTrend(vals)}</div><div class="progress-chart">${rasedProgressSvg(sorted)}</div><div style="overflow:auto;margin-top:12px"><table class="progress-table"><thead><tr><th>#</th><th>الاختبار</th><th>التاريخ</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${rows||'<tr><td colspan="5">لا توجد نتائج.</td></tr>'}</tbody></table></div>`;
+}
+
+function fillTeacherProgressSubjects(){
+ const s=el("teacherProgressSubject");if(!s)return;const map=new Map();
+ assignments.forEach(a=>{if(a.subjectId&&!map.has(a.subjectId))map.set(a.subjectId,a.subjectName||"المادة")});
+ s.innerHTML='<option value="">اختر المادة</option>'+[...map.entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]),"ar")).map(([id,n])=>`<option value="${escapeHtml(id)}">${escapeHtml(n)}</option>`).join("");
+ fillTeacherProgressClasses();
+}
+function fillTeacherProgressClasses(){
+ const sid=el("teacherProgressSubject")?.value||"",s=el("teacherProgressClass");if(!s)return;
+ const arr=[],seen=new Set();assignments.filter(a=>a.subjectId===sid).forEach(a=>{let k=a.grade+"|||"+a.section;if(!seen.has(k)){seen.add(k);arr.push(a)}});
+ s.innerHTML='<option value="">اختر الفصل</option>'+arr.map(a=>`<option value="${escapeHtml(a.grade+"|||"+a.section)}">${escapeHtml(a.grade)} / ${escapeHtml(a.section)}</option>`).join("");
+ el("teacherProgressStudent").innerHTML='<option value="">اختر الطالب</option>';
+}
+async function fillTeacherProgressStudents(){
+ const v=el("teacherProgressClass").value,s=el("teacherProgressStudent");s.innerHTML='<option value="">جاري التحميل...</option>';
+ if(!v){s.innerHTML='<option value="">اختر الطالب</option>';return}
+ const [g,sec]=v.split("|||");
+ try{const snap=await db.collection("students").where("grade","==",g).get();let arr=[];snap.forEach(d=>{let x=d.data()||{};if(x.section===sec)arr.push({...x,code:x.code||d.id})});arr.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));s.innerHTML='<option value="">اختر الطالب</option>'+arr.map(x=>`<option value="${escapeHtml(x.code)}">${escapeHtml(x.name)}</option>`).join("")}catch(e){s.innerHTML='<option value="">تعذر التحميل</option>'}
+}
+async function loadTeacherStudentProgress(){
+ const sid=el("teacherProgressSubject").value,code=el("teacherProgressStudent").value,out=el("teacherProgressResult");
+ if(!sid||!code){alert("اختر المادة والفصل والطالب.");return}
+ out.style.display="block";out.innerHTML="جاري تحميل النتائج...";
+ try{const snap=await db.collection("grades").where("studentCode","==",String(code)).get();let rows=[];snap.forEach(d=>{let x=d.data()||{};if(String(x.subjectId||"")===String(sid))rows.push({id:d.id,...x})});out.innerHTML=rasedProgressHtml(rows,escapeHtml)}catch(e){console.error(e);out.innerHTML="تعذر تحميل تطور المستوى: "+escapeHtml(e.message)}
+}
+
+/* ======================================================
+   FIREBASE
+====================================================== */
+
+const firebaseConfig={
+
+apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+
+authDomain:"results2026-7c0dd.firebaseapp.com",
+
+projectId:"results2026-7c0dd",
+
+storageBucket:"results2026-7c0dd.firebasestorage.app",
+
+messagingSenderId:"241421115694",
+
+appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db=firebase.firestore();
+
+const SUPABASE_URL="https://xalqjwuewdgxrxuejqyg.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_BJozLqjByOtWcLi3Zb_MPg_pzNwV8jb";
+const SUPABASE_BUCKET="rased-files";
+
+const supabaseClient=
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+
+/* ======================================================
+   CONSTANTS
+====================================================== */
+
+const gradeOrder=[
+"1 ابتدائي",
+"2 ابتدائي",
+"3 ابتدائي",
+"4 ابتدائي",
+"5 ابتدائي",
+"6 ابتدائي",
+"1 متوسط",
+"2 متوسط",
+"3 متوسط",
+"1 ثانوي",
+"2 ثانوي",
+"3 ثانوي"
+];
+
+const sectionOrder=[
+"أ","ب","ج","د"
+];
+
+
+/* ======================================================
+   VARIABLES
+====================================================== */
+
+let currentUsername="";
+let currentTeacher=null;
+
+let assignments=[];
+let allTests=[];
+
+let selectedSubjectId="";
+let selectedSubjectName="";
+let selectedGrade="";
+let selectedSection="";
+let selectedTest=null;
+
+let currentStudents=[];
+let savedGrades={};
+let messageLogs=[];
+let customMessageStudent=null;
+
+
+/* ======================================================
+   HELPERS
+====================================================== */
+
+function el(id){
+return document.getElementById(id);
+}
+
+function escapeHtml(value){
+
+return String(value??"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+function unique(values){
+return [...new Set(values)];
+}
+
+function clearSelect(select,text){
+
+select.innerHTML="";
+
+const option=document.createElement("option");
+
+option.value="";
+option.textContent=text;
+
+select.appendChild(option);
+
+}
+
+function normalizeSaudiPhone(phone){
+
+let p=String(phone||"")
+.replace(/\D/g,"");
+
+if(!p) return "";
+
+if(p.startsWith("00966")){
+p=p.substring(2);
+}
+
+if(p.startsWith("966")){
+return p;
+}
+
+if(p.startsWith("05") && p.length===10){
+return "966"+p.substring(1);
+}
+
+if(p.startsWith("5") && p.length===9){
+return "966"+p;
+}
+
+return p;
+
+}
+
+
+/* ======================================================
+   LOGIN PROTECTION
+====================================================== */
+
+function protectPage(){
+
+const role=
+localStorage.getItem("currentUserRole")||"";
+
+if(role!=="teacher"){
+
+alert("هذه الصفحة مخصصة للمعلمين.");
+
+location.href="index.html";
+
+return false;
+
+}
+
+return true;
+
+}
+
+
+/* ======================================================
+   LOAD TEACHER
+====================================================== */
+
+async function loadTeacher(){
+
+currentUsername=(
+
+localStorage.getItem("currentUserEmail") ||
+
+localStorage.getItem("currentUser") ||
+
+""
+
+).trim().toLowerCase();
+
+
+if(!currentUsername){
+
+throw new Error("لم يتم العثور على حساب المعلم.");
+
+}
+
+
+const doc=
+await db.collection("teachers")
+.doc(currentUsername)
+.get();
+
+
+if(!doc.exists){
+
+throw new Error("لم يتم العثور على بيانات المعلم.");
+
+}
+
+
+currentTeacher={
+email:doc.id,
+...doc.data()
+};
+
+
+assignments=
+Array.isArray(currentTeacher.assignments)
+?
+currentTeacher.assignments.filter(a=>
+a.subjectId &&
+a.grade &&
+a.section
+)
+:
+[];
+
+
+const name=
+currentTeacher.name ||
+localStorage.getItem("currentUserName") ||
+currentUsername;
+
+
+el("headerTeacherName").textContent=name;
+
+el("printTeacher").textContent=name;
+
+el("printFooterTeacher").textContent=
+"المعلم: "+name;
+
+
+fillSubjects();
+
+await applyExamPlatformAccess();
+
+}
+
+
+
+/* ======================================================
+   EXAM PLATFORM ACCESS
+====================================================== */
+
+async function applyExamPlatformAccess(){
+
+const btn=el("examPlatformBtn");
+
+if(!btn)return;
+
+btn.style.display="none";
+
+try{
+
+const settings=
+await db.collection("systemSettings")
+.doc("examPlatform")
+.get();
+
+/*
+إذا لم توجد إعدادات بعد، نحافظ على السلوك القديم:
+الزر يظهر لجميع المعلمين.
+*/
+if(!settings.exists || !Array.isArray(settings.data()?.enabledSubjectIds)){
+
+btn.style.display="";
+return;
+
+}
+
+const enabled=
+new Set(
+settings.data().enabledSubjectIds.map(String)
+);
+
+const teacherHasEnabledSubject=
+assignments.some(a=>
+a.subjectId &&
+enabled.has(String(a.subjectId))
+);
+
+btn.style.display=
+teacherHasEnabledSubject
+?
+""
+:
+"none";
+
+}catch(error){
+
+console.error("EXAM PLATFORM ACCESS ERROR:",error);
+
+/* لا نعطل ميزة كانت تعمل بسبب خطأ قراءة عابر */
+btn.style.display="";
+
+}
+
+}
+
+
+/* ======================================================
+   SUBJECTS
+====================================================== */
+
+function fillSubjects(){
+fillTeacherProgressSubjects();
+
+const select=el("subjectSelect");
+
+clearSelect(
+select,
+"اختر المادة"
+);
+
+
+const subjects=new Map();
+
+
+assignments.forEach(a=>{
+
+if(
+a.subjectId &&
+!subjects.has(a.subjectId)
+){
+
+subjects.set(
+a.subjectId,
+a.subjectName||"المادة"
+);
+
+}
+
+});
+
+
+[...subjects.entries()]
+.sort(
+(a,b)=>
+String(a[1]).localeCompare(
+String(b[1]),
+"ar"
+)
+)
+.forEach(([id,name])=>{
+
+const option=
+document.createElement("option");
+
+option.value=id;
+option.textContent=name;
+
+select.appendChild(option);
+
+});
+
+}
+
+
+function subjectChanged(){
+
+selectedSubjectId=
+el("subjectSelect").value;
+
+
+const assignment=
+assignments.find(
+a=>a.subjectId===selectedSubjectId
+);
+
+
+selectedSubjectName=
+assignment?.subjectName||"";
+
+
+selectedGrade="";
+selectedSection="";
+selectedTest=null;
+
+
+fillGrades();
+
+
+clearSelect(
+el("sectionSelect"),
+"اختر الشعبة"
+);
+
+
+clearSelect(
+el("testSelect"),
+"اختر الاختبار"
+);
+
+
+resetTestInfo();
+
+clearStudents();
+
+}
+
+
+/* ======================================================
+   GRADES
+====================================================== */
+
+function fillGrades(){
+
+const select=
+el("gradeSelect");
+
+
+clearSelect(
+select,
+"اختر الصف"
+);
+
+
+if(!selectedSubjectId){
+return;
+}
+
+
+const grades=
+unique(
+
+assignments
+.filter(
+a=>
+a.subjectId===
+selectedSubjectId
+)
+.map(a=>a.grade)
+
+);
+
+
+grades.sort(
+(a,b)=>
+gradeOrder.indexOf(a)-
+gradeOrder.indexOf(b)
+);
+
+
+grades.forEach(grade=>{
+
+const option=
+document.createElement("option");
+
+option.value=grade;
+option.textContent=grade;
+
+select.appendChild(option);
+
+});
+
+}
+
+
+function gradeChanged(){
+
+selectedGrade=
+el("gradeSelect").value;
+
+
+selectedSection="";
+selectedTest=null;
+
+
+fillSections();
+
+
+clearSelect(
+el("testSelect"),
+"اختر الاختبار"
+);
+
+
+resetTestInfo();
+
+clearStudents();
+
+}
+
+
+/* ======================================================
+   SECTIONS
+====================================================== */
+
+function fillSections(){
+
+const select=
+el("sectionSelect");
+
+
+clearSelect(
+select,
+"اختر الشعبة"
+);
+
+
+if(
+!selectedSubjectId ||
+!selectedGrade
+){
+return;
+}
+
+
+const sections=
+unique(
+
+assignments
+.filter(a=>
+
+a.subjectId===
+selectedSubjectId &&
+
+a.grade===
+selectedGrade
+
+)
+.map(a=>a.section)
+
+);
+
+
+sections.sort(
+(a,b)=>
+sectionOrder.indexOf(a)-
+sectionOrder.indexOf(b)
+);
+
+
+sections.forEach(section=>{
+
+const option=
+document.createElement("option");
+
+option.value=section;
+option.textContent=section;
+
+select.appendChild(option);
+
+});
+
+}
+
+
+async function sectionChanged(){
+
+selectedSection=
+el("sectionSelect").value;
+
+selectedTest=null;
+
+resetTestInfo();
+
+clearStudents();
+
+
+if(
+selectedSubjectId &&
+selectedGrade &&
+selectedSection
+){
+
+/* الطلاب يظهرون فور اختيار الفصل حتى لو لا يوجد اختبار */
+await loadStudents();
+
+/* الاختبارات اختيار إضافي للرصد فقط */
+await loadTests();
+
+}
+
+else{
+
+clearSelect(
+el("testSelect"),
+"اختر الاختبار"
+);
+
+clearStudents();
+
+}
+
+}
+
+
+/* ======================================================
+   TESTS
+====================================================== */
+
+async function loadTests(){
+
+const select=
+el("testSelect");
+
+
+clearSelect(
+select,
+"اختر الاختبار"
+);
+
+
+const snap=
+await db
+.collection("tests")
+.where(
+"subjectId",
+"==",
+selectedSubjectId
+)
+.get();
+
+
+allTests=[];
+
+
+snap.forEach(doc=>{
+
+const data=doc.data()||{};
+
+const classes=
+Array.isArray(data.classes)
+?
+data.classes
+:
+[];
+
+
+const match=
+classes.some(c=>
+
+c.grade===selectedGrade &&
+c.section===selectedSection
+
+);
+
+
+if(match){
+
+allTests.push({
+id:doc.id,
+...data
+});
+
+}
+
+});
+
+
+allTests.sort(
+(a,b)=>
+String(a.date||"")
+.localeCompare(
+String(b.date||"")
+)
+);
+
+
+if(!allTests.length){
+
+clearSelect(
+select,
+"لا توجد اختبارات"
+);
+
+return;
+
+}
+
+
+allTests.forEach(test=>{
+
+const option=
+document.createElement("option");
+
+option.value=test.id;
+
+option.textContent=
+test.name+
+(
+test.date
+?
+" - "+test.date
+:
+""
+);
+
+select.appendChild(option);
+
+});
+
+}
+
+
+async function testChanged(){
+
+const id=
+el("testSelect").value;
+
+
+selectedTest=
+allTests.find(
+test=>test.id===id
+)||null;
+
+
+if(!selectedTest){
+
+resetTestInfo();
+
+/* لا نخفي الطلاب: تظل الرسائل متاحة بدون اختبار */
+savedGrades={};
+renderStudents();
+
+return;
+
+}
+
+
+el("testDate").textContent=
+selectedTest.date||"-";
+
+
+el("fullMark").textContent=
+selectedTest.fullMark??"-";
+
+
+updatePrintMeta();
+
+
+await loadStudents();
+
+}
+
+
+/* ======================================================
+   STUDENTS
+====================================================== */
+
+async function loadStudents(){
+
+el("studentsArea").innerHTML=`
+
+<div class="empty">
+جاري تحميل الطلاب...
+</div>
+
+`;
+
+
+const snap=
+await db
+.collection("students")
+.where(
+"grade",
+"==",
+selectedGrade
+)
+.get();
+
+
+currentStudents=[];
+
+
+snap.forEach(doc=>{
+
+const data=doc.data()||{};
+
+
+if(
+data.section===
+selectedSection
+){
+
+currentStudents.push({
+
+...data,
+
+code:
+data.code||doc.id
+
+});
+
+}
+
+});
+
+
+currentStudents.sort(
+(a,b)=>
+
+String(a.name||"")
+.localeCompare(
+String(b.name||""),
+"ar"
+)
+
+);
+
+
+await loadSavedGrades();
+
+renderStudents();
+
+}
+
+
+/* ======================================================
+   SAVED GRADES
+====================================================== */
+
+async function loadSavedGrades(){
+
+savedGrades={};
+
+
+if(!selectedTest){
+return;
+}
+
+
+const snap=
+await db
+.collection("grades")
+.where(
+"testId",
+"==",
+selectedTest.id
+)
+.get();
+
+
+snap.forEach(doc=>{
+
+const data=doc.data()||{};
+
+
+if(
+data.grade===selectedGrade &&
+data.section===selectedSection
+){
+
+savedGrades[
+String(data.studentCode)
+]=data;
+
+}
+
+});
+
+}
+
+
+/* ======================================================
+   RENDER STUDENTS
+====================================================== */
+
+function renderStudents(){
+
+if(!currentStudents.length){
+
+el("studentsArea").innerHTML=`
+
+<div class="empty">
+لا يوجد طلاب في هذا الفصل.
+</div>
+
+`;
+
+el("summaryArea").style.display=
+"none";
+
+return;
+
+}
+
+
+/*
+إذا لم يتم اختيار اختبار:
+نعرض الطلاب فورًا مع زر الرسالة فقط.
+لا تظهر أدوات الحضور والدرجة لأنها تخص الاختبار.
+*/
+if(!selectedTest){
+
+let rows="";
+
+currentStudents.forEach((student,index)=>{
+
+rows+=`
+
+<tr>
+
+<td>${index+1}</td>
+
+<td>${escapeHtml(student.code)}</td>
+
+<td class="student-name">${escapeHtml(student.name)}</td>
+
+<td class="whatsapp-col">
+
+<div class="parent-actions">
+
+<button
+class="whatsapp-custom"
+onclick='openCustomMessage(${JSON.stringify(String(student.code))})'
+>
+✉️ رسالة لولي الأمر
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+
+el("studentsArea").innerHTML=`
+
+<div style="margin-bottom:10px;padding:10px 12px;background:#e8f3ff;border:1px solid #bdd9f5;border-radius:7px;color:#174f7c;font-size:12px;line-height:1.7">
+👨‍🎓 تم عرض طلاب الفصل. يمكنك إرسال رسالة لولي الأمر الآن، أو اختيار اختبار لإظهار الحضور والدرجات.
+</div>
+
+<div class="table-wrap">
+
+<table style="min-width:620px">
+
+<thead>
+
+<tr>
+<th>#</th>
+<th>كود الطالب</th>
+<th>اسم الطالب</th>
+<th class="whatsapp-col">ولي الأمر</th>
+</tr>
+
+</thead>
+
+<tbody>
+${rows}
+</tbody>
+
+</table>
+
+</div>
+
+`;
+
+el("summaryArea").style.display="none";
+
+return;
+
+}
+
+
+let rows="";
+
+
+currentStudents.forEach(
+(student,index)=>{
+
+const saved=
+savedGrades[
+String(student.code)
+]||{};
+
+
+const attendance=
+saved.attendance||
+"present";
+
+
+const mark=
+saved.mark!==null &&
+saved.mark!==undefined
+?
+saved.mark
+:
+"";
+
+
+const absent=
+attendance==="absent";
+
+
+rows+=`
+
+<tr
+id="row_${escapeHtml(student.code)}"
+class="${absent?"absent-row":""}"
+>
+
+<td>
+${index+1}
+</td>
+
+<td>
+${escapeHtml(student.code)}
+</td>
+
+<td class="student-name">
+${escapeHtml(student.name)}
+</td>
+
+<td>
+
+<select
+class="attendance-select"
+id="attendance_${escapeHtml(student.code)}"
+onchange='attendanceChanged(${JSON.stringify(String(student.code))})'
+>
+
+<option
+value="present"
+${attendance==="present"?"selected":""}
+>
+حاضر
+</option>
+
+<option
+value="absent"
+${attendance==="absent"?"selected":""}
+>
+غائب
+</option>
+
+</select>
+
+</td>
+
+<td>
+
+<input
+type="number"
+class="mark-input"
+id="mark_${escapeHtml(student.code)}"
+min="0"
+max="${escapeHtml(selectedTest.fullMark)}"
+step="0.01"
+value="${escapeHtml(mark)}"
+${absent?"disabled":""}
+oninput='markChanged(${JSON.stringify(String(student.code))})'
+>
+
+</td>
+
+<td id="status_${escapeHtml(student.code)}">
+
+${
+savedGrades[String(student.code)]
+?
+'<span class="status-saved">محفوظ ✓</span>'
+:
+'<span class="status-unsaved">غير محفوظ</span>'
+}
+
+</td>
+
+<td class="whatsapp-col">
+
+<div class="parent-actions">
+<button
+class="whatsapp-result"
+onclick='sendWhatsApp(${JSON.stringify(String(student.code))})'
+>
+📊 النتيجة
+</button>
+<button
+class="whatsapp-custom"
+onclick='openCustomMessage(${JSON.stringify(String(student.code))})'
+>
+✉️ رسالة
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+
+el("studentsArea").innerHTML=`
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>#</th>
+<th>كود الطالب</th>
+<th>اسم الطالب</th>
+<th>الحضور</th>
+<th>الدرجة</th>
+<th>الحالة</th>
+<th class="whatsapp-col">ولي الأمر</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+${rows}
+
+</tbody>
+
+</table>
+
+</div>
+
+`;
+
+
+el("summaryArea").style.display=
+"grid";
+
+
+currentStudents.forEach(student=>{
+
+attendanceChanged(
+String(student.code),
+false
+);
+
+});
+
+
+updateSummary();
+
+}
+
+
+/* ======================================================
+   ATTENDANCE
+====================================================== */
+
+function attendanceChanged(
+code,
+dirty=true
+){
+
+const attendance=
+el("attendance_"+code);
+
+const mark=
+el("mark_"+code);
+
+const row=
+el("row_"+code);
+
+
+if(
+!attendance ||
+!mark
+){
+return;
+}
+
+
+if(
+attendance.value==="absent"
+){
+
+mark.value="";
+mark.disabled=true;
+
+if(row){
+row.classList.add("absent-row");
+}
+
+}
+
+else{
+
+mark.disabled=false;
+
+if(row){
+row.classList.remove("absent-row");
+}
+
+}
+
+
+if(dirty){
+
+const status=
+el("status_"+code);
+
+if(status){
+
+status.innerHTML=
+'<span class="status-unsaved">غير محفوظ</span>';
+
+}
+
+}
+
+
+updateSummary();
+
+}
+
+
+function markChanged(code){
+
+const input=
+el("mark_"+code);
+
+
+if(!input){
+return;
+}
+
+
+const max=
+Number(selectedTest.fullMark);
+
+
+if(
+input.value!=="" &&
+Number(input.value)>max
+){
+
+input.value=max;
+
+}
+
+
+if(
+input.value!=="" &&
+Number(input.value)<0
+){
+
+input.value=0;
+
+}
+
+
+const status=
+el("status_"+code);
+
+
+if(status){
+
+status.innerHTML=
+'<span class="status-unsaved">غير محفوظ</span>';
+
+}
+
+
+updateSummary();
+
+}
+
+
+/* ======================================================
+   SUMMARY
+====================================================== */
+
+function updateSummary(){
+
+let present=0;
+let absent=0;
+let entered=0;
+let totalMarks=0;
+
+
+currentStudents.forEach(student=>{
+
+const code=
+String(student.code);
+
+const attendance=
+el("attendance_"+code);
+
+const mark=
+el("mark_"+code);
+
+
+if(
+!attendance ||
+!mark
+){
+return;
+}
+
+
+if(
+attendance.value==="absent"
+){
+
+absent++;
+
+}
+
+else{
+
+present++;
+
+
+if(mark.value!==""){
+
+entered++;
+
+totalMarks+=
+Number(mark.value)||0;
+
+}
+
+}
+
+});
+
+
+el("summaryTotal").textContent=
+currentStudents.length;
+
+
+el("summaryPresent").textContent=
+present;
+
+
+el("summaryAbsent").textContent=
+absent;
+
+
+el("summaryEntered").textContent=
+entered;
+
+
+el("summaryAverage").textContent=
+entered
+?
+(totalMarks/entered).toFixed(2)
+:
+"-";
+
+}
+
+
+/* ======================================================
+   SAVE
+====================================================== */
+
+async function saveAllGrades(){
+
+if(
+!selectedTest ||
+!currentStudents.length
+){
+
+alert(
+"اختر الاختبار والفصل أولًا."
+);
+
+return;
+
+}
+
+
+const records=[];
+
+
+for(
+const student of currentStudents
+){
+
+const code=
+String(student.code);
+
+
+const attendance=
+el("attendance_"+code).value;
+
+
+const markInput=
+el("mark_"+code);
+
+
+let mark=null;
+
+
+if(attendance==="present"){
+
+if(markInput.value===""){
+
+alert(
+"أدخل درجة الطالب:\n"+
+student.name
+);
+
+markInput.focus();
+
+return;
+
+}
+
+
+mark=
+Number(markInput.value);
+
+
+if(
+Number.isNaN(mark) ||
+mark<0 ||
+mark>Number(selectedTest.fullMark)
+){
+
+alert(
+"درجة الطالب "+student.name+
+" يجب أن تكون من 0 إلى "+
+selectedTest.fullMark
+);
+
+markInput.focus();
+
+return;
+
+}
+
+}
+
+
+records.push({
+student,
+attendance,
+mark
+});
+
+}
+
+
+try{
+
+for(
+let start=0;
+start<records.length;
+start+=400
+){
+
+const batch=
+db.batch();
+
+
+records
+.slice(start,start+400)
+.forEach(item=>{
+
+const docId=
+
+selectedTest.id+
+"_"+
+item.student.code;
+
+
+const ref=
+db.collection("grades")
+.doc(docId);
+
+
+batch.set(
+ref,
+{
+
+testId:selectedTest.id,
+
+studentCode:
+String(item.student.code),
+
+studentName:
+item.student.name||"",
+
+teacherEmail:
+currentUsername,
+
+teacherName:
+currentTeacher.name||"",
+
+subjectId:
+selectedSubjectId,
+
+subjectName:
+selectedSubjectName,
+
+grade:
+selectedGrade,
+
+section:
+selectedSection,
+
+attendance:
+item.attendance,
+
+mark:
+item.attendance==="absent"
+?
+null
+:
+item.mark,
+
+testName:
+selectedTest.name,
+
+testDate:
+selectedTest.date||"",
+
+fullMark:
+Number(selectedTest.fullMark),
+
+updatedAt:
+firebase.firestore
+.FieldValue
+.serverTimestamp()
+
+},
+{
+merge:true
+}
+);
+
+});
+
+
+await batch.commit();
+
+}
+
+
+alert(
+"تم حفظ الدرجات بنجاح ✅"
+);
+
+
+await loadSavedGrades();
+
+renderStudents();
+
+}
+
+catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء الحفظ:\n"+
+error.message
+);
+
+}
+
+}
+
+
+/* ======================================================
+   CLEAR INPUTS ONLY
+====================================================== */
+
+
+/* الدرجة النهائية لجميع الطلاب الحاضرين */
+function setAttendanceForAll(status){
+  if(!selectedTest){
+    alert("اختر الاختبار أولًا.");
+    return;
+  }
+
+  if(!currentStudents.length){
+    alert("لا يوجد طلاب في الفصل المحدد.");
+    return;
+  }
+
+  currentStudents.forEach(student=>{
+    const code=String(student.code);
+    const attendance=el("attendance_"+code);
+    const mark=el("mark_"+code);
+    const row=el("row_"+code);
+    const statusCell=el("status_"+code);
+
+    if(!attendance || !mark) return;
+
+    attendance.value=status;
+
+    if(status==="absent"){
+      mark.value="";
+      mark.disabled=true;
+      if(row) row.classList.add("absent-row");
+    }else{
+      mark.disabled=false;
+      if(row) row.classList.remove("absent-row");
+    }
+
+    if(statusCell){
+      statusCell.innerHTML='<span class="status-unsaved">غير محفوظ</span>';
+    }
+  });
+
+  updateSummary();
+
+  if(status==="present"){
+    alert("تم تحديد جميع الطلاب: حاضر ✅\nيمكنك الآن إدخال الدرجات أو استخدام زر الدرجة النهائية للجميع.");
+  }else{
+    alert("تم تحديد جميع الطلاب: غائب 🚫\nتم تفريغ درجاتهم، ويمكنك تعديل أي طالب يدويًا قبل الحفظ.");
+  }
+}
+
+function fillFullMarkForAll(){
+  if(!selectedTest){
+    alert("اختر الاختبار أولًا.");
+    return;
+  }
+  if(!currentStudents.length){
+    alert("لا يوجد طلاب في الفصل المحدد.");
+    return;
+  }
+
+  const fullMark=Number(selectedTest.fullMark);
+  if(!Number.isFinite(fullMark)){
+    alert("الدرجة النهائية للاختبار غير صحيحة.");
+    return;
+  }
+
+  currentStudents.forEach(student=>{
+    const code=String(student.code);
+    const attendance=el("attendance_"+code);
+    const mark=el("mark_"+code);
+    const status=el("status_"+code);
+
+    if(!attendance || !mark) return;
+
+    // الطالب الغائب يظل غائبًا ودرجته فارغة
+    if(attendance.value==="absent") return;
+
+    mark.disabled=false;
+    mark.value=fullMark;
+
+    if(status){
+      status.innerHTML='<span class="status-unsaved">غير محفوظ</span>';
+    }
+  });
+
+  updateSummary();
+  alert("تم وضع الدرجة النهائية لجميع الطلاب الحاضرين ⭐\nعدّل درجات الطلاب الناقصين ثم اضغط حفظ الدرجات.");
+}
+
+function clearInputs(){
+
+if(!currentStudents.length){
+return;
+}
+
+
+if(
+!confirm(
+"مسح الدرجات الظاهرة من الشاشة؟\n\nلن يتم حذف البيانات المحفوظة إلا إذا ضغطت حفظ بعد ذلك."
+)
+){
+
+return;
+
+}
+
+
+currentStudents.forEach(student=>{
+
+const code=
+String(student.code);
+
+
+const attendance=
+el("attendance_"+code);
+
+const mark=
+el("mark_"+code);
+
+
+if(attendance){
+attendance.value="present";
+}
+
+
+if(mark){
+
+mark.disabled=false;
+mark.value="";
+
+}
+
+
+const row=
+el("row_"+code);
+
+
+if(row){
+row.classList.remove("absent-row");
+}
+
+
+const status=
+el("status_"+code);
+
+
+if(status){
+
+status.innerHTML=
+'<span class="status-unsaved">غير محفوظ</span>';
+
+}
+
+});
+
+
+updateSummary();
+
+}
+
+
+/* ======================================================
+   DELETE ALL GRADES FOR CURRENT TEST + CLASS
+====================================================== */
+
+async function deleteAllClassGrades(){
+
+if(
+!selectedTest ||
+!selectedGrade ||
+!selectedSection
+){
+
+alert(
+"اختر المادة والصف والشعبة والاختبار أولًا."
+);
+
+return;
+
+}
+
+
+const confirm1=
+confirm(
+
+"⚠️ حذف جميع درجات هذا الفصل\n\n"+
+"المادة: "+selectedSubjectName+"\n"+
+"الفصل: "+selectedGrade+" / "+selectedSection+"\n"+
+"الاختبار: "+selectedTest.name+"\n\n"+
+"سيتم حذف جميع درجات الطلاب في هذا الاختبار لهذا الفصل فقط.\n"+
+"هل تريد المتابعة؟"
+
+);
+
+
+if(!confirm1){
+return;
+}
+
+
+const confirm2=
+confirm(
+
+"تأكيد أخير:\n\n"+
+"لا يمكن التراجع عن حذف الدرجات بعد التنفيذ.\n"+
+"هل أنت متأكد؟"
+
+);
+
+
+if(!confirm2){
+return;
+}
+
+
+try{
+
+const snap=
+await db
+.collection("grades")
+.where(
+"testId",
+"==",
+selectedTest.id
+)
+.get();
+
+
+const docs=[];
+
+
+snap.forEach(doc=>{
+
+const data=doc.data()||{};
+
+
+if(
+data.grade===selectedGrade &&
+data.section===selectedSection
+){
+
+docs.push(doc.ref);
+
+}
+
+});
+
+
+if(!docs.length){
+
+alert(
+"لا توجد درجات محفوظة لهذا الفصل في هذا الاختبار."
+);
+
+return;
+
+}
+
+
+for(
+let start=0;
+start<docs.length;
+start+=400
+){
+
+const batch=
+db.batch();
+
+
+docs
+.slice(start,start+400)
+.forEach(ref=>{
+
+batch.delete(ref);
+
+});
+
+
+await batch.commit();
+
+}
+
+
+alert(
+"تم حذف جميع درجات هذا الفصل من الاختبار بنجاح."
+);
+
+
+await loadSavedGrades();
+
+renderStudents();
+
+}
+
+catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء حذف الدرجات:\n"+
+error.message
+);
+
+}
+
+}
+
+
+/* ======================================================
+   WHATSAPP
+====================================================== */
+
+async function logAndOpenWhatsApp(student,phone,message,type,attendance=null,mark=null){
+
+const waWindow=window.open("about:blank","_blank");
+
+if(!waWindow){
+alert("اسمح بالنوافذ المنبثقة لهذا الموقع حتى يتم فتح واتساب.");
+return false;
+}
+
+try{
+
+await db.collection("messageLogs").add({
+teacherEmail:currentUsername,
+teacherName:currentTeacher?.name||"",
+studentCode:String(student.code||""),
+studentName:student.name||"",
+guardianPhone:phone,
+subjectId:selectedSubjectId||"",
+subjectName:selectedSubjectName||"",
+grade:selectedGrade||student.grade||"",
+section:selectedSection||student.section||"",
+testId:selectedTest?.id||"",
+testName:selectedTest?.name||"",
+testDate:selectedTest?.date||"",
+attendance:attendance,
+mark:attendance==="absent"?null:(mark===""||mark===null?null:Number(mark)),
+fullMark:selectedTest?Number(selectedTest.fullMark):null,
+messageType:type,
+message:message,
+sentAt:firebase.firestore.FieldValue.serverTimestamp()
+});
+
+waWindow.location.href="https://wa.me/"+phone+"?text="+encodeURIComponent(message);
+await loadMessageLogs();
+return true;
+
+}catch(error){
+if(waWindow&&!waWindow.closed) waWindow.close();
+console.error(error);
+alert("تعذر تسجيل الرسالة، لذلك لم يتم فتح واتساب:\n"+error.message);
+return false;
+}
+}
+
+async function sendWhatsApp(code){
+
+if(!selectedTest) return;
+
+const student=currentStudents.find(s=>String(s.code)===String(code));
+if(!student) return;
+
+const phone=normalizeSaudiPhone(student.guardianPhone||student.phone||"");
+if(!phone){alert("لا يوجد رقم جوال مسجل لولي أمر الطالب:\n"+student.name);return;}
+
+const attendance=el("attendance_"+code).value;
+const mark=el("mark_"+code).value;
+let message="";
+
+if(attendance==="absent"){
+message=`مدارس الفلاح الأهلية
+
+ولي أمر الطالب: ${student.name}
+
+نفيدكم بغياب الطالب عن اختبار:
+${selectedTest.name}
+
+المادة: ${selectedSubjectName}
+الفصل: ${selectedGrade} / ${selectedSection}
+تاريخ الاختبار: ${selectedTest.date||"-"}
+
+معلم المادة:
+${currentTeacher.name||""}`;
+}else{
+if(mark===""){alert("أدخل درجة الطالب أولًا.");return;}
+message=`مدارس الفلاح الأهلية
+
+ولي أمر الطالب: ${student.name}
+
+نتيجة اختبار:
+${selectedTest.name}
+
+المادة: ${selectedSubjectName}
+الدرجة: ${mark} من ${selectedTest.fullMark}
+الفصل: ${selectedGrade} / ${selectedSection}
+تاريخ الاختبار: ${selectedTest.date||"-"}
+
+معلم المادة:
+${currentTeacher.name||""}`;
+}
+
+await logAndOpenWhatsApp(student,phone,message,"result",attendance,mark);
+}
+
+function openCustomMessage(code){
+const student=currentStudents.find(s=>String(s.code)===String(code));
+if(!student) return;
+const phone=normalizeSaudiPhone(student.guardianPhone||student.phone||"");
+if(!phone){alert("لا يوجد رقم جوال مسجل لولي أمر الطالب:\n"+student.name);return;}
+customMessageStudent=student;
+el("customMessageStudentInfo").innerHTML="<strong>الطالب:</strong> "+escapeHtml(student.name)+"<br><strong>الفصل:</strong> "+escapeHtml(student.grade||selectedGrade||"-")+" / "+escapeHtml(student.section||selectedSection||"-")+"<br><strong>جوال ولي الأمر:</strong> "+escapeHtml(phone);
+el("customMessageText").value="";
+el("customMessageModal").classList.add("show");
+setTimeout(()=>el("customMessageText").focus(),50);
+}
+
+function closeCustomMessage(){el("customMessageModal").classList.remove("show");customMessageStudent=null;}
+function modalBackdropClose(event){if(event.target===el("customMessageModal"))closeCustomMessage();}
+
+async function sendCustomMessage(){
+if(!customMessageStudent) return;
+const raw=el("customMessageText").value.trim();
+if(!raw){alert("اكتب الرسالة أولًا.");el("customMessageText").focus();return;}
+const student=customMessageStudent;
+const phone=normalizeSaudiPhone(student.guardianPhone||student.phone||"");
+if(!phone){alert("لا يوجد رقم جوال مسجل لولي الأمر.");return;}
+const message=`مدارس الفلاح الأهلية
+
+ولي أمر الطالب: ${student.name}
+
+${raw}
+
+معلم المادة:
+${currentTeacher.name||""}`;
+const ok=await logAndOpenWhatsApp(student,phone,message,"custom",null,null);
+if(ok) closeCustomMessage();
+}
+
+function scrollToMessages(){el("messagesSection").scrollIntoView({behavior:"smooth",block:"start"});}
+
+function formatMessageDate(ts){
+if(!ts) return "الآن";
+try{const d=ts.toDate?ts.toDate():new Date(ts);return new Intl.DateTimeFormat("ar-SA",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);}catch{return "-";}
+}
+
+async function loadMessageLogs(){
+try{
+const snap=await db.collection("messageLogs").where("teacherEmail","==",currentUsername).get();
+messageLogs=snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+messageLogs.sort((a,b)=>(b.sentAt?.toMillis?.()||0)-(a.sentAt?.toMillis?.()||0));
+renderMessageLogs();
+}catch(error){console.error(error);el("messageLogsBody").innerHTML='<tr><td colspan="9">تعذر تحميل سجل الرسائل.</td></tr>';}
+}
+
+function getFilteredTeacherLogs(){
+const q=String(el("messageLogSearch")?.value||"").trim().toLowerCase();
+return messageLogs.filter(log=>{if(!q)return true;return [log.studentName,log.studentCode,log.subjectName,log.testName,log.message,log.guardianPhone].map(v=>String(v||"").toLowerCase()).join(" ").includes(q);});
+}
+
+function renderMessageLogs(){
+const rows=getFilteredTeacherLogs(),body=el("messageLogsBody");
+if(!rows.length){body.innerHTML='<tr><td colspan="9">لا توجد رسائل مسجلة.</td></tr>';return;}
+body.innerHTML=rows.map((log,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(formatMessageDate(log.sentAt))}</td><td><strong>${escapeHtml(log.studentName||"-")}</strong><br><small>${escapeHtml(log.studentCode||"")}</small></td><td>${escapeHtml(log.grade||"-")} / ${escapeHtml(log.section||"-")}</td><td>${escapeHtml(log.subjectName||"-")}</td><td>${escapeHtml(log.messageType==="custom"?"رسالة عامة":(log.testName||"نتيجة اختبار"))}</td><td style="direction:ltr">${escapeHtml(log.guardianPhone||"-")}</td><td class="message-log-text">${escapeHtml(log.message||"-")}${log.fileUrl?`<br><a class="file-link" href="${escapeHtml(log.fileUrl)}" target="_blank">📎 فتح ${escapeHtml(log.fileName||"الملف")}</a>`:""}</td><td><button class="mini-btn delete-btn" onclick='deleteMyMessageLog(${JSON.stringify(log.id)})'>🗑️ حذف</button></td></tr>`).join("");
+}
+
+
+async function deleteMyMessageLog(id){
+const log=messageLogs.find(item=>item.id===id);
+if(!log)return;
+if(String(log.teacherEmail||"").toLowerCase()!==String(currentUsername||"").toLowerCase()){alert("لا يمكنك حذف رسالة تخص معلماً آخر.");return;}
+if(!confirm("هل تريد حذف هذه الرسالة من سجلك؟\n\n"+(log.studentName||"")+"\n"+(log.message||"")))return;
+try{
+const fresh=await db.collection("messageLogs").doc(id).get();
+if(!fresh.exists){await loadMessageLogs();return;}
+const data=fresh.data()||{};
+if(String(data.teacherEmail||"").toLowerCase()!==String(currentUsername||"").toLowerCase()){alert("لا يمكنك حذف رسالة تخص معلماً آخر.");return;}
+await db.collection("messageLogs").doc(id).delete();
+messageLogs=messageLogs.filter(item=>item.id!==id);
+renderMessageLogs();
+}catch(error){console.error(error);alert("تعذر حذف الرسالة:\n"+error.message);}
+}
+
+async function deleteAllMyMessageLogs(){
+if(!messageLogs.length){alert("لا توجد رسائل في سجلك.");return;}
+const confirmation=prompt("⚠️ سيتم حذف جميع رسائلك أنت فقط من سجل الرسائل نهائيًا.\n\nعدد الرسائل: "+messageLogs.length+"\n\nاكتب: حذف رسائلي");
+if(confirmation!=="حذف رسائلي"){alert("تم إلغاء العملية");return;}
+try{
+const snap=await db.collection("messageLogs").where("teacherEmail","==",currentUsername).get();
+for(let i=0;i<snap.docs.length;i+=400){const batch=db.batch();snap.docs.slice(i,i+400).forEach(doc=>batch.delete(doc.ref));await batch.commit();}
+messageLogs=[];
+renderMessageLogs();
+alert("تم حذف جميع رسائلك من السجل ✅");
+}catch(error){console.error(error);alert("تعذر حذف جميع الرسائل:\n"+error.message);}
+}
+
+function printMessageLog(){
+const rows=getFilteredTeacherLogs();
+if(!rows.length){alert("لا توجد رسائل للطباعة.");return;}
+const body=rows.map((log,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(formatMessageDate(log.sentAt))}</td><td>${escapeHtml(log.studentName||"-")}</td><td>${escapeHtml(log.grade||"-")} / ${escapeHtml(log.section||"-")}</td><td>${escapeHtml(log.subjectName||"-")}</td><td>${escapeHtml(log.messageType==="custom"?"رسالة عامة":(log.testName||"نتيجة اختبار"))}</td><td>${escapeHtml(log.guardianPhone||"-")}</td><td class="msg">${escapeHtml(log.message||"-")}</td></tr>`).join("");
+const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>سجل رسائل المعلم</title><style>@page{size:A4 landscape;margin:7mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Tahoma,Arial,sans-serif;margin:0}.head{text-align:center;border-bottom:2px solid #073b68;margin-bottom:7px;padding-bottom:5px}.head img{width:48px;height:48px;object-fit:contain}.head h1{font-size:16px;margin:2px}.head h2{font-size:12px;margin:2px;color:#073b68}.meta{font-size:8pt;margin:5px 0}.meta span{margin-left:25px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #777;padding:3px;font-size:6.5pt;text-align:center;vertical-align:middle}th{background:#073b68!important;color:#fff!important}.msg{text-align:right;white-space:pre-wrap;word-break:break-word}th:nth-child(1){width:3%}th:nth-child(2){width:11%}th:nth-child(3){width:11%}th:nth-child(4){width:8%}th:nth-child(5){width:9%}th:nth-child(6){width:11%}th:nth-child(7){width:10%}th:nth-child(8){width:37%}.foot{display:flex;justify-content:space-between;border-top:1px solid #777;margin-top:5px;padding-top:3px;font-size:6.5pt}</style></head><body><div class="head"><img src="logo.jpeg"><h1>مدارس الفلاح الأهلية</h1><h2>سجل رسائل أولياء الأمور - المعلم</h2></div><div class="meta"><span><strong>المعلم:</strong> ${escapeHtml(currentTeacher?.name||"")}</span><span><strong>عدد الرسائل:</strong> ${rows.length}</span></div><table><thead><tr><th>م</th><th>التاريخ والوقت</th><th>الطالب</th><th>الفصل</th><th>المادة</th><th>الاختبار / النوع</th><th>الجوال</th><th>نص الرسالة</th></tr></thead><tbody>${body}</tbody></table><div class="foot"><span>نظام راصد - مدارس الفلاح الأهلية</span><span>تصميم محمد عامر أحمد - 2026</span></div><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script>
+</body></html>`;
+const w=window.open("","_blank");if(!w){alert("اسمح بالنوافذ المنبثقة للطباعة.");return;}w.document.open();w.document.write(html);w.document.close();
+}
+
+/* ======================================================
+   ANALYSIS
+====================================================== */
+
+function openExamPlatform(){
+location.href="exam-admin.html";
+}
+
+function openAnalysis(){
+
+if(!selectedTest){
+
+alert(
+"اختر المادة والصف والشعبة والاختبار أولًا."
+);
+
+return;
+
+}
+
+
+const params=
+new URLSearchParams({
+
+source:"teacher",
+
+subjectId:
+selectedSubjectId,
+
+grade:
+selectedGrade,
+
+section:
+selectedSection,
+
+testId:
+selectedTest.id
+
+});
+
+
+location.href=
+
+"analysis.html?"+
+params.toString();
+
+}
+
+
+/* ======================================================
+   PRINT
+====================================================== */
+
+function updatePrintMeta(){
+
+el("printTeacher").textContent=
+currentTeacher?.name||"-";
+
+
+el("printSubject").textContent=
+selectedSubjectName||"-";
+
+
+el("printClass").textContent=
+
+selectedGrade+
+" / "+
+selectedSection;
+
+
+el("printTest").textContent=
+selectedTest?.name||"-";
+
+
+el("printTestDate").textContent=
+selectedTest?.date||"-";
+
+
+el("printFullMark").textContent=
+selectedTest?.fullMark??"-";
+
+}
+
+
+function printReport(){
+
+if(!selectedTest){
+
+alert(
+"اختر الاختبار أولًا."
+);
+
+return;
+
+}
+
+
+if(!currentStudents.length){
+
+alert(
+"لا يوجد طلاب للطباعة."
+);
+
+return;
+
+}
+
+
+updatePrintMeta();
+
+window.print();
+
+}
+
+
+/* ======================================================
+   RESET
+====================================================== */
+
+function resetTestInfo(){
+
+el("testDate").textContent="-";
+
+el("fullMark").textContent="-";
+
+}
+
+
+function clearStudents(){
+
+currentStudents=[];
+savedGrades={};
+
+
+el("summaryArea").style.display=
+"none";
+
+
+el("studentsArea").innerHTML=`
+
+<div class="empty">
+
+اختر المادة والصف والشعبة لعرض الطلاب وإرسال الرسائل.
+
+</div>
+
+`;
+
+}
+
+
+/* ======================================================
+   LOGOUT
+====================================================== */
+
+
+
+/* ======================================================
+   رفع ملف عام وتوليد رابط
+====================================================== */
+function openUploadLinkModal(){
+  el("generalUploadFile").value="";
+  el("generatedFileLink").value="";
+  el("generatedFileArea").style.display="none";
+  el("generalUploadProgress").style.display="none";
+  el("generalUploadProgress").textContent="";
+  el("uploadLinkModalOverlay").style.display="flex";
+}
+
+function closeUploadLinkModal(){
+  el("uploadLinkModalOverlay").style.display="none";
+}
+
+function safeUploadFileName(name){
+  const parts=String(name||"file").split(".");
+  const ext=parts.length>1?"."+parts.pop().replace(/[^a-zA-Z0-9]/g,""):"";
+  const base=parts.join(".")
+    .replace(/[^\u0600-\u06FFa-zA-Z0-9_-]/g,"_")
+    .slice(0,80) || "file";
+  return base+ext;
+}
+
+async function uploadFileAndGenerateLink(){
+  const file=el("generalUploadFile").files[0];
+
+  if(!file){
+    alert("اختر الملف أولًا.");
+    return;
+  }
+
+  if(file.size > 50*1024*1024){
+    alert("حجم الملف أكبر من 50 ميجابايت.");
+    return;
+  }
+
+  const progress=el("generalUploadProgress");
+  const btn=el("generateLinkBtn");
+
+  btn.disabled=true;
+  progress.style.display="block";
+  progress.textContent="جاري رفع الملف...";
+
+  try{
+    const teacherFolder=
+      String(currentUsername||"teacher")
+      .replace(/[^a-zA-Z0-9_-]/g,"_");
+
+    const originalName=String(file.name||"file");
+    const lastDot=originalName.lastIndexOf(".");
+    const rawExt=lastDot>=0 ? originalName.slice(lastDot+1) : "";
+    const safeExt=rawExt.replace(/[^a-zA-Z0-9]/g,"").toLowerCase().slice(0,10);
+
+    /* اسم داخلي إنجليزي فقط لتجنب InvalidKey مع الأسماء العربية */
+    const generatedName=
+      Date.now()+"_"+Math.random().toString(36).slice(2,10)+
+      (safeExt ? "."+safeExt : "");
+
+    const filePath=
+      teacherFolder+"/"+generatedName;
+
+    const {data,error}=
+      await supabaseClient
+        .storage
+        .from(SUPABASE_BUCKET)
+        .upload(
+          filePath,
+          file,
+          {
+            cacheControl:"3600",
+            upsert:false,
+            contentType:file.type||undefined
+          }
+        );
+
+    if(error){
+      throw error;
+    }
+
+    const publicResult=
+      supabaseClient
+        .storage
+        .from(SUPABASE_BUCKET)
+        .getPublicUrl(data.path);
+
+    const url=
+      publicResult?.data?.publicUrl||"";
+
+    if(!url){
+      throw new Error("لم يتم إنشاء رابط عام للملف.");
+    }
+
+    el("generatedFileName").textContent=file.name;
+    el("generatedFileLink").value=url;
+    el("generatedFileArea").style.display="block";
+    progress.textContent="✅ تم رفع الملف وتوليد الرابط بنجاح.";
+
+  }catch(error){
+    console.error("SUPABASE UPLOAD ERROR:",error);
+    progress.textContent="❌ تعذر رفع الملف.";
+    alert(
+      "تعذر رفع الملف إلى Supabase.\\n\\n"+
+      (error?.message||error)
+    );
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+async function copyGeneratedFileLink(){
+  const link=el("generatedFileLink").value.trim();
+  if(!link)return;
+
+  try{
+    await navigator.clipboard.writeText(link);
+    alert("تم نسخ الرابط ✅");
+  }catch(error){
+    el("generatedFileLink").focus();
+    el("generatedFileLink").select();
+    document.execCommand("copy");
+    alert("تم نسخ الرابط ✅");
+  }
+}
+
+function logout(){
+
+[
+"currentUserRole",
+"currentUser",
+"currentUserName",
+"currentUserEmail"
+]
+.forEach(key=>
+localStorage.removeItem(key)
+);
+
+
+location.href=
+"index.html";
+
+}
+
+
+/* ======================================================
+   START
+====================================================== */
+
+async function start(){
+
+if(!protectPage()){
+return;
+}
+
+
+try{
+
+await loadTeacher();
+await loadMessageLogs();
+
+}
+
+catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء تحميل صفحة المعلم:\n"+
+error.message
+);
+
+}
+
+}
+
+
+start();
+
+</script>
+
+</body>
+</html>
