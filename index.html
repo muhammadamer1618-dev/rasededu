@@ -43,10 +43,6 @@ body{
     overflow-x:hidden;
 }
 
-/* =========================================================
-   BACKGROUND
-========================================================= */
-
 .page{
     min-height:100vh;
     position:relative;
@@ -94,10 +90,6 @@ body{
     left:-240px;
 }
 
-/* =========================================================
-   TOP ACCENT
-========================================================= */
-
 .top-accent{
     position:relative;
     z-index:5;
@@ -112,10 +104,6 @@ body{
             var(--navy)
         );
 }
-
-/* =========================================================
-   MAIN
-========================================================= */
 
 .main{
     position:relative;
@@ -142,10 +130,6 @@ body{
         0 30px 80px rgba(24,57,80,.14),
         0 8px 25px rgba(24,57,80,.06);
 }
-
-/* =========================================================
-   BRAND SIDE
-========================================================= */
 
 .brand-side{
     position:relative;
@@ -290,10 +274,6 @@ body{
     background:var(--gold);
 }
 
-/* =========================================================
-   LOGIN SIDE
-========================================================= */
-
 .login-side{
     padding:50px 48px 40px;
     display:flex;
@@ -330,10 +310,6 @@ body{
     font-size:12px;
     line-height:1.7;
 }
-
-/* =========================================================
-   FORM
-========================================================= */
 
 .form-group{
     margin-bottom:15px;
@@ -425,10 +401,6 @@ body{
     background:#edf3f7;
 }
 
-/* =========================================================
-   ERROR
-========================================================= */
-
 .login-message{
     display:none;
     margin:4px 0 12px;
@@ -445,10 +417,6 @@ body{
     border:1px solid #efc6ca;
     color:var(--danger);
 }
-
-/* =========================================================
-   LOGIN BUTTON
-========================================================= */
 
 .login-btn{
     width:100%;
@@ -494,10 +462,6 @@ body{
     transform:none;
 }
 
-/* =========================================================
-   DIVIDER
-========================================================= */
-
 .divider{
     display:flex;
     align-items:center;
@@ -515,10 +479,6 @@ body{
     height:1px;
     background:#e0e7ec;
 }
-
-/* =========================================================
-   PARENT BUTTON
-========================================================= */
 
 .parent-btn{
     width:100%;
@@ -590,10 +550,6 @@ body{
     font-weight:bold;
 }
 
-/* =========================================================
-   SECURITY NOTE
-========================================================= */
-
 .security-note{
     display:flex;
     justify-content:center;
@@ -603,10 +559,6 @@ body{
     color:#8b9aa5;
     font-size:9px;
 }
-
-/* =========================================================
-   FOOTER
-========================================================= */
 
 .footer{
     position:relative;
@@ -620,10 +572,6 @@ body{
 .footer strong{
     color:var(--navy);
 }
-
-/* =========================================================
-   LOADER
-========================================================= */
 
 .spinner{
     display:inline-block;
@@ -642,10 +590,6 @@ body{
         transform:rotate(360deg);
     }
 }
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media(max-width:780px){
 
@@ -803,15 +747,9 @@ table{max-width:100%;}
 
     <div class="top-accent"></div>
 
-
     <main class="main">
 
         <section class="login-card">
-
-
-            <!-- =================================================
-                 BRAND SIDE
-            ================================================== -->
 
             <div class="brand-side">
 
@@ -826,19 +764,15 @@ table{max-width:100%;}
 
                     </div>
 
-
                     <div class="school">
                         مدارس الفلاح الأهلية
                     </div>
-
 
                     <h1 class="rased-title">
                         نظام <span>راصد</span>
                     </h1>
 
-
                     <div class="brand-line"></div>
-
 
                     <p class="brand-description">
 
@@ -847,7 +781,6 @@ table{max-width:100%;}
                         الطلاب بصورة سهلة ودقيقة.
 
                     </p>
-
 
                     <div class="features">
 
@@ -871,7 +804,6 @@ table{max-width:100%;}
 
                 </div>
 
-
                 <div class="brand-bottom">
                     مدارس الفلاح الأهلية
                     •
@@ -880,15 +812,7 @@ table{max-width:100%;}
 
             </div>
 
-
-            <!-- =================================================
-                 LOGIN SIDE
-            ================================================== -->
-
             <div class="login-side">
-
-
-                <!-- MOBILE BRAND -->
 
                 <div class="small-brand">
 
@@ -911,7 +835,6 @@ table{max-width:100%;}
 
                 </div>
 
-
                 <div class="login-heading">
 
                     <div class="welcome">
@@ -928,9 +851,6 @@ table{max-width:100%;}
 
                 </div>
 
-
-                <!-- USERNAME -->
-
                 <div class="form-group">
 
                     <label
@@ -940,7 +860,6 @@ table{max-width:100%;}
                         اسم المستخدم
 
                     </label>
-
 
                     <div class="input-wrap">
 
@@ -959,9 +878,6 @@ table{max-width:100%;}
 
                 </div>
 
-
-                <!-- PASSWORD -->
-
                 <div class="form-group">
 
                     <label
@@ -971,7 +887,6 @@ table{max-width:100%;}
                         كلمة المرور
 
                     </label>
-
 
                     <div class="input-wrap">
 
@@ -985,7 +900,6 @@ table{max-width:100%;}
                             type="password"
                             autocomplete="current-password"
                             placeholder="أدخل كلمة المرور">
-
 
                         <button
                             id="showPasswordBtn"
@@ -1002,16 +916,10 @@ table{max-width:100%;}
 
                 </div>
 
-
-                <!-- MESSAGE -->
-
                 <div
                     id="loginMessage"
                     class="login-message">
                 </div>
-
-
-                <!-- LOGIN -->
 
                 <button
                     id="loginBtn"
@@ -1021,7 +929,6 @@ table{max-width:100%;}
                     تسجيل الدخول
 
                 </button>
-
 
                 <div class="security-note">
 
@@ -1037,7 +944,6 @@ table{max-width:100%;}
 
     </main>
 
-
     <footer class="footer">
 
         <strong>نظام راصد</strong>
@@ -1050,12 +956,7 @@ table{max-width:100%;}
 
 </div>
 
-
 <script>
-
-/* =========================================================
-   FIREBASE
-========================================================= */
 
 const firebaseConfig={
 
@@ -1079,19 +980,12 @@ const firebaseConfig={
 
 };
 
-
 firebase.initializeApp(
     firebaseConfig
 );
 
-
 const db=
     firebase.firestore();
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
 
 function el(id){
 
@@ -1099,51 +993,38 @@ function el(id){
 
 }
 
-
 function showError(message){
 
     const box=
         el("loginMessage");
 
-
     box.className=
         "login-message error";
-
 
     box.textContent=
         message;
 
 }
 
-
 function clearMessage(){
 
     const box=
         el("loginMessage");
 
-
     box.className=
         "login-message";
-
 
     box.textContent="";
 
 }
-
-
-/* =========================================================
-   PASSWORD
-========================================================= */
 
 function togglePassword(){
 
     const input=
         el("password");
 
-
     const button=
         el("showPasswordBtn");
-
 
     if(
         input.type===
@@ -1153,10 +1034,8 @@ function togglePassword(){
         input.type=
             "text";
 
-
         button.textContent=
             "◎";
-
 
         button.title=
             "إخفاء كلمة المرور";
@@ -1166,10 +1045,8 @@ function togglePassword(){
         input.type=
             "password";
 
-
         button.textContent=
             "◉";
-
 
         button.title=
             "إظهار كلمة المرور";
@@ -1178,36 +1055,25 @@ function togglePassword(){
 
 }
 
-
-/* =========================================================
-   LOGIN BUTTON STATE
-========================================================= */
-
 function setLoading(loading){
 
     const button=
         el("loginBtn");
 
-
     const username=
         el("username");
-
 
     const password=
         el("password");
 
-
     button.disabled=
         loading;
-
 
     username.disabled=
         loading;
 
-
     password.disabled=
         loading;
-
 
     if(loading){
 
@@ -1225,26 +1091,15 @@ function setLoading(loading){
 
 }
 
-
-/* =========================================================
-   FIND USER
-========================================================= */
-
 async function findUser(
     originalUsername
 ){
-
-    /*
-        نجرب اسم المستخدم كما كتبه
-        المستخدم أولاً.
-    */
 
     let doc=
         await db
             .collection("users")
             .doc(originalUsername)
             .get();
-
 
     if(doc.exists){
 
@@ -1256,16 +1111,9 @@ async function findUser(
 
     }
 
-
-    /*
-        لو لم نجده نجرب lowercase
-        للتوافق مع حسابات المعلمين.
-    */
-
     const lower=
         originalUsername
             .toLowerCase();
-
 
     if(
         lower!==
@@ -1277,7 +1125,6 @@ async function findUser(
                 .collection("users")
                 .doc(lower)
                 .get();
-
 
         if(doc.exists){
 
@@ -1291,31 +1138,22 @@ async function findUser(
 
     }
 
-
     return null;
 
 }
 
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
 async function login(){
 
     clearMessage();
-
 
     const originalUsername=
         el("username")
             .value
             .trim();
 
-
     const password=
         el("password")
             .value;
-
 
     if(
         !originalUsername ||
@@ -1330,23 +1168,57 @@ async function login(){
 
     }
 
+    /* =========================================================
+       MANAGER LOGIN
+       username: manager
+       password: 123456
+    ========================================================= */
+
+    if(
+        originalUsername.toLowerCase()==="manager" &&
+        String(password)==="123456"
+    ){
+
+        localStorage.setItem(
+            "currentUserRole",
+            "manager"
+        );
+
+        localStorage.setItem(
+            "currentUser",
+            "manager"
+        );
+
+        localStorage.setItem(
+            "currentUserEmail",
+            "manager"
+        );
+
+        localStorage.setItem(
+            "currentUserName",
+            "أحمد سمير"
+        );
+
+        localStorage.setItem(
+            "currentUserTitle",
+            "المشرف العام"
+        );
+
+        location.href=
+            "manager.html";
+
+        return;
+
+    }
 
     setLoading(true);
 
-
     try{
-
 
         const result=
             await findUser(
                 originalUsername
             );
-
-
-        /*
-            رسالة واحدة عامة أفضل
-            من كشف هل الحساب موجود أم لا.
-        */
 
         if(!result){
 
@@ -1358,10 +1230,8 @@ async function login(){
 
         }
 
-
         const data=
             result.doc.data()||{};
-
 
         if(
             String(
@@ -1378,20 +1248,12 @@ async function login(){
 
         }
 
-
         const userRole=
             String(
                 data.role||""
             )
             .trim()
             .toLowerCase();
-
-
-        /*
-            =========================================
-            ADMIN
-            =========================================
-        */
 
         if(
             userRole==="admin" ||
@@ -1403,18 +1265,15 @@ async function login(){
                 "superadmin"
             );
 
-
             localStorage.setItem(
                 "currentUser",
                 result.username
             );
 
-
             localStorage.setItem(
                 "currentUserEmail",
                 result.username
             );
-
 
             localStorage.setItem(
                 "currentUserName",
@@ -1422,21 +1281,12 @@ async function login(){
                 "الإدارة"
             );
 
-
             location.href=
                 "admin.html";
-
 
             return;
 
         }
-
-
-        /*
-            =========================================
-            MONITOR
-            =========================================
-        */
 
         if(
             userRole==="monitor"
@@ -1470,13 +1320,6 @@ async function login(){
 
         }
 
-
-        /*
-            =========================================
-            TEACHER
-            =========================================
-        */
-
         if(
             userRole==="teacher"
         ){
@@ -1486,18 +1329,15 @@ async function login(){
                 "teacher"
             );
 
-
             localStorage.setItem(
                 "currentUser",
                 result.username
             );
 
-
             localStorage.setItem(
                 "currentUserEmail",
                 result.username
             );
-
 
             localStorage.setItem(
                 "currentUserName",
@@ -1505,24 +1345,16 @@ async function login(){
                 result.username
             );
 
-
             location.href=
                 "teacher.html";
-
 
             return;
 
         }
 
-
-        /*
-            أي دور قديم في النظام
-        */
-
         showError(
             "هذا الحساب غير مفعّل في النسخة الحالية من نظام راصد."
         );
-
 
     }
     catch(error){
@@ -1531,7 +1363,6 @@ async function login(){
             "Login Error:",
             error
         );
-
 
         showError(
             "تعذر الاتصال بالنظام حاليًا. حاول مرة أخرى."
@@ -1545,11 +1376,6 @@ async function login(){
     }
 
 }
-
-
-/* =========================================================
-   ENTER KEY
-========================================================= */
 
 el("username")
 .addEventListener(
@@ -1578,7 +1404,6 @@ el("username")
     }
 );
 
-
 el("password")
 .addEventListener(
     "keydown",
@@ -1595,11 +1420,6 @@ el("password")
 
     }
 );
-
-
-/* =========================================================
-   INITIAL FOCUS
-========================================================= */
 
 window.addEventListener(
     "load",
