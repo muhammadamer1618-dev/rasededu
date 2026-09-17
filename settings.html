@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>إعداد المواد ونوع الاختبار - مدارس الفلاح الأهلية</title>
+<link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+body{font-family:Calibri;background:#f4f4f4;margin:0}
+.header{background:#1976d2;color:#fff;text-align:center;padding:15px}
+.header h1{margin:0;font-size:24px}
+.header h2{margin:5px 0 0;font-size:18px;color:#ffeb3b}
+.container{max-width:1100px;margin:20px auto;padding:10px}
+.box{background:#fff;border-radius:10px;padding:15px;margin-bottom:15px;box-shadow:0 0 8px rgba(0,0,0,0.1)}
+h3{margin-top:0;color:#1976d2}
+label{display:block;margin-top:5px}
+input,select,button{
+  font-family:Calibri;font-size:15px;padding:7px;margin-top:5px;
+  border-radius:6px;border:1px solid #999;box-sizing:border-box
+}
+input,select{width:100%}
+button{cursor:pointer;font-weight:bold;border:none}
+.btn-primary{background:#1976d2;color:#fff}
+.btn-secondary{background:#757575;color:#fff}
+.btn-danger{background:#d32f2f;color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.col-3{flex:1 1 23%}
+.col-4{flex:1 1 30%}
+.col-6{flex:1 1 48%}
+.col-12{flex:1 1 100%}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+th,td{border:1px solid #ccc;text-align:center;padding:6px}
+th{background:#1976d2;color:#fff}
+tr:nth-child(even){background:#f9f9f9}
+.small-btn{padding:4px 8px;font-size:12px;border-radius:5px}
+.info{font-size:13px;color:#555;margin-top:5px}
+.badge{display:inline-block;padding:2px 6px;border-radius:10px;font-size:11px;background:#e3f2fd;color:#0d47a1}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>مدارس الفلاح الأهلية</h1>
+  <h2>إعداد المواد ونوع الاختبار لجميع الصفوف</h2>
+</div>
+
+<div class="container">
+
+  <!-- Exam Type -->
+  <div class="box">
+    <h3>نوع الاختبار العام</h3>
+    <div class="row">
+      <div class="col-6">
+        <label>نوع الاختبار</label>
+        <input id="exam_type_input" placeholder="اختبار الفترة الأولى">
+      </div>
+
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-primary" style="width:100%" onclick="saveExamType()">حفظ النوع</button>
+      </div>
+
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <span id="current_exam_label" class="badge" style="width:100%;text-align:center">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subjects Setup -->
+  <div class="box">
+    <h3>إعداد مواد صف واحد</h3>
+
+    <div class="row">
+      <div class="col-3"><label>اختر الصف</label><select id="grade_select"></select></div>
+
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-secondary" style="width:100%" onclick="loadSubjectsForSelectedGrade()">تحميل المواد</button>
+      </div>
+
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-primary" style="width:100%" onclick="addSubjectRow()">إضافة مادة</button>
+      </div>
+
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-danger" style="width:100%" onclick="clearSubjectsTable()">حذف كل المواد</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>المادة</th>
+          <th>الدرجة النهائية</th>
+          <th>حذف</th>
+        </tr>
+      </thead>
+      <tbody id="subjects_body"></tbody>
+    </table>
+
+    <button class="btn-primary" style="margin-top:10px" onclick="saveSubjectsForSelectedGrade()">
+      حفظ مواد الصف
+    </button>
+  </div>
+
+  <!-- Copy Subjects -->
+  <div class="box">
+    <h3>نسخ مواد صف إلى صف آخر</h3>
+    <div class="row">
+      <div class="col-4">
+        <label>صف المصدر</label>
+        <select id="copy_from_grade"></select>
+      </div>
+      <div class="col-4">
+        <label>صف الهدف</label>
+        <select id="copy_to_grade"></select>
+      </div>
+      <div class="col-4" style="display:flex;align-items:flex-end">
+        <button class="btn-primary" style="width:100%" onclick="copySubjectsBetweenGrades()">نسخ المواد</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <button class="btn-secondary" onclick="location='admin.html'">لوحة المشرف</button>
+    <button class="btn-secondary" onclick="location='student.html'">صفحة الطالب</button>
+  </div>
+
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain: "results2026-7c0dd.firebaseapp.com",
+  projectId: "results2026-7c0dd",
+  storageBucket: "results2026-7c0dd.firebasestorage.app",
+  messagingSenderId: "241421115694",
+  appId: "1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+var gradesList=[
+ "1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي",
+ "1 متوسط","2 متوسط","3 متوسط",
+ "1 ثانوي","2 ثانوي","3 ثانوي"
+];
+
+function init() {
+  let g1=document.getElementById("grade_select");
+  let g2=document.getElementById("copy_from_grade");
+  let g3=document.getElementById("copy_to_grade");
+  gradesList.forEach(g=>{
+    [g1,g2,g3].forEach(sel=>{
+      let o=document.createElement("option");
+      o.value=g; o.textContent=g;
+      sel.appendChild(o);
+    });
+  });
+  loadExamType();
+}
+
+async function loadExamType(){
+  let d=await db.collection("settings").doc("general").get();
+  if(d.exists){
+    document.getElementById("exam_type_input").value=d.data().examType||"";
+    document.getElementById("current_exam_label").innerText=d.data().examType||"—";
+  }
+}
+
+async function saveExamType(){
+  let v=document.getElementById("exam_type_input").value.trim();
+  await db.collection("settings").doc("general").set({examType:v},{merge:true});
+  document.getElementById("current_exam_label").innerText=v||"—";
+}
+
+function addSubjectRow(data){
+  let tbody=document.getElementById("subjects_body");
+  let name=data?data.name:"";
+  let full=data?data.fullMark:"";
+  let tr=document.createElement("tr");
+  tr.innerHTML=
+  `<td><input class="sub-name" value="${name}"></td>
+   <td><input type="number" class="sub-full" value="${full}"></td>
+   <td><button class="small-btn btn-danger" onclick="this.closest('tr').remove()">×</button></td>`;
+  tbody.appendChild(tr);
+}
+
+function clearSubjectsTable(){
+  if(confirm("حذف جميع المواد للصف؟"))
+    document.getElementById("subjects_body").innerHTML="";
+}
+
+async function loadSubjectsForSelectedGrade(){
+  let g=document.getElementById("grade_select").value;
+  let tbody=document.getElementById("subjects_body");
+  tbody.innerHTML="<tr><td colspan='3'>تحميل...</td></tr>";
+
+  let d=await db.collection("settings").doc("subjects_"+g).get();
+  tbody.innerHTML="";
+  if(!d.exists){tbody.innerHTML="<tr><td colspan='3'>لا توجد مواد</td></tr>";return;}
+
+  let subs=d.data().subjects||[];
+  if(!subs.length){tbody.innerHTML="<tr><td colspan='3'>لا توجد مواد</td></tr>";return;}
+
+  subs.forEach(s=>addSubjectRow(s));
+}
+
+async function saveSubjectsForSelectedGrade(){
+  let g=document.getElementById("grade_select").value;
+  let rows=document.querySelectorAll("#subjects_body tr");
+  let subs=[];
+
+  rows.forEach(tr=>{
+    let name=tr.querySelector(".sub-name").value.trim();
+    let fullVal=tr.querySelector(".sub-full").value.trim();
+
+    let full=parseInt(fullVal);
+    if(isNaN(full)) full=0;
+
+    if(name){
+      subs.push({name:name,fullMark:full});
+    }
+  });
+
+  try{
+    await db.collection("settings").doc("subjects_"+g).set({subjects:subs});
+    alert("تم الحفظ بنجاح");
+  }catch(err){
+    console.log(err);
+    alert("حدث خطأ في الحفظ");
+  }
+}
+
+async function copySubjectsBetweenGrades(){
+  let from=document.getElementById("copy_from_grade").value;
+  let to=document.getElementById("copy_to_grade").value;
+
+  if(from===to){alert("لا يمكن النسخ لنفس الصف");return;}
+
+  let d=await db.collection("settings").doc("subjects_"+from).get();
+  if(!d.exists){alert("صف المصدر لا يحتوي مواد");return;}
+
+  let subs=d.data().subjects||[];
+  await db.collection("settings").doc("subjects_"+to).set({subjects:subs});
+  alert("تم النسخ بنجاح");
+}
+
+init();
+</script>
+
+</body>
+</html>
