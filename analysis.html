@@ -1505,7 +1505,8 @@ function protectPage(){
 
     isAdmin=
         role==="admin" ||
-        role==="superadmin";
+        role==="superadmin" ||
+        role==="manager";
 
     isTeacher=
         role==="teacher";
@@ -3279,7 +3280,7 @@ function goBack(){
 
     }else{
 
-        location.href="admin.html";
+        location.href=(role==="manager"?"manager.html":"admin.html");
     }
 }
 
@@ -3290,7 +3291,13 @@ function goBack(){
 
 function renderMode(){
 
-    if(isAdmin){
+    if(role==="manager"){
+
+        el("modeNote").innerHTML=
+
+            "<strong>المشرف العام:</strong> يمكنك تحليل نتائج جميع المواد والفصول في المدرسة (عرض وتحليل فقط).";
+
+    }else if(isAdmin){
 
         el("modeNote").innerHTML=
 
