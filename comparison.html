@@ -58,7 +58,7 @@ table{min-width:0!important}th,td{font-size:7pt;padding:1.5mm 1mm}.chart{height:
 <body>
 <header class="header">
 <img src="logo.jpeg" class="logo"><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد - مقارنة النتائج</p>
-<div class="header-actions"><button class="btn-light" onclick="location.href='admin.html'">↩ الإدارة</button><button class="btn-gold" onclick="printReport()">🖨️ طباعة</button></div>
+<div class="header-actions"><button class="btn-light" onclick="goBackManager()">↩ رجوع</button><button class="btn-gold" onclick="printReport()">🖨️ طباعة</button></div>
 </header>
 
 <div class="container">
@@ -108,7 +108,20 @@ const gradeOrder=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ا
 const sectionOrder=["أ","ب","ج","د"];
 let subjects=[],tests=[],students=[],gradesData=[],mode="classes";
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-function protect(){const r=localStorage.getItem("currentUserRole")||"";if(r!=="admin"&&r!=="superadmin"){alert("هذه الصفحة للإدارة فقط");location.href="index.html";return false}return true}
+function protect(){
+const r=localStorage.getItem("currentUserRole")||"";
+if(r!=="admin"&&r!=="superadmin"&&r!=="manager"){
+alert("هذه الصفحة للإدارة والمشرف العام فقط");
+location.href="index.html";
+return false
+}
+return true
+}
+
+function goBackManager(){
+const r=localStorage.getItem("currentUserRole")||"";
+location.href=(r==="manager"?"manager.html":"admin.html");
+}
 function setMode(m){mode=m;tabClasses.classList.toggle("active",m==="classes");tabSubjects.classList.toggle("active",m==="subjects");classesControls.style.display=m==="classes"?"block":"none";subjectsControls.style.display=m==="subjects"?"block":"none";controlTitle.textContent=m==="classes"?"مقارنة الفصول في مادة واحدة":"مقارنة المواد المختلفة";resultArea.innerHTML='<div class="empty">حدد البيانات المطلوبة ثم اضغط تنفيذ المقارنة.</div>'}
 function addOptions(el,list,valueKey="id",textKey="name"){list.forEach(x=>{const o=document.createElement("option");o.value=x[valueKey];o.textContent=x[textKey];el.appendChild(o)})}
 async function loadAll(){const [ss,ts,sts,gs]=await Promise.all([db.collection("subjects").get(),db.collection("tests").get(),db.collection("students").get(),db.collection("grades").get()]);
