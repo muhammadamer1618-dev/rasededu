@@ -100,7 +100,20 @@ const gradesOrder=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 �
 let teachers=[],subjects=[],exams=[],attempts=[],questionCounts={};
 function el(id){return document.getElementById(id)}
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-function protect(){const r=String(localStorage.getItem("currentUserRole")||"").toLowerCase();if(!["admin","superadmin"].includes(r)){alert("هذه الصفحة مخصصة للإدارة.");location.href="index.html";return false}return true}
+function protect(){
+ const r=String(localStorage.getItem("currentUserRole")||"").toLowerCase();
+ if(!["admin","superadmin","manager"].includes(r)){
+  alert("هذه الصفحة مخصصة للإدارة والمشرف العام.");
+  location.href="index.html";
+  return false;
+ }
+ return true;
+}
+
+function goBack(){
+ const r=String(localStorage.getItem("currentUserRole")||"").toLowerCase();
+ location.href=(r==="manager"?"manager.html":"admin.html");
+}
 async function start(){
  if(!protect())return;
  try{
