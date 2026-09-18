@@ -1,24 +1,1590 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>راصد - حالة الرصد</title>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<style>*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:#f4f7fb;color:#1f2937}.head{background:linear-gradient(135deg,#0c2745,#174f7c);color:#fff;text-align:center;padding:16px}.head img{width:70px;height:70px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}.head h1{margin:4px}.head p{margin:0;color:#f4d77b;font-weight:bold}.container{max-width:1400px;margin:16px auto;padding:0 12px}.box,.stat{background:#fff;border-radius:12px;box-shadow:0 2px 10px #0001}.box{margin-bottom:14px;overflow:hidden}.title{background:#eef4fa;color:#123c63;font-weight:bold;padding:12px 15px}.body{padding:14px}.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}select{width:100%;height:41px;border:1px solid #bdc9d4;border-radius:7px;background:#fff;padding:6px;font-family:inherit}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:14px}.stat{text-align:center;padding:12px}.stat strong{display:block;font-size:24px;color:#174f7c}.stat span{font-size:11px;color:#64748b}.green strong{color:#198754}.yellow strong{color:#b17b00}.red strong{color:#dc3545}.note{background:#fff8db;color:#715d00;padding:9px;border-radius:7px;margin-top:10px;font-size:12px}.wrap{overflow:auto;max-height:650px}table{width:100%;border-collapse:collapse;min-width:1200px}th,td{border:1px solid #d3dce4;padding:8px 5px;text-align:center;font-size:11px}th{position:sticky;top:0;background:#174f7c;color:#fff}.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-weight:bold}.complete{background:#d1e7dd;color:#0f6b3e}.partial{background:#fff0c2;color:#805b00}.notstarted{background:#f8d7da;color:#842029}.progress{height:8px;background:#e5ebef;border-radius:10px;overflow:hidden}.progress div{height:100%;background:#198754}.actions{text-align:center;margin-top:9px}button{border:0;border-radius:7px;padding:9px 14px;font-weight:bold;cursor:pointer}.back{background:#fff;color:#174f7c}.print{background:#c69a2b;color:#fff}.footer{text-align:center;color:#64748b;font-size:11px;padding:12px}@media(max-width:900px){.filters,.stats{grid-template-columns:repeat(2,1fr)}}@media print{@page{size:A4 landscape;margin:6mm}.head,.filtersBox,.footer,.actions{display:none!important}body,.container{background:#fff;margin:0;padding:0;max-width:none}.stats{grid-template-columns:repeat(5,1fr)}.stat{box-shadow:none;border:1px solid #aaa;padding:2mm}.wrap{max-height:none;overflow:visible}table{min-width:0;table-layout:fixed}th,td{font-size:6pt;padding:1mm}.title{font-size:10pt}}</style></head>
-<body><div class="head"><img src="logo.jpeg"><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد - متابعة حالة الرصد</p><div class="actions"><button class="back" onclick="location.href='admin.html'">↩ لوحة الإدارة</button> <button class="print" onclick="window.print()">🖨️ طباعة</button></div></div>
-<div class="container"><div class="box filtersBox"><div class="title">🔎 تصفية حالة الرصد</div><div class="body"><div class="filters"><div><label>الاختبار</label><select id="fTest" onchange="render()"><option value="">كل الاختبارات</option></select></div><div><label>المعلم</label><select id="fTeacher" onchange="render()"><option value="">كل المعلمين</option></select></div><div><label>المادة</label><select id="fSubject" onchange="render()"><option value="">كل المواد</option></select></div><div><label>الصف</label><select id="fGrade" onchange="render()"><option value="">كل الصفوف</option></select></div><div><label>الحالة</label><select id="fStatus" onchange="render()"><option value="">كل الحالات</option><option value="complete">مكتمل</option><option value="partial">جاري الرصد</option><option value="notstarted">لم يبدأ</option></select></div></div><div class="note">الصفحة للمتابعة فقط ولا تعدّل أي بيانات. الغائب المسجل كغائب يُحسب ضمن من تم رصدهم.</div></div></div>
-<div class="stats"><div class="stat"><strong id="nAll">0</strong><span>إجمالي الحالات</span></div><div class="stat green"><strong id="nDone">0</strong><span>مكتمل</span></div><div class="stat yellow"><strong id="nPart">0</strong><span>جاري الرصد</span></div><div class="stat red"><strong id="nNone">0</strong><span>لم يبدأ</span></div><div class="stat"><strong id="nRate">0%</strong><span>اكتمال الحالات</span></div></div>
-<div class="box"><div class="title">📋 حالة رصد المعلمين</div><div class="body"><div class="wrap"><table><thead><tr><th>م</th><th>المعلم</th><th>المادة</th><th>الفصل</th><th>الاختبار</th><th>الطلاب</th><th>تم الرصد</th><th>متبقي</th><th>غياب</th><th>نسبة الرصد</th><th>الحالة</th><th>آخر رصد</th></tr></thead><tbody id="rowsBody"><tr><td colspan="12">جاري التحميل...</td></tr></tbody></table></div></div></div><div class="footer">تصميم محمد عامر أحمد - نظام راصد 2026</div></div>
-<script>
-const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
-const order=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي","1 متوسط","2 متوسط","3 متوسط","1 ثانوي","2 ثانوي","3 ثانوي"];let teachers=[],subjects=[],tests=[],students=[],grades=[],data=[];
-function e(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
-function auth(){let r=localStorage.getItem("currentUserRole")||"";if(!["admin","superadmin"].includes(r)){alert("هذه الصفحة للإدارة فقط");location.href="index.html";return false}return true}
-function classes(t,g,s){return (Array.isArray(t.classes)?t.classes:[]).some(c=>c.grade===g&&c.section===s)}
-function recorded(r){return !!r&&(String(r.attendance||"").toLowerCase()==="absent"||(r.mark!==null&&r.mark!==undefined&&String(r.mark)!==""))}
-function ms(v){try{return !v?0:typeof v.toMillis==="function"?v.toMillis():new Date(v).getTime()||0}catch{return 0}}
-function date(v){return v?new Intl.DateTimeFormat("ar-SA",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(v)):"—"}
-async function load(){let [a,b,c,d,g]=await Promise.all(["teachers","subjects","tests","students","grades"].map(x=>db.collection(x).get()));teachers=a.docs.map(x=>({email:x.data().email||x.id,...x.data()}));subjects=b.docs.map(x=>({id:x.id,...x.data()}));tests=c.docs.map(x=>({id:x.id,...x.data()}));students=d.docs.map(x=>({code:x.data().code||x.id,...x.data()}));grades=g.docs.map(x=>({id:x.id,...x.data()}));fill();build();render()}
-function opt(el,val,text){let o=document.createElement("option");o.value=val;o.textContent=text;el.appendChild(o)}
-function fill(){[...new Set(tests.map(x=>x.name).filter(Boolean))].sort().forEach(x=>opt(fTest,x,x));teachers.sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar")).forEach(x=>opt(fTeacher,x.email,x.name||x.email));subjects.sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar")).forEach(x=>opt(fSubject,x.id,x.name));order.filter(x=>students.some(s=>s.grade===x)).forEach(x=>opt(fGrade,x,x))}
-function build(){data=[];teachers.forEach(t=>(Array.isArray(t.assignments)?t.assignments:[]).forEach(a=>tests.filter(x=>x.subjectId===a.subjectId&&classes(x,a.grade,a.section)).forEach(test=>{let sts=students.filter(s=>s.grade===a.grade&&s.section===a.section),rs=grades.filter(r=>r.testId===test.id&&r.grade===a.grade&&r.section===a.section),done=0,abs=0,last=0;sts.forEach(s=>{let r=rs.find(x=>String(x.studentCode)===String(s.code));if(recorded(r)){done++;if(String(r.attendance||"").toLowerCase()==="absent")abs++}if(r)last=Math.max(last,ms(r.updatedAt),ms(r.createdAt))});let total=sts.length,p=total?done/total*100:0,status=total&&done>=total?"complete":done?"partial":"notstarted";data.push({email:t.email,teacher:t.name||t.email,sid:a.subjectId,subject:a.subjectName||subjects.find(x=>x.id===a.subjectId)?.name||test.subjectName||"",grade:a.grade,section:a.section,test:test.name||"",total,done,left:Math.max(0,total-done),abs,p,status,last})})))}
-function render(){let list=data.filter(x=>(!fTest.value||x.test===fTest.value)&&(!fTeacher.value||x.email===fTeacher.value)&&(!fSubject.value||x.sid===fSubject.value)&&(!fGrade.value||x.grade===fGrade.value)&&(!fStatus.value||x.status===fStatus.value));let done=list.filter(x=>x.status==="complete").length,part=list.filter(x=>x.status==="partial").length,none=list.filter(x=>x.status==="notstarted").length;nAll.textContent=list.length;nDone.textContent=done;nPart.textContent=part;nNone.textContent=none;nRate.textContent=(list.length?done/list.length*100:0).toFixed(1)+"%";rowsBody.innerHTML=list.length?"":'<tr><td colspan="12">لا توجد بيانات مطابقة.</td></tr>';list.forEach((x,i)=>{let txt=x.status==="complete"?"✅ مكتمل":x.status==="partial"?"🟡 جاري الرصد":"🔴 لم يبدأ";rowsBody.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td><b>${e(x.teacher)}</b></td><td>${e(x.subject)}</td><td>${e(x.grade)} / ${e(x.section)}</td><td>${e(x.test)}</td><td>${x.total}</td><td>${x.done}</td><td>${x.left}</td><td>${x.abs}</td><td>${x.p.toFixed(1)}%<div class="progress"><div style="width:${Math.min(100,x.p)}%"></div></div></td><td><span class="badge ${x.status}">${txt}</span></td><td>${date(x.last)}</td></tr>`)})}
-async function start(){if(!auth())return;try{await load()}catch(err){console.error(err);alert("حدث خطأ أثناء تحميل حالة الرصد:\n"+err.message)}}start();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>نظام راصد | مدارس الفلاح الأهلية</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+:root{
+    --navy:#06466f;
+    --navy2:#0a5c8f;
+    --navy-dark:#03324f;
+    --blue:#0c73ad;
+    --gold:#d8ad2e;
+    --gold2:#f1cc58;
+    --white:#ffffff;
+    --text:#17384f;
+    --muted:#718493;
+    --border:#d8e2e9;
+    --danger:#c83d48;
+    --danger-bg:#fff0f1;
+}
+
+html,
+body{
+    margin:0;
+    min-height:100%;
+}
+
+body{
+    font-family:Tahoma,Arial,sans-serif;
+    color:var(--text);
+    background:#f4f8fb;
+    overflow-x:hidden;
+}
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.page{
+    min-height:100vh;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(216,173,46,.16),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 90% 85%,
+            rgba(12,115,173,.13),
+            transparent 28%
+        ),
+        linear-gradient(
+            135deg,
+            #f9fbfd 0%,
+            #eef5f9 100%
+        );
+}
+
+.page::before{
+    content:"";
+    position:absolute;
+    width:420px;
+    height:420px;
+    border-radius:50%;
+    background:rgba(6,70,111,.035);
+    top:-230px;
+    right:-130px;
+}
+
+.page::after{
+    content:"";
+    position:absolute;
+    width:500px;
+    height:500px;
+    border-radius:50%;
+    border:70px solid rgba(216,173,46,.035);
+    bottom:-330px;
+    left:-240px;
+}
+
+/* =========================================================
+   TOP ACCENT
+========================================================= */
+
+.top-accent{
+    position:relative;
+    z-index:5;
+    height:6px;
+    background:
+        linear-gradient(
+            90deg,
+            var(--navy-dark),
+            var(--navy),
+            var(--gold),
+            var(--gold2),
+            var(--navy)
+        );
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main{
+    position:relative;
+    z-index:2;
+    flex:1;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px 18px;
+}
+
+.login-card{
+    width:min(940px,100%);
+    min-height:530px;
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    background:#fff;
+    border-radius:28px;
+    overflow:hidden;
+    border:1px solid rgba(6,70,111,.10);
+
+    box-shadow:
+        0 30px 80px rgba(24,57,80,.14),
+        0 8px 25px rgba(24,57,80,.06);
+}
+
+/* =========================================================
+   BRAND SIDE
+========================================================= */
+
+.brand-side{
+    position:relative;
+    overflow:hidden;
+    padding:48px 45px;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+    background:
+        linear-gradient(
+            145deg,
+            #03324f 0%,
+            #064d78 52%,
+            #0a669a 100%
+        );
+}
+
+.brand-side::before{
+    content:"";
+    position:absolute;
+    width:330px;
+    height:330px;
+    border-radius:50%;
+    border:65px solid rgba(255,255,255,.035);
+    top:-170px;
+    left:-130px;
+}
+
+.brand-side::after{
+    content:"";
+    position:absolute;
+    width:260px;
+    height:260px;
+    border-radius:50%;
+    background:rgba(216,173,46,.07);
+    bottom:-130px;
+    right:-100px;
+}
+
+.brand-content{
+    position:relative;
+    z-index:2;
+}
+
+.logo-shell{
+    width:112px;
+    height:112px;
+    margin-bottom:23px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius:50%;
+
+    background:
+        rgba(255,255,255,.96);
+
+    box-shadow:
+        0 15px 35px rgba(0,0,0,.18);
+
+    border:4px solid rgba(255,255,255,.15);
+}
+
+.logo{
+    width:100px;
+    height:100px;
+    object-fit:contain;
+    border-radius:50%;
+}
+
+.school{
+    font-size:15px;
+    color:#dbeaf3;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.rased-title{
+    margin:0;
+    font-size:43px;
+    line-height:1.2;
+    font-weight:900;
+    letter-spacing:-1px;
+}
+
+.rased-title span{
+    color:var(--gold2);
+}
+
+.brand-line{
+    width:64px;
+    height:5px;
+    background:var(--gold);
+    border-radius:20px;
+    margin:17px 0;
+}
+
+.brand-description{
+    max-width:390px;
+    margin:0;
+    color:#d8e6ef;
+    font-size:14px;
+    line-height:2;
+}
+
+.features{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:25px;
+}
+
+.feature{
+    padding:7px 11px;
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.07);
+    color:#fff;
+    font-size:10px;
+    font-weight:bold;
+    backdrop-filter:blur(5px);
+}
+
+.brand-bottom{
+    position:absolute;
+    bottom:22px;
+    right:45px;
+    left:45px;
+    z-index:3;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#bad0de;
+    font-size:9px;
+}
+
+.brand-bottom::before{
+    content:"";
+    width:25px;
+    height:2px;
+    background:var(--gold);
+}
+
+/* =========================================================
+   LOGIN SIDE
+========================================================= */
+
+.login-side{
+    padding:50px 48px 40px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    background:#fff;
+}
+
+.login-heading{
+    margin-bottom:27px;
+}
+
+.small-brand{
+    display:none;
+}
+
+.welcome{
+    color:var(--gold);
+    font-size:11px;
+    font-weight:900;
+    margin-bottom:7px;
+}
+
+.login-heading h2{
+    margin:0 0 8px;
+    color:var(--navy-dark);
+    font-size:27px;
+    font-weight:900;
+}
+
+.login-heading p{
+    margin:0;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.7;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form-group{
+    margin-bottom:15px;
+}
+
+.form-label{
+    display:block;
+    margin:0 3px 7px;
+    font-size:11px;
+    font-weight:bold;
+    color:#27495f;
+}
+
+.input-wrap{
+    position:relative;
+}
+
+.input-icon{
+    position:absolute;
+    right:14px;
+    top:50%;
+    transform:translateY(-50%);
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background:#edf5fa;
+    color:var(--navy);
+    pointer-events:none;
+}
+
+.form-input{
+    width:100%;
+    height:54px;
+    border:1.5px solid #d2dee6;
+    border-radius:13px;
+    background:#fbfcfd;
+    outline:none;
+
+    padding:
+        0 58px
+        0 47px;
+
+    color:#16384f;
+    font-family:Tahoma,Arial,sans-serif;
+    font-size:14px;
+    font-weight:bold;
+
+    transition:
+        border-color .2s,
+        box-shadow .2s,
+        background .2s;
+}
+
+.form-input::placeholder{
+    color:#9aa8b2;
+    font-weight:normal;
+}
+
+.form-input:focus{
+    background:#fff;
+    border-color:#1780ba;
+    box-shadow:
+        0 0 0 4px rgba(23,128,186,.09);
+}
+
+.password-input{
+    padding-left:50px;
+}
+
+.show-password{
+    position:absolute;
+    left:9px;
+    top:50%;
+    transform:translateY(-50%);
+    width:36px;
+    height:36px;
+    border:0;
+    border-radius:9px;
+    background:transparent;
+    color:#718493;
+    cursor:pointer;
+    font-size:17px;
+}
+
+.show-password:hover{
+    background:#edf3f7;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.login-message{
+    display:none;
+    margin:4px 0 12px;
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:11px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.login-message.error{
+    display:block;
+    background:var(--danger-bg);
+    border:1px solid #efc6ca;
+    color:var(--danger);
+}
+
+/* =========================================================
+   LOGIN BUTTON
+========================================================= */
+
+.login-btn{
+    width:100%;
+    height:54px;
+    border:0;
+    border-radius:13px;
+    cursor:pointer;
+
+    color:#fff;
+    font-family:Tahoma,Arial,sans-serif;
+    font-size:14px;
+    font-weight:900;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--navy-dark),
+            var(--navy),
+            var(--blue)
+        );
+
+    box-shadow:
+        0 10px 22px rgba(6,70,111,.20);
+
+    transition:
+        transform .2s,
+        box-shadow .2s;
+}
+
+.login-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:
+        0 14px 28px rgba(6,70,111,.25);
+}
+
+.login-btn:active{
+    transform:scale(.99);
+}
+
+.login-btn:disabled{
+    cursor:not-allowed;
+    opacity:.7;
+    transform:none;
+}
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:22px 0 17px;
+    color:#9ba8b2;
+    font-size:9px;
+    font-weight:bold;
+}
+
+.divider::before,
+.divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:#e0e7ec;
+}
+
+/* =========================================================
+   PARENT BUTTON
+========================================================= */
+
+.parent-btn{
+    width:100%;
+    min-height:62px;
+    border-radius:14px;
+    border:1.5px solid #e2c15b;
+    background:
+        linear-gradient(
+            135deg,
+            #fffdf5,
+            #fff8dd
+        );
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+
+    padding:10px 15px;
+    cursor:pointer;
+    color:var(--navy-dark);
+
+    transition:.2s;
+}
+
+.parent-btn:hover{
+    transform:translateY(-2px);
+    border-color:var(--gold);
+    box-shadow:
+        0 8px 20px rgba(216,173,46,.14);
+}
+
+.parent-content{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    text-align:right;
+}
+
+.parent-icon{
+    width:40px;
+    height:40px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:11px;
+    color:#fff;
+    background:var(--gold);
+    font-size:20px;
+}
+
+.parent-text strong{
+    display:block;
+    color:#604c11;
+    font-size:12px;
+    margin-bottom:3px;
+}
+
+.parent-text span{
+    display:block;
+    color:#8b7a48;
+    font-size:9px;
+}
+
+.parent-arrow{
+    color:#b08b20;
+    font-size:20px;
+    font-weight:bold;
+}
+
+/* =========================================================
+   SECURITY NOTE
+========================================================= */
+
+.security-note{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:5px;
+    margin-top:17px;
+    color:#8b9aa5;
+    font-size:9px;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer{
+    position:relative;
+    z-index:3;
+    padding:0 15px 17px;
+    text-align:center;
+    color:#80909d;
+    font-size:9px;
+}
+
+.footer strong{
+    color:var(--navy);
+}
+
+/* =========================================================
+   LOADER
+========================================================= */
+
+.spinner{
+    display:inline-block;
+    width:15px;
+    height:15px;
+    border:2px solid rgba(255,255,255,.35);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    vertical-align:middle;
+    margin-left:6px;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:780px){
+
+    .main{
+        align-items:flex-start;
+        padding:18px 13px 25px;
+    }
+
+    .login-card{
+        display:block;
+        width:min(500px,100%);
+        min-height:0;
+        border-radius:22px;
+    }
+
+    .brand-side{
+        display:none;
+    }
+
+    .login-side{
+        padding:27px 23px 28px;
+    }
+
+    .small-brand{
+        display:block;
+        text-align:center;
+        margin-bottom:21px;
+    }
+
+    .small-logo-shell{
+        width:88px;
+        height:88px;
+        margin:0 auto 9px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border-radius:50%;
+        background:#fff;
+        border:1px solid #e0e7ec;
+        box-shadow:
+            0 7px 22px rgba(6,70,111,.12);
+    }
+
+    .small-logo{
+        width:78px;
+        height:78px;
+        object-fit:contain;
+        border-radius:50%;
+    }
+
+    .small-school{
+        font-size:11px;
+        font-weight:bold;
+        color:var(--navy);
+        margin-bottom:3px;
+    }
+
+    .small-rased{
+        font-size:23px;
+        font-weight:900;
+        color:var(--navy-dark);
+    }
+
+    .small-rased span{
+        color:var(--gold);
+    }
+
+    .login-heading{
+        text-align:center;
+        margin-bottom:22px;
+    }
+
+    .welcome{
+        display:none;
+    }
+
+    .login-heading h2{
+        font-size:21px;
+    }
+
+    .login-heading p{
+        font-size:10px;
+    }
+}
+
+@media(max-width:420px){
+
+    .login-side{
+        padding:
+            24px 17px
+            25px;
+    }
+
+    .form-input{
+        height:52px;
+    }
+
+    .login-btn{
+        height:52px;
+    }
+
+    .parent-btn{
+        min-height:65px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="top-accent"></div>
+
+
+    <main class="main">
+
+        <section class="login-card">
+
+
+            <!-- =================================================
+                 BRAND SIDE
+            ================================================== -->
+
+            <div class="brand-side">
+
+                <div class="brand-content">
+
+                    <div class="logo-shell">
+
+                        <img
+                            src="logo.jpeg"
+                            class="logo"
+                            alt="مدارس الفلاح الأهلية">
+
+                    </div>
+
+
+                    <div class="school">
+                        مدارس الفلاح الأهلية
+                    </div>
+
+
+                    <h1 class="rased-title">
+                        نظام <span>راصد</span>
+                    </h1>
+
+
+                    <div class="brand-line"></div>
+
+
+                    <p class="brand-description">
+
+                        منصة مدرسية متكاملة لمتابعة
+                        الاختبارات والدرجات وتحليل نتائج
+                        الطلاب بصورة سهلة ودقيقة.
+
+                    </p>
+
+
+                    <div class="features">
+
+                        <span class="feature">
+                            متابعة الدرجات
+                        </span>
+
+                        <span class="feature">
+                            تحليل النتائج
+                        </span>
+
+                        <span class="feature">
+                            جميع المواد
+                        </span>
+
+                        <span class="feature">
+                            جميع المراحل
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="brand-bottom">
+                    مدارس الفلاح الأهلية
+                    •
+                    2026
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 LOGIN SIDE
+            ================================================== -->
+
+            <div class="login-side">
+
+
+                <!-- MOBILE BRAND -->
+
+                <div class="small-brand">
+
+                    <div class="small-logo-shell">
+
+                        <img
+                            src="logo.jpeg"
+                            class="small-logo"
+                            alt="مدارس الفلاح الأهلية">
+
+                    </div>
+
+                    <div class="small-school">
+                        مدارس الفلاح الأهلية
+                    </div>
+
+                    <div class="small-rased">
+                        نظام <span>راصد</span>
+                    </div>
+
+                </div>
+
+
+                <div class="login-heading">
+
+                    <div class="welcome">
+                        أهلاً بك في راصد
+                    </div>
+
+                    <h2>
+                        تسجيل الدخول
+                    </h2>
+
+                    <p>
+                        الدخول مخصص للإدارة والمعلمين
+                    </p>
+
+                </div>
+
+
+                <!-- USERNAME -->
+
+                <div class="form-group">
+
+                    <label
+                        class="form-label"
+                        for="username">
+
+                        اسم المستخدم
+
+                    </label>
+
+
+                    <div class="input-wrap">
+
+                        <div class="input-icon">
+                            ♙
+                        </div>
+
+                        <input
+                            id="username"
+                            class="form-input"
+                            type="text"
+                            autocomplete="username"
+                            placeholder="أدخل اسم المستخدم">
+
+                    </div>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group">
+
+                    <label
+                        class="form-label"
+                        for="password">
+
+                        كلمة المرور
+
+                    </label>
+
+
+                    <div class="input-wrap">
+
+                        <div class="input-icon">
+                            ●
+                        </div>
+
+                        <input
+                            id="password"
+                            class="form-input password-input"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="أدخل كلمة المرور">
+
+
+                        <button
+                            id="showPasswordBtn"
+                            type="button"
+                            class="show-password"
+                            onclick="togglePassword()"
+                            title="إظهار كلمة المرور">
+
+                            ◉
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MESSAGE -->
+
+                <div
+                    id="loginMessage"
+                    class="login-message">
+                </div>
+
+
+                <!-- LOGIN -->
+
+                <button
+                    id="loginBtn"
+                    class="login-btn"
+                    onclick="login()">
+
+                    تسجيل الدخول
+
+                </button>
+
+
+                <div class="security-note">
+
+                    <span>●</span>
+
+                    بيانات الدخول مخصصة لمستخدمي النظام
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <strong>نظام راصد</strong>
+
+        • مدارس الفلاح الأهلية
+
+        • تصميم محمد عامر أحمد - 2026
+
+    </footer>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+const firebaseConfig={
+
+    apiKey:
+        "AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+
+    authDomain:
+        "results2026-7c0dd.firebaseapp.com",
+
+    projectId:
+        "results2026-7c0dd",
+
+    storageBucket:
+        "results2026-7c0dd.firebasestorage.app",
+
+    messagingSenderId:
+        "241421115694",
+
+    appId:
+        "1:241421115694:web:96f55fd9fd1d5b18b31abf"
+
+};
+
+
+firebase.initializeApp(
+    firebaseConfig
+);
+
+
+const db=
+    firebase.firestore();
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function el(id){
+
+    return document.getElementById(id);
+
+}
+
+
+function showError(message){
+
+    const box=
+        el("loginMessage");
+
+
+    box.className=
+        "login-message error";
+
+
+    box.textContent=
+        message;
+
+}
+
+
+function clearMessage(){
+
+    const box=
+        el("loginMessage");
+
+
+    box.className=
+        "login-message";
+
+
+    box.textContent="";
+
+}
+
+
+/* =========================================================
+   PASSWORD
+========================================================= */
+
+function togglePassword(){
+
+    const input=
+        el("password");
+
+
+    const button=
+        el("showPasswordBtn");
+
+
+    if(
+        input.type===
+        "password"
+    ){
+
+        input.type=
+            "text";
+
+
+        button.textContent=
+            "◎";
+
+
+        button.title=
+            "إخفاء كلمة المرور";
+
+    }else{
+
+        input.type=
+            "password";
+
+
+        button.textContent=
+            "◉";
+
+
+        button.title=
+            "إظهار كلمة المرور";
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGIN BUTTON STATE
+========================================================= */
+
+function setLoading(loading){
+
+    const button=
+        el("loginBtn");
+
+
+    const username=
+        el("username");
+
+
+    const password=
+        el("password");
+
+
+    button.disabled=
+        loading;
+
+
+    username.disabled=
+        loading;
+
+
+    password.disabled=
+        loading;
+
+
+    if(loading){
+
+        button.innerHTML=
+
+            '<span class="spinner"></span>'+
+            'جاري تسجيل الدخول...';
+
+    }else{
+
+        button.textContent=
+            "تسجيل الدخول";
+
+    }
+
+}
+
+
+/* =========================================================
+   FIND USER
+========================================================= */
+
+async function findUser(
+    originalUsername
+){
+
+    /*
+        نجرب اسم المستخدم كما كتبه
+        المستخدم أولاً.
+    */
+
+    let doc=
+        await db
+            .collection("users")
+            .doc(originalUsername)
+            .get();
+
+
+    if(doc.exists){
+
+        return{
+            doc,
+            username:
+                originalUsername
+        };
+
+    }
+
+
+    /*
+        لو لم نجده نجرب lowercase
+        للتوافق مع حسابات المعلمين.
+    */
+
+    const lower=
+        originalUsername
+            .toLowerCase();
+
+
+    if(
+        lower!==
+        originalUsername
+    ){
+
+        doc=
+            await db
+                .collection("users")
+                .doc(lower)
+                .get();
+
+
+        if(doc.exists){
+
+            return{
+                doc,
+                username:
+                    lower
+            };
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+async function login(){
+
+    clearMessage();
+
+
+    const originalUsername=
+        el("username")
+            .value
+            .trim();
+
+
+    const password=
+        el("password")
+            .value;
+
+
+    if(
+        !originalUsername ||
+        !password
+    ){
+
+        showError(
+            "فضلاً أدخل اسم المستخدم وكلمة المرور."
+        );
+
+        return;
+
+    }
+
+
+    /* =========================================
+       MANAGER SPECIAL ACCOUNT
+       المشرف العام
+       ========================================= */
+    if(
+        originalUsername.toLowerCase()==="manager" &&
+        password==="123456"
+    ){
+        localStorage.setItem("currentUserRole","manager");
+        localStorage.setItem("currentUser","manager");
+        localStorage.setItem("currentUserName","أحمد سمير");
+        location.href="manager.html";
+        return;
+    }
+
+
+    setLoading(true);
+
+
+    try{
+
+
+        const result=
+            await findUser(
+                originalUsername
+            );
+
+
+        /*
+            رسالة واحدة عامة أفضل
+            من كشف هل الحساب موجود أم لا.
+        */
+
+        if(!result){
+
+            showError(
+                "اسم المستخدم أو كلمة المرور غير صحيحة."
+            );
+
+            return;
+
+        }
+
+
+        const data=
+            result.doc.data()||{};
+
+
+        if(
+            String(
+                data.password??""
+            ) !==
+            String(password)
+        ){
+
+            showError(
+                "اسم المستخدم أو كلمة المرور غير صحيحة."
+            );
+
+            return;
+
+        }
+
+
+        const userRole=
+            String(
+                data.role||""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        /*
+            =========================================
+            ADMIN
+            =========================================
+        */
+
+        if(
+            userRole==="admin" ||
+            userRole==="superadmin"
+        ){
+
+            localStorage.setItem(
+                "currentUserRole",
+                "superadmin"
+            );
+
+
+            localStorage.setItem(
+                "currentUser",
+                result.username
+            );
+
+
+            localStorage.setItem(
+                "currentUserEmail",
+                result.username
+            );
+
+
+            localStorage.setItem(
+                "currentUserName",
+                data.name||
+                "الإدارة"
+            );
+
+
+            location.href=
+                "admin.html";
+
+
+            return;
+
+        }
+
+
+        /*
+            =========================================
+            MONITOR
+            =========================================
+        */
+
+        if(
+            userRole==="monitor"
+        ){
+
+            localStorage.setItem(
+                "currentUserRole",
+                "monitor"
+            );
+
+            localStorage.setItem(
+                "currentUser",
+                result.username
+            );
+
+            localStorage.setItem(
+                "currentUserEmail",
+                result.username
+            );
+
+            localStorage.setItem(
+                "currentUserName",
+                data.name||
+                "المتابع"
+            );
+
+            location.href=
+                "monitor-dashboard.html";
+
+            return;
+
+        }
+
+
+        /*
+            =========================================
+            TEACHER
+            =========================================
+        */
+
+        if(
+            userRole==="teacher"
+        ){
+
+            localStorage.setItem(
+                "currentUserRole",
+                "teacher"
+            );
+
+
+            localStorage.setItem(
+                "currentUser",
+                result.username
+            );
+
+
+            localStorage.setItem(
+                "currentUserEmail",
+                result.username
+            );
+
+
+            localStorage.setItem(
+                "currentUserName",
+                data.name||
+                result.username
+            );
+
+
+            location.href=
+                "teacher.html";
+
+
+            return;
+
+        }
+
+
+        /*
+            أي دور قديم في النظام
+        */
+
+        showError(
+            "هذا الحساب غير مفعّل في النسخة الحالية من نظام راصد."
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Login Error:",
+            error
+        );
+
+
+        showError(
+            "تعذر الاتصال بالنظام حاليًا. حاول مرة أخرى."
+        );
+
+    }
+    finally{
+
+        setLoading(false);
+
+    }
+
+}
+
+
+/* =========================================================
+   ENTER KEY
+========================================================= */
+
+el("username")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key===
+            "Enter"
+        ){
+
+            if(
+                !el("password").value
+            ){
+
+                el("password").focus();
+
+            }else{
+
+                login();
+
+            }
+
+        }
+
+    }
+);
+
+
+el("password")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key===
+            "Enter"
+        ){
+
+            login();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL FOCUS
+========================================================= */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        el("username").focus();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
