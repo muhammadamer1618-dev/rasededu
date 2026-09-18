@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>متابعة الاختبارات الإلكترونية</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}:root{--navy:#0c2745;--blue:#174f7c;--gold:#c69a2b;--green:#198754;--red:#dc3545;--bg:#f4f7fb;--line:#d7e0e8}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:#1f2937}
+header{position:relative;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;text-align:center;padding:17px;box-shadow:0 3px 12px #0002}
+.logo{width:70px;height:70px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}
+h1{margin:5px 0 2px;font-size:25px}header p{margin:0;color:#f4d77b;font-weight:bold}
+.back{position:absolute;left:16px;top:22px;border:0;border-radius:8px;padding:10px 15px;font-weight:bold;cursor:pointer;background:#fff;color:var(--navy)}
+.container{max-width:1300px;margin:18px auto;padding:0 12px 35px}
+.card{background:#fff;border:1px solid var(--line);border-radius:13px;margin-bottom:14px;box-shadow:0 2px 10px #0000000c;overflow:hidden}
+.card-title{padding:12px 15px;background:#eef4fa;color:#123c63;font-weight:bold;font-size:17px;border-bottom:1px solid var(--line)}
+.card-body{padding:15px}.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}select,input{width:100%;border:1px solid #bdc9d4;border-radius:8px;background:#fff;padding:10px;font:inherit}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px #0000000b}
+.stat strong{display:block;font-size:25px;color:var(--blue);margin-bottom:5px}.stat span{font-size:11px;color:#667788}
+table{width:100%;border-collapse:collapse;min-width:900px}th,td{border:1px solid #d4dde5;padding:8px;text-align:center;font-size:12px}th{background:var(--blue);color:#fff}.table-wrap{overflow:auto}
+button{border:0;border-radius:7px;padding:8px 11px;font:inherit;font-weight:bold;cursor:pointer}.primary{background:var(--blue);color:#fff}.gold{background:var(--gold);color:#fff}.light{background:#eaf0f5;color:var(--navy)}
+.badge{display:inline-block;padding:4px 8px;border-radius:14px;font-size:10px;font-weight:bold}.on{background:#dff3e6;color:#126b37}.off{background:#f1e3e3;color:#8b2929}
+.note{background:#fff8db;color:#715d00;padding:10px;border-radius:8px;font-size:12px;line-height:1.7}.empty{text-align:center;color:#788794;padding:25px}
+.hidden{display:none!important}.footer{text-align:center;color:#687786;font-size:10px;padding:12px}
+.detail-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr}.back{position:static;margin-top:9px}}
+@media print{@page{size:A4 landscape;margin:7mm}header .back,.filters,button,.footer{display:none!important}body{background:#fff}.container{max-width:none;margin:5px auto}.card,.stat{box-shadow:none}th,td{font-size:8px;padding:4px}.stats{grid-template-columns:repeat(5,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<img src="logo.jpeg" class="logo" onerror="this.style.display='none'">
+<h1>متابعة الاختبارات الإلكترونية</h1>
+<p>مدارس الفلاح الأهلية</p>
+<button class="back" onclick="location.href='admin.html'">↩ العودة للإدارة</button>
+</header>
+
+<div class="container">
+<div class="card">
+<div class="card-title">🔎 اختيار المعلم والمتابعة</div>
+<div class="card-body">
+<div class="filters">
+<div><label>المعلم</label><select id="teacherFilter" onchange="teacherChanged()"><option value="">اختر المعلم</option></select></div>
+<div><label>الصف</label><select id="gradeFilter" onchange="renderAll()"><option value="">كل الصفوف</option></select></div>
+<div><label>المادة</label><select id="subjectFilter" onchange="renderAll()"><option value="">كل المواد</option></select></div>
+</div>
+</div>
+</div>
+
+<div id="welcome" class="card"><div class="card-body empty">اختر المعلم لعرض نشاطه في منصة الاختبارات الإلكترونية.</div></div>
+
+<div id="dashboard" class="hidden">
+<div class="stats">
+<div class="stat"><strong id="sExams">0</strong><span>إجمالي الاختبارات</span></div>
+<div class="stat"><strong id="sClasses">0</strong><span>الفصول المستهدفة</span></div>
+<div class="stat"><strong id="sStudents">0</strong><span>طلاب شاركوا</span></div>
+<div class="stat"><strong id="sAttempts">0</strong><span>إجمالي المحاولات</span></div>
+<div class="stat"><strong id="sAverage">-</strong><span>متوسط النتائج</span></div>
+</div>
+
+<div class="card">
+<div class="card-title detail-head"><span>📚 ملخص نشاط المعلم حسب الفصل</span><button class="light" onclick="window.print()">🖨️ طباعة</button></div>
+<div class="card-body"><div class="table-wrap"><table>
+<thead><tr><th>م</th><th>الصف</th><th>الشعبة</th><th>المادة</th><th>عدد الاختبارات</th><th>طلاب شاركوا</th><th>المحاولات</th><th>متوسط النتائج</th><th>آخر اختبار</th><th>تفاصيل</th></tr></thead>
+<tbody id="classRows"></tbody>
+</table></div></div>
+</div>
+
+<div id="examDetailsCard" class="card hidden">
+<div class="card-title">📝 اختبارات <span id="detailLabel"></span></div>
+<div class="card-body"><div class="table-wrap"><table>
+<thead><tr><th>م</th><th>الاختبار</th><th>المادة</th><th>الفصل</th><th>الدرجة</th><th>المدة</th><th>الأسئلة</th><th>طلاب شاركوا</th><th>المحاولات</th><th>المتوسط</th><th>الحالة</th><th>النتائج</th></tr></thead>
+<tbody id="examRows"></tbody>
+</table></div></div>
+</div>
+
+<div id="attemptCard" class="card hidden">
+<div class="card-title">👨‍🎓 نتائج ومحاولات الطلاب — <span id="attemptTitle"></span></div>
+<div class="card-body">
+<div id="attemptSummary" class="note"></div>
+<div class="table-wrap" style="margin-top:10px"><table>
+<thead><tr><th>م</th><th>الطالب</th><th>الصف</th><th>الشعبة</th><th>المحاولة</th><th>الدرجة</th><th>النهائية</th><th>النسبة</th><th>وقت التسليم</th></tr></thead>
+<tbody id="attemptRows"></tbody>
+</table></div>
+</div>
+</div>
+</div>
+
+<div class="footer">تصميم محمد عامر أحمد - نظام راصد 2026</div>
+</div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+const gradesOrder=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي","1 متوسط","2 متوسط","3 متوسط","1 ثانوي","2 ثانوي","3 ثانوي"];
+let teachers=[],subjects=[],exams=[],attempts=[],questionCounts={};
+function el(id){return document.getElementById(id)}
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function protect(){const r=String(localStorage.getItem("currentUserRole")||"").toLowerCase();if(!["admin","superadmin"].includes(r)){alert("هذه الصفحة مخصصة للإدارة.");location.href="index.html";return false}return true}
+async function start(){
+ if(!protect())return;
+ try{
+  const [ts,ss,es,as]=await Promise.all([db.collection("teachers").get(),db.collection("subjects").get(),db.collection("onlineExams").get(),db.collection("examAttempts").get()]);
+  teachers=ts.docs.map(d=>({id:d.id,...d.data()}));subjects=ss.docs.map(d=>({id:d.id,...d.data()}));exams=es.docs.map(d=>({id:d.id,...d.data()}));attempts=as.docs.map(d=>({id:d.id,...d.data()}));
+  teachers.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));
+  teachers.forEach(t=>teacherFilter.insertAdjacentHTML("beforeend",`<option value="${esc(t.id)}">${esc(t.name||t.id)}</option>`));
+  gradesOrder.forEach(g=>gradeFilter.insertAdjacentHTML("beforeend",`<option>${esc(g)}</option>`));
+  subjects.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar")).forEach(s=>subjectFilter.insertAdjacentHTML("beforeend",`<option value="${esc(s.id)}">${esc(s.name)}</option>`));
+ }catch(e){console.error(e);alert("تعذر تحميل بيانات المتابعة: "+e.message)}
+}
+function teacherChanged(){examDetailsCard.classList.add("hidden");attemptCard.classList.add("hidden");renderAll()}
+function selectedTeacher(){return teachers.find(t=>t.id===teacherFilter.value||t.email===teacherFilter.value)}
+function teacherExams(){
+ const t=selectedTeacher();if(!t)return[];
+ const keys=new Set([t.id,t.email].filter(Boolean).map(x=>String(x).trim().toLowerCase()));
+ return exams.filter(e=>keys.has(String(e.teacherEmail||"").trim().toLowerCase()));
+}
+function filteredExams(){
+ let arr=teacherExams(),g=gradeFilter.value,s=subjectFilter.value;
+ if(s)arr=arr.filter(e=>e.subjectId===s);
+ if(g)arr=arr.filter(e=>(e.classes||[]).some(c=>c.grade===g));
+ return arr;
+}
+function attemptsForExam(id){return attempts.filter(a=>a.examId===id)}
+function pct(a){return Number(a.fullMark)?Number(a.mark||0)/Number(a.fullMark)*100:0}
+function renderAll(){
+ if(!teacherFilter.value){welcome.classList.remove("hidden");dashboard.classList.add("hidden");return}
+ welcome.classList.add("hidden");dashboard.classList.remove("hidden");
+ const arr=filteredExams(),ids=new Set(arr.map(e=>e.id)),ats=attempts.filter(a=>ids.has(a.examId));
+ const cls=new Set();arr.forEach(e=>(e.classes||[]).forEach(c=>{if(!gradeFilter.value||c.grade===gradeFilter.value)cls.add(c.grade+"|"+c.section+"|"+e.subjectId)}));
+ sExams.textContent=arr.length;sClasses.textContent=cls.size;sStudents.textContent=new Set(ats.map(a=>String(a.studentCode))).size;sAttempts.textContent=ats.length;sAverage.textContent=ats.length?(ats.reduce((x,a)=>x+pct(a),0)/ats.length).toFixed(1)+"%":"-";
+ renderClassRows(arr);
+}
+function renderClassRows(arr){
+ const groups=new Map();
+ arr.forEach(e=>(e.classes||[]).forEach(c=>{
+  if(gradeFilter.value&&c.grade!==gradeFilter.value)return;
+  const k=c.grade+"|"+c.section+"|"+e.subjectId;
+  if(!groups.has(k))groups.set(k,{grade:c.grade,section:c.section,subjectId:e.subjectId,subjectName:e.subjectName||"",exams:[]});
+  groups.get(k).exams.push(e);
+ }));
+ const list=[...groups.values()].sort((a,b)=>gradesOrder.indexOf(a.grade)-gradesOrder.indexOf(b.grade)||String(a.section).localeCompare(String(b.section),"ar"));
+ if(!list.length){classRows.innerHTML='<tr><td colspan="10">لا توجد اختبارات لهذا المعلم وفق الفلاتر المحددة.</td></tr>';return}
+ classRows.innerHTML=list.map((g,i)=>{
+  const ids=new Set(g.exams.map(e=>e.id)),ats=attempts.filter(a=>ids.has(a.examId)&&a.grade===g.grade&&a.section===g.section);
+  const students=new Set(ats.map(a=>String(a.studentCode))).size,avg=ats.length?(ats.reduce((x,a)=>x+pct(a),0)/ats.length).toFixed(1)+"%":"-";
+  const latest=[...g.exams].sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0))[0];
+  return `<tr><td>${i+1}</td><td>${esc(g.grade)}</td><td>${esc(g.section)}</td><td>${esc(g.subjectName)}</td><td><b>${g.exams.length}</b></td><td>${students}</td><td>${ats.length}</td><td>${avg}</td><td>${esc(latest?.name||"-")}</td><td><button class="primary" onclick='showClass(${JSON.stringify(g.grade)},${JSON.stringify(g.section)},${JSON.stringify(g.subjectId)})'>عرض الاختبارات</button></td></tr>`;
+ }).join("");
+}
+async function showClass(grade,section,sid){
+ const arr=teacherExams().filter(e=>e.subjectId===sid&&(e.classes||[]).some(c=>c.grade===grade&&c.section===section));
+ detailLabel.textContent=grade+" / "+section;examDetailsCard.classList.remove("hidden");attemptCard.classList.add("hidden");
+ const rows=[];
+ for(let i=0;i<arr.length;i++){
+  const e=arr[i],ats=attemptsForExam(e.id).filter(a=>(!a.grade||a.grade===grade)&&(!a.section||a.section===section));
+  if(questionCounts[e.id]===undefined){try{questionCounts[e.id]=(await db.collection("onlineExams").doc(e.id).collection("questions").get()).size}catch{questionCounts[e.id]="-"}}
+  const avg=ats.length?(ats.reduce((x,a)=>x+pct(a),0)/ats.length).toFixed(1)+"%":"-";
+  rows.push(`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.subjectName)}</td><td>${esc(grade)} / ${esc(section)}</td><td>${esc(e.fullMark)}</td><td>${esc(e.durationMinutes||"-")} د</td><td>${questionCounts[e.id]}</td><td>${new Set(ats.map(a=>String(a.studentCode))).size}</td><td>${ats.length}</td><td>${avg}</td><td><span class="badge ${e.active!==false?"on":"off"}">${e.active!==false?"مفعل":"موقوف"}</span></td><td><button class="gold" onclick="showAttempts('${e.id}',${JSON.stringify(grade)},${JSON.stringify(section)})">النتائج</button></td></tr>`);
+ }
+ examRows.innerHTML=rows.length?rows.join(""):'<tr><td colspan="12">لا توجد اختبارات.</td></tr>';
+ examDetailsCard.scrollIntoView({behavior:"smooth"});
+}
+function showAttempts(id,grade,section){
+ const e=exams.find(x=>x.id===id);let arr=attemptsForExam(id).filter(a=>(!a.grade||a.grade===grade)&&(!a.section||a.section===section));
+ arr.sort((a,b)=>(b.submittedAt?.toMillis?.()||0)-(a.submittedAt?.toMillis?.()||0));
+ attemptTitle.textContent=(e?.name||"")+" — "+grade+" / "+section;attemptCard.classList.remove("hidden");
+ const avg=arr.length?(arr.reduce((x,a)=>x+pct(a),0)/arr.length).toFixed(1):"-";
+ attemptSummary.innerHTML=`عدد الطلاب المشاركين: <b>${new Set(arr.map(a=>String(a.studentCode))).size}</b> — عدد المحاولات: <b>${arr.length}</b> — متوسط النتائج: <b>${avg}${avg==="-"?"":"%"}</b>`;
+ attemptRows.innerHTML=arr.length?arr.map((a,i)=>{let d=a.submittedAt?.toDate?a.submittedAt.toDate().toLocaleString("ar-SA"):"-";return `<tr><td>${i+1}</td><td>${esc(a.studentName||a.studentCode)}</td><td>${esc(a.grade)}</td><td>${esc(a.section)}</td><td>${esc(a.attemptNumber||1)}</td><td>${esc(a.mark)}</td><td>${esc(a.fullMark)}</td><td>${pct(a).toFixed(1)}%</td><td>${esc(d)}</td></tr>`}).join(""):'<tr><td colspan="9">لا توجد محاولات لهذا الفصل.</td></tr>';
+ attemptCard.scrollIntoView({behavior:"smooth"});
+}
+start();
+</script>
+</body></html>
