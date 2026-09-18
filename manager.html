@@ -4,123 +4,293 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>المشرف العام - نظام راصد</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Tahoma,Arial;background:#f3f7fb;color:#17324d}
+
+body{
+margin:0;
+font-family:Tahoma,Arial;
+background:#eef4f8;
+color:#17384f;
+}
+
 .header{
-background:linear-gradient(135deg,#063b70,#1475c9);
-color:#fff;padding:20px 40px;display:flex;
-justify-content:space-between;align-items:center
+background:linear-gradient(135deg,#032f4d,#0b78b5);
+color:white;
+padding:25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 20px #0002;
 }
-.logo{font-size:28px;font-weight:bold}
-.user{text-align:right}
-.user b{display:block;color:#ffd54f;font-size:20px}
-.container{padding:25px;max-width:1400px;margin:auto}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.card,.box{
-background:#fff;border-radius:18px;padding:20px;
-box-shadow:0 8px 25px #0001
+
+.brand h1{
+margin:0;
+font-size:32px;
 }
-.card h3{margin:0;color:#555;font-size:16px}
-.card strong{font-size:32px;color:#1475c9}
-.grid{
-display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px
+
+.brand p{
+margin:5px 0;
+color:#ffd75a;
+font-weight:bold;
 }
-.quick{
-display:flex;align-items:center;gap:15px;
-background:#f8fbff;padding:15px;border-radius:14px;
-border:1px solid #dcecff;margin:10px 0;
-font-weight:bold;color:#06466f
+
+.user-box{
+background:#ffffff20;
+padding:15px 25px;
+border-radius:15px;
+text-align:center;
 }
-.icon{font-size:30px}
-.links{
-display:grid;grid-template-columns:repeat(4,1fr);gap:15px
+
+.user-box b{
+display:block;
+font-size:22px;
+color:#ffd75a;
 }
-.link{
-padding:20px;text-align:center;border-radius:15px;
-background:#fff;border:1px solid #d9e7f5;
-font-weight:bold;color:#06466f
+
+.container{
+max-width:1400px;
+margin:25px auto;
+padding:0 20px;
 }
+
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+}
+
+.stat{
+background:white;
+border-radius:20px;
+padding:25px;
+box-shadow:0 8px 25px #0001;
+border-top:5px solid #0b78b5;
+}
+
+.stat h3{
+margin:0;
+color:#667;
+font-size:15px;
+}
+
+.stat strong{
+display:block;
+font-size:38px;
+color:#0b78b5;
+margin-top:10px;
+}
+
+.section{
+background:white;
+padding:25px;
+margin-top:25px;
+border-radius:22px;
+box-shadow:0 8px 25px #0001;
+}
+
+.section-title{
+font-size:22px;
+font-weight:bold;
+color:#06466f;
+margin-bottom:20px;
+}
+
+.menu{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:18px;
+}
+
+.menu a{
+text-decoration:none;
+background:linear-gradient(135deg,#fff,#f1f8fd);
+padding:25px 15px;
+border-radius:18px;
+text-align:center;
+color:#06466f;
+font-weight:bold;
+border:1px solid #d7e8f3;
+transition:.3s;
+}
+
+.menu a:hover{
+transform:translateY(-5px);
+box-shadow:0 10px 25px #0b78b530;
+}
+
+.menu span{
+display:block;
+font-size:35px;
+margin-bottom:12px;
+}
+
+.info{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:18px;
+}
+
+.info div{
+background:#f7fbfe;
+padding:20px;
+border-radius:15px;
+border:1px solid #dceaf3;
+}
+
 .footer{
-background:#063b70;color:white;text-align:center;padding:15px;margin-top:25px
+margin-top:30px;
+background:#032f4d;
+color:white;
+text-align:center;
+padding:18px;
 }
+
 @media(max-width:900px){
-.cards,.grid,.links{grid-template-columns:1fr}
+.stats,.menu,.info{
+grid-template-columns:1fr;
+}
+.header{
+display:block;
+text-align:center;
+}
 }
 </style>
+
 </head>
 
 <body>
 
 <header class="header">
-<div class="logo">📘 نظام راصد</div>
-<div class="user">
+
+<div class="brand">
+<h1>📘 نظام راصد</h1>
+<p>لوحة المشرف العام</p>
+</div>
+
+<div class="user-box">
 المشرف العام
 <b>أحمد سمير</b>
 عرض + تحليل + طباعة فقط
 </div>
+
 </header>
+
 
 <div class="container">
 
-<div class="cards">
-<div class="card"><h3>إجمالي المشرفين</h3><strong>6</strong></div>
-<div class="card"><h3>إجمالي المعلمين</h3><strong>40</strong></div>
-<div class="card"><h3>إجمالي الطلاب</h3><strong>489</strong></div>
-<div class="card"><h3>إجمالي الاختبارات</h3><strong>0</strong></div>
+<div class="stats">
+
+<div class="stat">
+<h3>إجمالي المشرفين</h3>
+<strong>6</strong>
 </div>
 
-<div class="grid">
-
-<div class="box">
-<h2>⚡ نظرة سريعة</h2>
-<div class="quick">📋 متابعة سير الاختبارات</div>
-<div class="quick">📊 تحليل النتائج والمقارنات</div>
-<div class="quick">👥 دعم الطلاب</div>
-<div class="quick">🖨️ التقارير والطباعة</div>
+<div class="stat">
+<h3>إجمالي المعلمين</h3>
+<strong>40</strong>
 </div>
 
-<div class="box">
-<h2>📈 توزيع الطلاب</h2>
-<p>الأول الابتدائي █████</p>
-<p>الثاني الابتدائي ███████</p>
-<p>الثالث الابتدائي █████████</p>
-<p>الرابع الابتدائي █████</p>
+<div class="stat">
+<h3>إجمالي الطلاب</h3>
+<strong>489</strong>
 </div>
 
-<div class="box">
-<h2>🎯 هدف النظام</h2>
-<p>
-متابعة الأداء التعليمي وتحليل النتائج
-لدعم القرارات التعليمية المبنية على البيانات.
-</p>
+<div class="stat">
+<h3>الاختبارات</h3>
+<strong>0</strong>
 </div>
 
 </div>
 
-<div class="box" style="margin-top:20px">
-<h2>الوصول إلى صفحات المتابعة</h2>
 
-<div class="links">
-<div class="link">🔍 تحليل النتائج</div>
-<div class="link">⚖️ مقارنة النتائج</div>
-<div class="link">📋 حالة الرصد</div>
-<div class="link">🏆 أفضل 10 طلاب</div>
-<div class="link">📝 متابعة الاختبارات</div>
-<div class="link">🎯 دعم الطلاب</div>
-<div class="link">🗂️ الأرشيف</div>
-<div class="link">👨‍🏫 بيانات المشرف</div>
+<div class="section">
+
+<div class="section-title">
+⚡ مركز المتابعة
+</div>
+
+<div class="menu">
+
+<a href="analysis.html">
+<span>📊</span>
+تحليل النتائج
+</a>
+
+<a href="comparison.html">
+<span>⚖️</span>
+مقارنة النتائج
+</a>
+
+<a href="monitoring_status.html">
+<span>📋</span>
+حالة الرصد
+</a>
+
+<a href="top10.html">
+<span>🏆</span>
+أفضل 10 طلاب
+</a>
+
+<a href="exam-monitoring.html">
+<span>📝</span>
+متابعة الاختبارات
+</a>
+
+<a href="support-students.html">
+<span>🎯</span>
+دعم الطلاب
+</a>
+
+<a href="archive.html">
+<span>🗂️</span>
+الأرشيف
+</a>
+
+<a href="supervisor.html">
+<span>👨‍🏫</span>
+بيانات المشرف
+</a>
+
 </div>
 
 </div>
 
-<div class="grid">
-<div class="box">🟢 رسالتنا<br>توفير بيانات دقيقة تساعد في تحسين الأداء.</div>
-<div class="box">🔵 هدفنا<br>متابعة وتحليل مستمر للعملية التعليمية.</div>
-<div class="box">🛡 صلاحيات المشرف<br>عرض وتحليل وطباعة بدون تعديل.</div>
+
+<div class="section">
+
+<div class="section-title">
+🛡 معلومات الحساب
+</div>
+
+<div class="info">
+
+<div>
+<strong>نوع الحساب</strong>
+<br>
+المشرف العام
+</div>
+
+<div>
+<strong>الصلاحيات</strong>
+<br>
+عرض - تحليل - طباعة
+</div>
+
+<div>
+<strong>الحالة</strong>
+<br>
+نشط
 </div>
 
 </div>
+
+</div>
+
+
+</div>
+
 
 <footer class="footer">
 نظام راصد - مدارس الفلاح الأهلية | تصميم محمد عامر أحمد
