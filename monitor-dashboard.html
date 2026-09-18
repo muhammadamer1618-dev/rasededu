@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>راصد - لوحة المتابعة</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:#f4f7fb;color:#1f2937}
+.header{background:linear-gradient(135deg,#0c2745,#174f7c);color:#fff;text-align:center;padding:20px;position:relative}.logo{width:80px;height:80px;object-fit:contain;background:#fff;border-radius:50%;padding:5px}.header h1{margin:7px 0 3px}.header p{margin:0;color:#f4d77b;font-weight:bold}.logout{position:absolute;left:15px;top:15px;border:0;border-radius:8px;padding:9px 13px;background:#dc3545;color:#fff;font-weight:bold;cursor:pointer}
+.container{max-width:1250px;margin:20px auto;padding:0 12px 35px}.welcome{background:#fff;border-radius:13px;padding:14px 18px;box-shadow:0 3px 12px #0001;margin-bottom:15px;color:#174f7c;font-weight:bold}
+.actions{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}.action{border:0;border-radius:12px;padding:17px 10px;background:#174f7c;color:#fff;font-family:inherit;font-weight:bold;font-size:14px;cursor:pointer}.action.gold{background:#c69a2b}.action.green{background:#198754}.action.purple{background:#6f42c1}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.stat{background:#fff;border-radius:13px;text-align:center;padding:16px;box-shadow:0 3px 12px #0001}.stat strong{display:block;font-size:27px;color:#174f7c}.stat span{font-size:12px;color:#64748b}
+.box{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px #0001;margin-bottom:15px}.title{background:#eef4fa;color:#123c63;font-weight:bold;font-size:18px;padding:13px 16px}.body{padding:15px}.filters{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}select,input{width:100%;height:42px;border:1px solid #cbd5e1;border-radius:7px;padding:7px;font-family:inherit}
+.wrap{overflow:auto;max-height:560px}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:12px}th{position:sticky;top:0;background:#174f7c;color:#fff}.tag{display:inline-block;background:#e8f1f8;color:#123c63;border-radius:18px;padding:5px 9px;margin:2px;font-size:10px}.footer{text-align:center;color:#64748b;font-size:11px;padding:12px}
+@media(max-width:850px){.actions{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr}.logout{position:static;margin-top:10px}}
+</style></head>
+<body>
+<header class="header"><img src="logo.jpeg" class="logo"><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد - لوحة المتابعة</p><button class="logout" onclick="logout()">تسجيل الخروج</button></header>
+<div class="container">
+<div class="welcome">مرحبًا، <span id="userName">المتابع</span> — هذه الصفحة للمتابعة والقراءة فقط.</div>
+<div class="actions">
+<button class="action purple" onclick="location.href='analysis.html'">📊 تحليل النتائج</button>
+<button class="action gold" onclick="location.href='comparison.html'">📈 مقارنة النتائج</button>
+<button class="action green" onclick="location.href='monitoring.html'">📋 حالة الرصد</button>
+<button class="action gold" onclick="location.href='support-students.html'">👥 الطلاب المحتاجون للدعم</button>
+<button class="action" onclick="document.getElementById('teachersBox').scrollIntoView({behavior:'smooth'})">👨‍🏫 المعلمون</button>
+</div>
+<div class="stats"><div class="stat"><strong id="sTeachers">0</strong><span>المعلمون</span></div><div class="stat"><strong id="sSubjects">0</strong><span>المواد</span></div><div class="stat"><strong id="sTests">0</strong><span>الاختبارات</span></div><div class="stat"><strong id="sGrades">0</strong><span>سجلات النتائج</span></div></div>
+
+<div class="box" id="teachersBox"><div class="title">👨‍🏫 المعلمون وإسناداتهم</div><div class="body"><div class="wrap"><table><thead><tr><th>م</th><th>المعلم</th><th>اسم المستخدم</th><th>المواد والفصول المسندة</th></tr></thead><tbody id="teachersBody"></tbody></table></div></div></div>
+
+<div class="box"><div class="title">📑 متابعة النتائج المرصودة</div><div class="body">
+<div class="filters"><select id="fTeacher" onchange="renderResults()"><option value="">كل المعلمين</option></select><select id="fSubject" onchange="renderResults()"><option value="">كل المواد</option></select><input id="fSearch" oninput="renderResults()" placeholder="بحث باسم الطالب أو الاختبار"></div>
+<div class="wrap"><table><thead><tr><th>م</th><th>المعلم</th><th>الطالب</th><th>الفصل</th><th>المادة</th><th>الاختبار</th><th>الدرجة</th><th>النهائية</th><th>الحضور</th></tr></thead><tbody id="resultsBody"></tbody></table></div>
+</div></div>
+<div class="footer">تصميم محمد عامر أحمد - نظام راصد 2026</div>
+</div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+let teachers=[],subjects=[],tests=[],grades=[];
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function protect(){if((localStorage.getItem("currentUserRole")||"")!=="monitor"){alert("هذه الصفحة لحساب المتابعة فقط");location.href="index.html";return false}return true}
+function logout(){["currentUserRole","currentUser","currentUserName","currentUserEmail"].forEach(k=>localStorage.removeItem(k));location.href="index.html"}
+function option(el,v,t){let o=document.createElement("option");o.value=v;o.textContent=t;el.appendChild(o)}
+async function load(){const [a,b,c,d]=await Promise.all(["teachers","subjects","tests","grades"].map(x=>db.collection(x).get()));teachers=a.docs.map(x=>({email:x.data().email||x.id,...x.data()}));subjects=b.docs.map(x=>({id:x.id,...x.data()}));tests=c.docs.map(x=>({id:x.id,...x.data()}));grades=d.docs.map(x=>({id:x.id,...x.data()}));sTeachers.textContent=teachers.length;sSubjects.textContent=subjects.length;sTests.textContent=tests.length;sGrades.textContent=grades.length;teachers.sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));teachers.forEach(t=>option(fTeacher,t.email,t.name||t.email));subjects.sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));subjects.forEach(s=>option(fSubject,s.id,s.name));renderTeachers();renderResults()}
+function renderTeachers(){teachersBody.innerHTML="";teachers.forEach((t,i)=>{const ass=Array.isArray(t.assignments)?t.assignments:[];const tags=ass.length?ass.map(a=>`<span class="tag">${esc(a.subjectName||"")} — ${esc(a.grade||"")} / ${esc(a.section||"")}</span>`).join(""):"—";teachersBody.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td><b>${esc(t.name||"")}</b></td><td>${esc(t.email)}</td><td>${tags}</td></tr>`)})}
+function renderResults(){const te=fTeacher.value,su=fSubject.value,q=String(fSearch.value||"").trim().toLowerCase();const list=grades.filter(r=>(!te||r.teacherEmail===te)&&(!su||r.subjectId===su)&&(!q||[r.studentName,r.studentCode,r.testName].map(x=>String(x||"").toLowerCase()).join(" ").includes(q)));resultsBody.innerHTML=list.length?"":"<tr><td colspan='9'>لا توجد نتائج مطابقة</td></tr>";list.forEach((r,i)=>resultsBody.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td>${esc(r.teacherName||"-")}</td><td><b>${esc(r.studentName||r.studentCode||"-")}</b></td><td>${esc(r.grade||"-")} / ${esc(r.section||"-")}</td><td>${esc(r.subjectName||"-")}</td><td>${esc(r.testName||"-")}</td><td>${r.mark===null||r.mark===undefined?"—":esc(r.mark)}</td><td>${esc(r.fullMark||"-")}</td><td>${String(r.attendance||"").toLowerCase()==="absent"?"غائب":"حاضر"}</td></tr>`))}
+async function start(){if(!protect())return;userName.textContent=localStorage.getItem("currentUserName")||"المتابع";try{await load()}catch(e){console.error(e);alert("تعذر تحميل بيانات المتابعة:\\n"+e.message)}}start();
+</script></body></html>

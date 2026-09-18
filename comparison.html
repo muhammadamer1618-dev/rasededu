@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>راصد - مقارنة النتائج</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--navy:#174f7c;--dark:#0c2745;--gold:#c69a2b;--green:#198754;--red:#dc3545;--blue:#3488d8;--purple:#6f42c1;--border:#d7e0e8}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f4f7fb;color:#1f2937}
+.header{position:relative;text-align:center;color:#fff;background:linear-gradient(135deg,#0c2745,#174f7c);padding:16px;box-shadow:0 3px 12px #0002}
+.logo{width:70px;height:70px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}
+.header h1{margin:5px 0 2px;font-size:24px}.header p{margin:0;color:#f4d77b;font-weight:bold}
+.header-actions{position:absolute;left:15px;top:18px;display:flex;gap:7px}
+button{border:0;border-radius:8px;padding:10px 15px;font-family:inherit;font-weight:bold;cursor:pointer}
+.btn-light{background:#fff;color:var(--navy)}.btn-gold{background:var(--gold);color:#fff}.btn-primary{background:var(--navy);color:#fff}
+.container{max-width:1300px;margin:18px auto;padding:0 12px 30px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{background:#e6edf4;color:#29465e}.tab.active{background:var(--navy);color:#fff}
+.card{background:#fff;border:1px solid var(--border);border-radius:13px;margin-bottom:13px;box-shadow:0 2px 10px #0000000c;overflow:hidden}
+.card-title{padding:12px 15px;background:#eef4fa;color:#123c63;font-weight:bold;font-size:17px;border-bottom:1px solid var(--border)}
+.card-body{padding:14px}
+.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:end}
+label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
+select{width:100%;height:42px;border:1px solid #bdc9d4;border-radius:7px;background:#fff;padding:6px 10px;font-family:inherit;direction:rtl}
+.check-panel{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.check-chip{display:flex;align-items:center;gap:5px;border:1px solid #cbd5df;border-radius:20px;padding:7px 10px;background:#fafcff;font-size:12px}
+.check-chip input{width:17px;height:17px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{background:#fff8db;color:#715d00;padding:10px;border-radius:8px;font-size:12px;line-height:1.7}
+.empty{text-align:center;padding:45px;color:#778692}
+.report{background:#fff}
+.report-head{text-align:center;border:1px solid #aebbc5;padding:7px;margin-bottom:7px}
+.report-head img{width:52px;height:52px;object-fit:contain}.report-head h2{margin:1px;color:var(--dark);font-size:17px}.report-head h3{margin:3px;color:var(--navy);font-size:14px}
+.report-meta{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #aebbc5;margin-top:5px}
+.report-meta div{padding:5px;border-left:1px solid #aebbc5;font-size:10px;font-weight:bold}.report-meta div:last-child{border-left:0}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:9px}
+.summary{border:1px solid #ccd6de;border-radius:8px;padding:8px;text-align:center;background:#f8fafc}.summary strong{display:block;font-size:19px;color:var(--navy)}.summary span{font-size:10px;font-weight:bold}
+.table-wrap{overflow:auto;border:1px solid #aebbc5}
+table{width:100%;border-collapse:collapse;min-width:900px;table-layout:fixed}th,td{border:1px solid #9ba7b0;padding:7px 5px;text-align:center;font-size:11px}th{background:var(--navy);color:#fff}
+.best{background:#d8f3df!important;font-weight:bold;color:#126b34}
+.chart{height:190px;border:1px solid #cbd5dd;margin-top:10px;padding:12px 15px 28px;display:flex;align-items:flex-end;justify-content:space-around;gap:10px}
+.chart-group{height:100%;flex:1;display:flex;align-items:flex-end;justify-content:center;position:relative}.bar{width:55%;min-height:2px;background:var(--blue);border-radius:5px 5px 0 0;position:relative}.bar span{position:absolute;top:-19px;width:100%;text-align:center;font-size:10px;font-weight:bold}.chart-label{position:absolute;bottom:-23px;width:100%;font-size:9px;font-weight:bold;text-align:center}
+.footer{text-align:center;font-size:10px;color:#687786;padding:10px}
+@media(max-width:850px){.filters{grid-template-columns:repeat(2,1fr)}.summary-grid{grid-template-columns:repeat(2,1fr)}.header-actions{position:static;justify-content:center;margin-top:8px}}
+@media print{
+@page{size:A4 landscape;margin:7mm}
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.header,.controls,.footer{display:none!important}
+body,.container{background:#fff;margin:0!important;padding:0!important;max-width:none!important}
+.report-head{padding:3mm}.report-head img{width:12mm;height:12mm}.report-head h2{font-size:13pt}.report-head h3{font-size:10pt}
+.report-meta div{font-size:7.5pt;padding:2mm}.summary{padding:2mm}.summary strong{font-size:13pt}.summary span{font-size:7pt}
+table{min-width:0!important}th,td{font-size:7pt;padding:1.5mm 1mm}.chart{height:42mm}.chart-label{font-size:6pt}
+}
+</style>
+</head>
+<body>
+<header class="header">
+<img src="logo.jpeg" class="logo"><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد - مقارنة النتائج</p>
+<div class="header-actions"><button class="btn-light" onclick="location.href='admin.html'">↩ الإدارة</button><button class="btn-gold" onclick="printReport()">🖨️ طباعة</button></div>
+</header>
+
+<div class="container">
+<div class="controls">
+<div class="tabs">
+<button id="tabClasses" class="tab active" onclick="setMode('classes')">🏫 مقارنة الفصول في مادة واحدة</button>
+<button id="tabSubjects" class="tab" onclick="setMode('subjects')">📚 مقارنة المواد المختلفة</button>
+</div>
+
+<div class="card">
+<div class="card-title" id="controlTitle">مقارنة الفصول في مادة واحدة</div>
+<div class="card-body">
+<div id="classesControls">
+<div class="filters">
+<div><label>المادة</label><select id="classSubject" onchange="buildClassTests()"><option value="">اختر المادة</option></select></div>
+<div><label>الاختبار</label><select id="classTest" onchange="buildClassChoices()"><option value="">اختر الاختبار</option></select></div>
+<div><label>مقياس المقارنة</label><select id="classMetric"><option value="average">متوسط النسبة</option><option value="success">نسبة النجاح</option></select></div>
+</div>
+<label style="margin-top:12px">الفصول المراد مقارنتها</label>
+<div id="classChoices" class="check-panel"><span class="note">اختر المادة والاختبار أولًا.</span></div>
+</div>
+
+<div id="subjectsControls" style="display:none">
+<div class="filters">
+<div><label>الصف</label><select id="subjectGrade" onchange="buildSections()"><option value="">اختر الصف</option></select></div>
+<div><label>الشعبة</label><select id="subjectSection" onchange="buildSubjectTestNames()"><option value="">اختر الشعبة</option></select></div>
+<div><label>اسم الاختبار المشترك</label><select id="subjectTestName" onchange="buildSubjectChoices()"><option value="">اختر الاختبار</option></select></div>
+<div><label>مقياس المقارنة</label><select id="subjectMetric"><option value="average">متوسط النسبة</option><option value="success">نسبة النجاح</option></select></div>
+</div>
+<label style="margin-top:12px">المواد المراد مقارنتها</label>
+<div id="subjectChoices" class="check-panel"><span class="note">اختر الصف والشعبة والاختبار أولًا.</span></div>
+</div>
+
+<div class="actions"><button class="btn-primary" onclick="runComparison()">📊 تنفيذ المقارنة</button></div>
+<div class="note" style="margin-top:10px">هذه الصفحة للقراءة والتحليل فقط. لا تقوم بتعديل أو حذف الطلاب أو المواد أو المعلمين أو الاختبارات أو الدرجات.</div>
+</div></div>
+</div>
+
+<div id="resultArea"><div class="empty">حدد نوع المقارنة والبيانات المطلوبة ثم اضغط تنفيذ المقارنة.</div></div>
+<div class="footer">تصميم محمد عامر أحمد - نظام راصد 2026</div>
+</div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+const gradeOrder=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي","1 متوسط","2 متوسط","3 متوسط","1 ثانوي","2 ثانوي","3 ثانوي"];
+const sectionOrder=["أ","ب","ج","د"];
+let subjects=[],tests=[],students=[],gradesData=[],mode="classes";
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function protect(){const r=localStorage.getItem("currentUserRole")||"";if(r!=="admin"&&r!=="superadmin"){alert("هذه الصفحة للإدارة فقط");location.href="index.html";return false}return true}
+function setMode(m){mode=m;tabClasses.classList.toggle("active",m==="classes");tabSubjects.classList.toggle("active",m==="subjects");classesControls.style.display=m==="classes"?"block":"none";subjectsControls.style.display=m==="subjects"?"block":"none";controlTitle.textContent=m==="classes"?"مقارنة الفصول في مادة واحدة":"مقارنة المواد المختلفة";resultArea.innerHTML='<div class="empty">حدد البيانات المطلوبة ثم اضغط تنفيذ المقارنة.</div>'}
+function addOptions(el,list,valueKey="id",textKey="name"){list.forEach(x=>{const o=document.createElement("option");o.value=x[valueKey];o.textContent=x[textKey];el.appendChild(o)})}
+async function loadAll(){const [ss,ts,sts,gs]=await Promise.all([db.collection("subjects").get(),db.collection("tests").get(),db.collection("students").get(),db.collection("grades").get()]);
+subjects=ss.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));
+tests=ts.docs.map(d=>({id:d.id,...d.data()}));
+students=sts.docs.map(d=>({code:d.data().code||d.id,...d.data()}));
+gradesData=gs.docs.map(d=>({id:d.id,...d.data()}));
+addOptions(classSubject,subjects);
+gradeOrder.forEach(g=>{if(students.some(s=>s.grade===g)){const o=document.createElement("option");o.value=g;o.textContent=g;subjectGrade.appendChild(o)}})
+}
+function buildClassTests(){classTest.innerHTML='<option value="">اختر الاختبار</option>';classChoices.innerHTML='<span class="note">اختر الاختبار أولًا.</span>';const sid=classSubject.value;if(!sid)return;const names=[...new Set(tests.filter(t=>t.subjectId===sid).map(t=>t.name).filter(Boolean))];names.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;classTest.appendChild(o)})}
+function buildClassChoices(){const sid=classSubject.value,n=classTest.value;classChoices.innerHTML="";if(!sid||!n){classChoices.innerHTML='<span class="note">اختر المادة والاختبار أولًا.</span>';return}const map=new Map();tests.filter(t=>t.subjectId===sid&&t.name===n).forEach(t=>(Array.isArray(t.classes)?t.classes:[]).forEach(c=>map.set(c.grade+"|||"+c.section,c)));const arr=[...map.values()].sort((a,b)=>gradeOrder.indexOf(a.grade)-gradeOrder.indexOf(b.grade)||sectionOrder.indexOf(a.section)-sectionOrder.indexOf(b.section));if(!arr.length){classChoices.innerHTML='<span class="note">لا توجد فصول لهذا الاختبار.</span>';return}arr.forEach(c=>classChoices.insertAdjacentHTML("beforeend",`<label class="check-chip"><input type="checkbox" class="classChoice" data-grade="${esc(c.grade)}" data-section="${esc(c.section)}" checked>${esc(c.grade)} / ${esc(c.section)}</label>`))}
+function buildSections(){subjectSection.innerHTML='<option value="">اختر الشعبة</option>';subjectTestName.innerHTML='<option value="">اختر الاختبار</option>';subjectChoices.innerHTML='<span class="note">اختر الصف والشعبة والاختبار أولًا.</span>';const g=subjectGrade.value;if(!g)return;sectionOrder.filter(sec=>students.some(s=>s.grade===g&&s.section===sec)).forEach(sec=>{const o=document.createElement("option");o.value=sec;o.textContent=sec;subjectSection.appendChild(o)})}
+function testHasClass(t,g,s){return (Array.isArray(t.classes)?t.classes:[]).some(c=>c.grade===g&&c.section===s)}
+function buildSubjectTestNames(){subjectTestName.innerHTML='<option value="">اختر الاختبار</option>';subjectChoices.innerHTML='<span class="note">اختر الاختبار أولًا.</span>';const g=subjectGrade.value,s=subjectSection.value;if(!g||!s)return;const names=[...new Set(tests.filter(t=>testHasClass(t,g,s)).map(t=>t.name).filter(Boolean))];names.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;subjectTestName.appendChild(o)})}
+function buildSubjectChoices(){subjectChoices.innerHTML="";const g=subjectGrade.value,s=subjectSection.value,n=subjectTestName.value;if(!g||!s||!n){subjectChoices.innerHTML='<span class="note">اختر الصف والشعبة والاختبار أولًا.</span>';return}const ids=new Set(tests.filter(t=>t.name===n&&testHasClass(t,g,s)).map(t=>t.subjectId));const list=subjects.filter(x=>ids.has(x.id));if(!list.length){subjectChoices.innerHTML='<span class="note">لا توجد مواد مشتركة بهذا الاسم.</span>';return}list.forEach(x=>subjectChoices.insertAdjacentHTML("beforeend",`<label class="check-chip"><input type="checkbox" class="subjectChoice" value="${esc(x.id)}" checked>${esc(x.name)}</label>`))}
+function calc(test,g,s){const classStudents=students.filter(x=>x.grade===g&&x.section===s);const recs=gradesData.filter(r=>r.testId===test.id&&r.grade===g&&r.section===s);const rows=classStudents.map(st=>{const r=recs.find(x=>String(x.studentCode)===String(st.code));if(!r||r.attendance==="absent"||r.mark===null||r.mark===undefined||r.mark==="")return null;const fm=Number(r.fullMark||test.fullMark);const mark=Number(r.mark);if(!fm||Number.isNaN(mark))return null;return mark/fm*100}).filter(x=>x!==null);const absent=recs.filter(r=>r.attendance==="absent").length;const avg=rows.length?rows.reduce((a,b)=>a+b,0)/rows.length:0;const success=rows.length?rows.filter(x=>x>=50).length/rows.length*100:0;return{total:classStudents.length,recorded:rows.length,absent,average:avg,success}}
+function runComparison(){mode==="classes"?compareClasses():compareSubjects()}
+function compareClasses(){const sid=classSubject.value,n=classTest.value,metric=classMetric.value;const chosen=[...document.querySelectorAll(".classChoice:checked")].map(x=>({grade:x.dataset.grade,section:x.dataset.section}));if(!sid||!n||chosen.length<2){alert("اختر المادة والاختبار وفصلين على الأقل للمقارنة.");return}const subj=subjects.find(x=>x.id===sid);const rows=chosen.map(c=>{const candidates=tests.filter(t=>t.subjectId===sid&&t.name===n&&testHasClass(t,c.grade,c.section));const test=candidates[0];return test?{label:c.grade+" / "+c.section,...calc(test,c.grade,c.section)}:null}).filter(Boolean);renderReport("مقارنة الفصول في مادة واحدة",`المادة: ${subj?.name||""}`,`الاختبار: ${n}`,rows,metric)}
+function compareSubjects(){const g=subjectGrade.value,s=subjectSection.value,n=subjectTestName.value,metric=subjectMetric.value;const ids=[...document.querySelectorAll(".subjectChoice:checked")].map(x=>x.value);if(!g||!s||!n||ids.length<2){alert("اختر الصف والشعبة والاختبار ومادتين على الأقل للمقارنة.");return}const rows=ids.map(id=>{const subj=subjects.find(x=>x.id===id);const test=tests.find(t=>t.subjectId===id&&t.name===n&&testHasClass(t,g,s));return test?{label:subj?.name||test.subjectName||"",...calc(test,g,s)}:null}).filter(Boolean);renderReport("مقارنة المواد المختلفة",`الفصل: ${g} / ${s}`,`الاختبار: ${n}`,rows,metric)}
+function renderReport(title,meta1,meta2,rows,metric){if(rows.length<2){resultArea.innerHTML='<div class="empty">لا توجد بيانات كافية لإجراء المقارنة.</div>';return}const key=metric==="success"?"success":"average";const best=Math.max(...rows.map(r=>r[key]));const bestRows=rows.filter(r=>Math.abs(r[key]-best)<.001);const total=rows.reduce((a,r)=>a+r.total,0);const recorded=rows.reduce((a,r)=>a+r.recorded,0);const overallAvg=rows.length?rows.reduce((a,r)=>a+r.average,0)/rows.length:0;const overallSuccess=rows.length?rows.reduce((a,r)=>a+r.success,0)/rows.length:0;const maxChart=Math.max(...rows.map(r=>r[key]),1);
+const tableRows=rows.map((r,i)=>`<tr class="${Math.abs(r[key]-best)<.001?"best":""}"><td>${i+1}</td><td>${esc(r.label)}</td><td>${r.total}</td><td>${r.recorded}</td><td>${r.absent}</td><td>${r.average.toFixed(1)}%</td><td>${r.success.toFixed(1)}%</td></tr>`).join("");
+const bars=rows.map(r=>`<div class="chart-group"><div class="bar" style="height:${Math.max(3,r[key]/maxChart*100)}%"><span>${r[key].toFixed(1)}%</span></div><div class="chart-label">${esc(r.label)}</div></div>`).join("");
+resultArea.innerHTML=`<div class="report"><div class="report-head"><img src="logo.jpeg"><h2>مدارس الفلاح الأهلية</h2><h3>${esc(title)}</h3><div class="report-meta"><div>${esc(meta1)}</div><div>${esc(meta2)}</div><div>الأفضل حسب: ${metric==="success"?"نسبة النجاح":"متوسط النسبة"}</div></div></div>
+<div class="summary-grid"><div class="summary"><strong>${rows.length}</strong><span>عناصر المقارنة</span></div><div class="summary"><strong>${total}</strong><span>إجمالي الطلاب</span></div><div class="summary"><strong>${overallAvg.toFixed(1)}%</strong><span>متوسط المقارنة</span></div><div class="summary"><strong>${overallSuccess.toFixed(1)}%</strong><span>متوسط نسبة النجاح</span></div></div>
+<div class="note" style="margin-bottom:8px"><strong>أفضل نتيجة:</strong> ${bestRows.map(r=>esc(r.label)).join("، ")} — ${best.toFixed(1)}%</div>
+<div class="table-wrap"><table><thead><tr><th>م</th><th>${mode==="classes"?"الفصل":"المادة"}</th><th>عدد الطلاب</th><th>مرصود</th><th>غائب</th><th>متوسط النسبة</th><th>نسبة النجاح</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+<div class="chart">${bars}</div></div>`}
+function printReport(){if(!document.querySelector(".report")){alert("نفذ المقارنة أولًا.");return}window.print()}
+async function start(){if(!protect())return;try{await loadAll()}catch(e){console.error(e);alert("حدث خطأ أثناء تحميل بيانات المقارنة:\\n"+e.message)}}
+start();
+</script>
+</body>
+</html>
