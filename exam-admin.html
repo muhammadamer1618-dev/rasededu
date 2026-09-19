@@ -27,6 +27,48 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{border:1px solid
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.head-actions{position:static;justify-content:center;margin-top:8px}}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
+
+<style id="rased-mobile-friendly">
+*{box-sizing:border-box;}
+html{width:100%;overflow-x:hidden;}
+body{width:100%;max-width:100%;overflow-x:hidden;}
+img{max-width:100%;height:auto;}
+button,input,select,textarea{max-width:100%;}
+.table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{max-width:100%;}
+@media (max-width:768px){
+  body{font-size:15px;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper,.card,.panel{max-width:100%;}
+  header,.header,.topbar,.navbar,.nav{height:auto;min-height:0;}
+  header,.header,.topbar,.navbar,.nav,.toolbar,.actions,.filters,.filter-row,.form-row,.button-row,.stats,.cards,.grid,.controls{flex-wrap:wrap;}
+  header,.header,.topbar,.navbar,.nav{padding-left:12px!important;padding-right:12px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{width:100%!important;padding-left:12px!important;padding-right:12px!important;}
+  .card,.panel,.box,.section{margin-left:0!important;margin-right:0!important;}
+  .grid,.cards{grid-template-columns:1fr!important;}
+  .filters,.filter-row,.form-row,.button-row,.toolbar,.actions{gap:8px!important;}
+  .filters>* ,.filter-row>* ,.form-row>*{min-width:0!important;width:100%!important;max-width:100%!important;}
+  input,select,textarea{width:100%;min-height:44px;font-size:16px;}
+  button{min-height:44px;font-size:15px;}
+  .button-row button,.actions button,.toolbar button{width:100%;}
+  .table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{overflow-x:auto!important;}
+  table{min-width:600px;}
+  th,td{white-space:nowrap;}
+  .modal,.dialog,.popup{max-width:calc(100vw - 24px)!important;width:auto!important;}
+  .modal-content,.dialog-content{max-width:100%;}
+  .logo{max-width:110px!important;height:auto!important;}
+  h1{font-size:clamp(22px,6vw,32px)!important;}
+  h2{font-size:clamp(19px,5vw,27px)!important;}
+  h3{font-size:clamp(17px,4.5vw,23px)!important;}
+  .parent-progress-box,.parent-subject-picker{max-width:100%;}
+}
+@media (max-width:420px){
+  body{font-size:14px;}
+  header,.header,.topbar,.navbar,.nav{padding:8px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{padding-left:8px!important;padding-right:8px!important;}
+  table{min-width:560px;}
+  th,td{padding:7px 6px!important;}
+}
+</style>
 </head>
 <body>
 <header>
@@ -125,7 +167,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{border:1px solid
 <div class="card-title">📊 نتائج: <span id="resultsTitle"></span></div>
 <div class="card-body">
 <div id="resultsSummary" class="note"></div>
-<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>م</th><th>الطالب</th><th>الصف</th><th>الفصل</th><th>المحاولة</th><th>الدرجة</th><th>الدرجة النهائية</th><th>النسبة</th><th>وقت التسليم</th><th>إجراء</th></tr></thead><tbody id="resultRows"></tbody></table></div>
+<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>م</th><th>الطالب</th><th>الصف</th><th>الفصل</th><th>عدد المحاولات</th><th>أفضل محاولة</th><th>الدرجة</th><th>الدرجة النهائية</th><th>النسبة</th><th>وقت أفضل تسليم</th><th>إجراء</th></tr></thead><tbody id="resultRows"></tbody></table></div>
 </div></div>
 
 <div class="footer">تصميم محمد عامر أحمد - نظام راصد 2026</div>
@@ -444,14 +486,16 @@ async function deleteQuestion(id){
 async function showResults(id){
  let exm=examsData.find(x=>x.id===id);if(!exm||!canManageExam(exm)){alert("لا يمكنك عرض نتائج اختبار يخص معلماً آخر.");return;}
  let s=await db.collection("examAttempts").where("examId","==",id).get(),arr=s.docs.map(d=>({id:d.id,...d.data()}));
- arr.sort((a,b)=>String(a.studentName||"").localeCompare(String(b.studentName||""),"ar")||Number(a.attemptNumber||1)-Number(b.attemptNumber||1));
- resultsTitle.textContent=exm?.name||"";resultsCard.classList.remove("hidden");
- const groups={};arr.forEach(r=>(groups[String(r.studentCode||r.studentName||"")]??=[]).push(r));
+ const groups={};arr.forEach(r=>{const key=String(r.studentCode||r.studentName||r.id);(groups[key]??=[]).push(r)});
  const students=Object.values(groups);
+ students.forEach(list=>list.sort((a,b)=>(Number(b.mark)||0)/(Number(b.fullMark)||1)-(Number(a.mark)||0)/(Number(a.fullMark)||1)||Number(b.attemptNumber||1)-Number(a.attemptNumber||1)));
+ students.sort((a,b)=>String(a[0].studentName||"").localeCompare(String(b[0].studentName||""),"ar"));
+ const bestAttempts=students.map(list=>list[0]);
  const avg=arr.length?arr.reduce((a,x)=>a+(Number(x.mark)||0)/(Number(x.fullMark)||1)*100,0)/arr.length:0;
- const bestAvg=students.length?students.reduce((sum,list)=>sum+Math.max(...list.map(x=>Number(x.fullMark)?Number(x.mark)/Number(x.fullMark)*100:0)),0)/students.length:0;
- resultsSummary.innerHTML=`عدد الطلاب: <span class="stat">${students.length}</span> — المحاولات: <span class="stat">${arr.length}</span> — متوسط المحاولات: <span class="stat">${avg.toFixed(1)}%</span> — متوسط أفضل محاولة: <span class="stat">${bestAvg.toFixed(1)}%</span> <button class="red" onclick="deleteExamResults('${id}')">حذف نتائج الاختبار</button>`;
- resultRows.innerHTML=arr.length?arr.map((r,i)=>{let p=Number(r.fullMark)?Number(r.mark)/Number(r.fullMark)*100:0,dt=r.submittedAt?.toDate?r.submittedAt.toDate().toLocaleString("ar-SA"):"-",code=String(r.studentCode||"").replace(/'/g,"\\'"),name=String(r.studentName||"").replace(/'/g,"\\'");return `<tr><td>${i+1}</td><td>${esc(r.studentName)}</td><td>${esc(r.grade)}</td><td>${esc(r.section)}</td><td>${esc(r.attemptNumber||1)}</td><td>${esc(r.mark)}</td><td>${esc(r.fullMark)}</td><td>${p.toFixed(1)}%</td><td>${esc(dt)}</td><td><button class="red" onclick="deleteAttempt('${id}','${r.id}')">حذف المحاولة</button> <button class="light" onclick="deleteStudentAttempts('${id}','${code}','${name}')">حذف محاولات الطالب</button></td></tr>`}).join(""):'<tr><td colspan="10">لا توجد نتائج بعد.</td></tr>';
+ const bestAvg=bestAttempts.length?bestAttempts.reduce((sum,x)=>sum+(Number(x.fullMark)?Number(x.mark)/Number(x.fullMark)*100:0),0)/bestAttempts.length:0;
+ resultsTitle.textContent=exm?.name||"";resultsCard.classList.remove("hidden");
+ resultsSummary.innerHTML=`عدد الطلاب: <span class="stat">${students.length}</span> — إجمالي المحاولات: <span class="stat">${arr.length}</span> — متوسط المحاولات: <span class="stat">${avg.toFixed(1)}%</span> — متوسط أفضل نتيجة: <span class="stat">${bestAvg.toFixed(1)}%</span> <button class="red" onclick="deleteExamResults('${id}')">حذف نتائج الاختبار</button>`;
+ resultRows.innerHTML=bestAttempts.length?bestAttempts.map((r,i)=>{let list=students[i],p=Number(r.fullMark)?Number(r.mark)/Number(r.fullMark)*100:0,dt=r.submittedAt?.toDate?r.submittedAt.toDate().toLocaleString("ar-SA"):"-",code=String(r.studentCode||"").replace(/'/g,"\\'"),name=String(r.studentName||"").replace(/'/g,"\\'");return `<tr><td>${i+1}</td><td>${esc(r.studentName)}</td><td>${esc(r.grade)}</td><td>${esc(r.section)}</td><td>${list.length}</td><td>${esc(r.attemptNumber||1)}</td><td>${esc(r.mark)}</td><td>${esc(r.fullMark)}</td><td>${p.toFixed(1)}%</td><td>${esc(dt)}</td><td><button class="light" onclick="deleteStudentAttempts('${id}','${code}','${name}')">حذف محاولات الطالب</button></td></tr>`}).join(""):"<tr><td colspan=\"11\">لا توجد نتائج بعد.</td></tr>";
  resultsCard.scrollIntoView({behavior:"smooth"});
 }
 async function start(){if(!protect())return;renderQuestionEditor();try{await loadBase()}catch(e){console.error(e);alert("حدث خطأ أثناء تحميل المنصة: "+e.message)}}
