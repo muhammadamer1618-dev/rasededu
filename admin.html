@@ -6593,62 +6593,7 @@ window.print();
 <\/script>
 
 
-<div id="examScheduleCopyModal" class="exam-schedule-copy-modal" role="dialog" aria-modal="true" aria-labelledby="examScheduleCopyTitle">
-  <div class="exam-schedule-copy-card">
-    <div class="exam-schedule-copy-head" id="examScheduleCopyTitle">📋 نسخ جدول الاختبارات</div>
-    <div class="exam-schedule-copy-body">
-      <div class="exam-schedule-copy-help">
-        اختر <strong>الجهة المصدر</strong> ثم اختر <strong>الجهة المنسوخ لها</strong>.
-        سيتم نسخ أيام واختبارات الجهة المصدر كما هي، مع تغيير الصف والشعبة للجهة الجديدة فقط.
-      </div>
 
-      <div class="exam-schedule-copy-box source">
-        <div class="exam-schedule-copy-box-title">📤 الجهة المصدر</div>
-        <div class="exam-schedule-copy-grid">
-          <div>
-            <label for="examScheduleCopySourceGrade">الصف المصدر</label>
-            <select id="examScheduleCopySourceGrade"></select>
-          </div>
-          <div>
-            <label for="examScheduleCopySourceSection">الشعبة المصدر</label>
-            <select id="examScheduleCopySourceSection"></select>
-          </div>
-        </div>
-        <div style="margin-top:10px">
-          <label for="examScheduleCopySourceSchedule">جدول الاختبارات المصدر</label>
-          <select id="examScheduleCopySourceSchedule"></select>
-        </div>
-      </div>
-
-      <div class="exam-schedule-copy-box target">
-        <div class="exam-schedule-copy-box-title">📥 الجهة المنسوخ لها</div>
-        <div class="exam-schedule-copy-grid">
-          <div>
-            <label for="examScheduleCopyTargetGrade">الصف الجديد</label>
-            <select id="examScheduleCopyTargetGrade"></select>
-          </div>
-          <div>
-            <label for="examScheduleCopyTargetSection">الشعبة الجديدة</label>
-            <select id="examScheduleCopyTargetSection"></select>
-          </div>
-        </div>
-        <div style="margin-top:10px">
-          <label for="examScheduleCopyName">اسم الجدول الجديد</label>
-          <input id="examScheduleCopyName" placeholder="مثال: اختبارات الفترة الأولى - 3 متوسط / ب">
-        </div>
-      </div>
-
-      <div id="examScheduleCopySummary" class="exam-schedule-copy-summary">
-        اختر الجهة المصدر لعرض عدد الأيام التي سيتم نسخها.
-      </div>
-
-      <div class="exam-schedule-copy-actions">
-        <button class="btn-primary" type="button" onclick="copyExamScheduleNow()">📋 نسخ وحفظ</button>
-        <button class="btn-light" type="button" onclick="closeExamScheduleCopy()">إلغاء</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 </body>
 
@@ -7872,6 +7817,63 @@ error.message
 start();
 
 </script>
+
+<div id="examScheduleCopyModal" class="exam-schedule-copy-modal" role="dialog" aria-modal="true" aria-labelledby="examScheduleCopyTitle">
+  <div class="exam-schedule-copy-card">
+    <div class="exam-schedule-copy-head" id="examScheduleCopyTitle">📋 نسخ جدول الاختبارات</div>
+    <div class="exam-schedule-copy-body">
+      <div class="exam-schedule-copy-help">
+        اختر <strong>الجهة المصدر</strong> ثم اختر <strong>الجهة المنسوخ لها</strong>.
+        سيتم نسخ أيام واختبارات الجهة المصدر كما هي، مع تغيير الصف والشعبة للجهة الجديدة فقط.
+      </div>
+
+      <div class="exam-schedule-copy-box source">
+        <div class="exam-schedule-copy-box-title">📤 الجهة المصدر</div>
+        <div class="exam-schedule-copy-grid">
+          <div>
+            <label for="examScheduleCopySourceGrade">الصف المصدر</label>
+            <select id="examScheduleCopySourceGrade"></select>
+          </div>
+          <div>
+            <label for="examScheduleCopySourceSection">الشعبة المصدر</label>
+            <select id="examScheduleCopySourceSection"></select>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label for="examScheduleCopySourceSchedule">جدول الاختبارات المصدر</label>
+          <select id="examScheduleCopySourceSchedule"></select>
+        </div>
+      </div>
+
+      <div class="exam-schedule-copy-box target">
+        <div class="exam-schedule-copy-box-title">📥 الجهة المنسوخ لها</div>
+        <div class="exam-schedule-copy-grid">
+          <div>
+            <label for="examScheduleCopyTargetGrade">الصف الجديد</label>
+            <select id="examScheduleCopyTargetGrade"></select>
+          </div>
+          <div>
+            <label for="examScheduleCopyTargetSection">الشعبة الجديدة</label>
+            <select id="examScheduleCopyTargetSection"></select>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label for="examScheduleCopyName">اسم الجدول الجديد</label>
+          <input id="examScheduleCopyName" placeholder="مثال: اختبارات الفترة الأولى - 3 متوسط / ب">
+        </div>
+      </div>
+
+      <div id="examScheduleCopySummary" class="exam-schedule-copy-summary">
+        اختر الجهة المصدر لعرض عدد الأيام التي سيتم نسخها.
+      </div>
+
+      <div class="exam-schedule-copy-actions">
+        <button class="btn-primary" type="button" onclick="copyExamScheduleNow()">📋 نسخ وحفظ</button>
+        <button class="btn-light" type="button" onclick="closeExamScheduleCopy()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
