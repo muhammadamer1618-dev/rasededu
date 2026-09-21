@@ -169,52 +169,128 @@ body{
 
 
 /* ===== جداول ولي الأمر ===== */
-function parentNormalizeText(v){return String(v??"").trim().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/\s+/g," ");}
-function parentGradesMatch(a,b,stage){
- a=parentNormalizeText(a);b=parentNormalizeText(b);
- if(a===b)return true;
- const na=(a.match(/\d+/)||[])[0],nb=(b.match(/\d+/)||[])[0];
- if(!na||!nb||na!==nb)return false;
- const sa=a.includes("ابتد")?"primary":a.includes("متوسط")?"middle":a.includes("ثانوي")?"secondary":"";
- const sb=parentNormalizeText(stage||b).includes("ابتد")?"primary":parentNormalizeText(stage||b).includes("متوسط")?"middle":parentNormalizeText(stage||b).includes("ثانوي")?"secondary":"";
- return !sa||!sb||sa===sb;
+function parentNormalizeText(v){
+ return String(v??"").trim()
+ .replace(/[أإآ]/g,"ا")
+ .replace(/ة/g,"ه")
+ .replace(/ى/g,"ي")
+ .replace(/[()\-_/]/g," ")
+ .replace(/\s+/g," ")
+ .trim().toLowerCase();
 }
-function parentSectionsMatch(a,b){return parentNormalizeText(a)===parentNormalizeText(b);}
-function parentDate(v){if(!v)return "-";const p=String(v).split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:String(v);}
+function parentNormalizeSection(v){
+ return parentNormalizeText(v)
+ .replace(/^الشعبه\s*/,"")
+ .replace(/^فصل\s*/,"")
+ .trim();
+}
+function parentGradeNumber(v){
+ const t=parentNormalizeText(v), d=t.match(/\d+/);
+ if(d)return Number(d[0]);
+ const map=[["الاول",1],["الاولى",1],["الثاني",2],["الثانيه",2],["الثالث",3],["الثالثه",3],["الرابع",4],["الرابعه",4],["الخامس",5],["الخامسه",5],["السادس",6],["السادسه",6]];
+ for(const [word,n] of map) if(t.includes(word)) return n;
+ return null;
+}
+function parentStageKey(v){
+ const t=parentNormalizeText(v);
+ if(t.includes("ابتد"))return "primary";
+ if(t.includes("متوسط"))return "middle";
+ if(t.includes("ثانوي"))return "secondary";
+ return "";
+}
+function parentGradesMatch(studentGradeValue,planGrade,planStage){
+ const a=parentNormalizeText(studentGradeValue), b=parentNormalizeText(planGrade);
+ if(a===b)return true;
+ const an=parentGradeNumber(studentGradeValue), bn=parentGradeNumber(planGrade);
+ if(an===null||bn===null||an!==bn)return false;
+ const as=parentStageKey(studentGradeValue), bs=parentStageKey(planStage||planGrade);
+ if(as&&bs)return as===bs;
+ return true;
+}
+function parentSectionsMatch(a,b){
+ return parentNormalizeSection(a)===parentNormalizeSection(b);
+}
+function parentDate(v){
+ if(!v)return "-";
+ const p=String(v).split("-");
+ return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:String(v);
+}
+function parentOldHomeworkToText(row){
+ if(!row)return "";
+ if(row.homework!==undefined&&row.homework!==null&&String(row.homework).trim()!=="")return String(row.homework);
+ const parts=[];
+ if(row.book)parts.push(row.book);
+ if(row.page)parts.push("ص "+row.page);
+ if(row.exercise)parts.push("تمرين "+row.exercise);
+ if(row.madrasati===true)parts.push("منصة مدرستي");
+ return parts.join(" - ");
+}
 async function loadParentWeeklyPlans(){
  const snap=await weeklyDb.collection("weeklyPlans").get();
  parentWeeklyPlans=[];
- snap.forEach(d=>{const x=d.data()||{};if(x.grade&&x.section&&Number(x.weekNumber)>=1&&Number(x.weekNumber)<=18)parentWeeklyPlans.push({id:d.id,...x});});
+ snap.forEach(d=>{
+  const x=d.data()||{};
+  const week=Number(x.weekNumber);
+  if(week>=1&&week<=18&&x.grade&&x.section) parentWeeklyPlans.push({id:d.id,...x});
+ });
 }
-function parentHomework(row){
- if(row?.homework!=null&&String(row.homework).trim())return String(row.homework);
- const p=[];if(row?.book)p.push(row.book);if(row?.page)p.push("ص "+row.page);if(row?.exercise)p.push("تمرين "+row.exercise);if(row?.madrasati===true)p.push("منصة مدرستي");return p.join(" - ");
+function parentCreateEmptyDay(){
+ return Array.from({length:8},(_,i)=>({period:i+1,subject:"",topic:"",homework:""}));
 }
-function parentPlanNorm(plan){
- const days={};["sunday","monday","tuesday","wednesday","thursday"].forEach(day=>{days[day]=[];const rows=Array.isArray(plan.days?.[day])?plan.days[day]:[];for(let i=0;i<8;i++){const r=rows[i]||{};days[day].push({subject:r.subject||"",topic:r.topic||"",homework:parentHomework(r)});}});
- return {...plan,days};
+function parentNormalizePlan(plan){
+ const normalized={};
+ ["sunday","monday","tuesday","wednesday","thursday"].forEach(day=>{
+  normalized[day]=parentCreateEmptyDay();
+  const rows=Array.isArray(plan.days?.[day])?plan.days[day]:[];
+  for(let i=0;i<8;i++){
+   const row=rows[i]||{};
+   normalized[day][i]={
+    period:i+1,
+    subject:row.subject||"",
+    topic:row.topic||"",
+    homework:parentOldHomeworkToText(row)
+   };
+  }
+ });
+ return {...plan,days:normalized};
 }
 function renderParentPlanSelector(){
  const sel=document.getElementById("parentPlanWeek");if(!sel)return;
  const weeks=[...new Set(parentWeeklyPlans.map(x=>Number(x.weekNumber)).filter(Number.isFinite))].sort((a,b)=>a-b);
  sel.innerHTML='<option value="">اختر الأسبوع</option>'+weeks.map(w=>`<option value="${w}">الأسبوع ${w}</option>`).join("");
- if(weeks.length){const latest=Math.max(...weeks);sel.value=String(latest);renderParentWeeklyPlan(latest);}
+ if(weeks.length){
+  const latest=Math.max(...weeks);
+  sel.value=String(latest);
+  renderParentWeeklyPlan(latest);
+ }
 }
 function renderParentWeeklyPlan(week){
  const area=document.getElementById("parentPlanTable"),meta=document.getElementById("parentPlanMeta");if(!area)return;
- const plan=parentWeeklyPlans.find(x=>Number(x.weekNumber)===Number(week));
- if(!plan){area.innerHTML='<div class="parent-empty">لا توجد خطة أسبوعية متاحة.</div>';if(meta)meta.textContent="";return;}
- const p=parentPlanNorm(plan);
+ const found=parentWeeklyPlans.find(x=>Number(x.weekNumber)===Number(week));
+ if(!found){
+  area.innerHTML='<div class="parent-empty">لا توجد خطة أسبوعية متاحة.</div>';
+  if(meta)meta.textContent="";
+  return;
+ }
+ const plan=parentNormalizePlan(found);
  if(meta)meta.textContent=`الأسبوع ${plan.weekNumber} — من ${parentDate(plan.startDate)} إلى ${parentDate(plan.endDate)}`;
  const days={sunday:"الأحد",monday:"الاثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس"};
  let rows="";
- Object.keys(days).forEach(day=>p.days[day].forEach((r,i)=>{rows+=`<tr>${i===0?`<td rowspan="8" class="day-cell">${days[day]}</td>`:""}<td class="period-cell">${i+1}</td><td class="subject-cell">${escapeHtml(r.subject)||"-"}</td><td>${escapeHtml(r.topic)||"-"}</td><td>${escapeHtml(r.homework)||"-"}</td></tr>`;}));
+ Object.keys(days).forEach(day=>{
+  plan.days[day].forEach((r,i)=>{
+   rows+=`<tr>${i===0?`<td rowspan="8" class="day-cell">${days[day]}</td>`:""}<td class="period-cell">${i+1}</td><td class="subject-cell">${escapeHtml(r.subject)||"-"}</td><td>${escapeHtml(r.topic)||"-"}</td><td>${escapeHtml(r.homework)||"-"}</td></tr>`;
+  });
+ });
  area.innerHTML=`<div class="parent-schedule-table-wrap"><table class="parent-schedule-table"><thead><tr><th>اليوم</th><th>الحصة</th><th>المادة</th><th>موضوع الدرس</th><th>الواجب</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 async function loadParentExamSchedules(){
  const area=document.getElementById("parentExamScheduleTable");if(!area||!currentStudent)return;
  const snap=await db.collection("examSchedules").get(),list=[];
- snap.forEach(d=>{const x=d.data()||{};if(x.visibleToParent===false)return;if(parentGradesMatch(currentStudent.grade,x.grade,x.stage)&&parentSectionsMatch(currentStudent.section,x.section))list.push({id:d.id,...x});});
+ snap.forEach(d=>{
+  const x=d.data()||{};
+  if(x.visibleToParent===false)return;
+  if(parentGradesMatch(currentStudent.grade,x.grade,x.stage)&&parentSectionsMatch(currentStudent.section,x.section))list.push({id:d.id,...x});
+ });
  list.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
  if(!list.length){area.innerHTML='<div class="parent-empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div>';return;}
  const rows=list.map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(x.subjectName||"-")}</td><td>${escapeHtml(x.name||"-")}</td><td>${escapeHtml(x.type||"-")}</td><td>${escapeHtml(x.date||"-")}</td><td>${escapeHtml(x.day||"-")}</td><td>${escapeHtml(x.time||"-")}</td><td>${escapeHtml(x.place||"-")}</td><td>${escapeHtml(x.notes||"-")}</td></tr>`).join("");
@@ -227,8 +303,16 @@ async function loadParentSchedules(){
   await loadParentWeeklyPlans();
   parentWeeklyPlans=parentWeeklyPlans.filter(x=>parentGradesMatch(currentStudent.grade,x.grade,x.stage)&&parentSectionsMatch(currentStudent.section,x.section));
   renderParentPlanSelector();
- }catch(e){console.error(e);document.getElementById("parentPlanTable").innerHTML='<div class="parent-empty">تعذر تحميل جدول الحصص حاليًا.</div>';}
- try{await loadParentExamSchedules();}catch(e){console.error(e);document.getElementById("parentExamScheduleTable").innerHTML='<div class="parent-empty">تعذر تحميل جدول الاختبارات حاليًا.</div>';}
+ }catch(e){
+  console.error("weeklyPlans:",e);
+  const target=document.getElementById("parentPlanTable");
+  if(target)target.innerHTML='<div class="parent-empty">تعذر تحميل جدول الحصص حاليًا.</div>';
+ }
+ try{await loadParentExamSchedules();}catch(e){
+  console.error("examSchedules:",e);
+  const target=document.getElementById("parentExamScheduleTable");
+  if(target)target.innerHTML='<div class="parent-empty">تعذر تحميل جدول الاختبارات حاليًا.</div>';
+ }
 }
 
 /* =========================
