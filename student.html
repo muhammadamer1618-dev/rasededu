@@ -211,6 +211,60 @@ function renderParentWeeklyPlan(week){
  Object.keys(days).forEach(day=>p.days[day].forEach((r,i)=>{rows+=`<tr>${i===0?`<td rowspan="8" class="day-cell">${days[day]}</td>`:""}<td class="period-cell">${i+1}</td><td class="subject-cell">${escapeHtml(r.subject)||"-"}</td><td>${escapeHtml(r.topic)||"-"}</td><td>${escapeHtml(r.homework)||"-"}</td></tr>`;}));
  area.innerHTML=`<div class="parent-schedule-table-wrap"><table class="parent-schedule-table"><thead><tr><th>اليوم</th><th>الحصة</th><th>المادة</th><th>موضوع الدرس</th><th>الواجب</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
+
+function examNorm(v){
+ return String(v??"").trim().replace(/\s+/g," ").replace(/[إأآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه");
+}
+function examGradeMatch(studentGrade, scheduleGrade){
+ const a=examNorm(studentGrade), b=examNorm(scheduleGrade);
+ if(!a || !b) return false;
+ if(a===b) return true;
+ const na=(a.match(/\d+/)||[""])[0], nb=(b.match(/\d+/)||[""])[0];
+ const stageA=a.includes("ابتدائي")?"ابتدائي":a.includes("متوسط")?"متوسط":a.includes("ثانوي")?"ثانوي":"";
+ const stageB=b.includes("ابتدائي")?"ابتدائي":b.includes("متوسط")?"متوسط":b.includes("ثانوي")?"ثانوي":"";
+ return !!na && na===nb && !!stageA && stageA===stageB;
+}
+function examSectionMatch(studentSection, scheduleSection){
+ const a=examNorm(studentSection), b=examNorm(scheduleSection);
+ if(!a || !b) return false;
+ if(a===b) return true;
+ return a.replace(/^الفصل\s*/,"")===b.replace(/^الفصل\s*/,"");
+}
+async function renderStudentExamSchedule(){
+ const area=document.getElementById("inlineExamSchedule");
+ if(!area || !currentStudent) return;
+ area.innerHTML='<div class="parent-loading">جاري تحميل جدول الاختبارات...</div>';
+ try{
+   const snap=await db.collection("examSchedules").get();
+   const list=[];
+   snap.forEach(doc=>{
+     const schedule=doc.data()||{};
+     const days=Array.isArray(schedule.days)?schedule.days:[];
+     days.forEach(day=>{
+       if(examGradeMatch(currentStudent.grade,day.grade) &&
+          examSectionMatch(currentStudent.section,day.section)){
+         list.push({
+           scheduleName:schedule.name||"جدول الاختبارات",
+           subjectName:day.subjectName || day.subject || "-",
+           date:day.date||"-",
+           day:day.day||"-"
+         });
+       }
+     });
+   });
+   list.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+   if(!list.length){
+     area.innerHTML='<div class="parent-empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div>';
+     return;
+   }
+   const rows=list.map((x,i)=>`<tr><td>${i+1}</td><td class="subject-name">${escapeHtml(x.subjectName)}</td><td>${escapeHtml(x.scheduleName)}</td><td>${escapeHtml(x.day)}</td><td>${escapeHtml(x.date)}</td></tr>`).join("");
+   area.innerHTML=`<div class="parent-schedule-table-wrap"><table class="parent-exam-table"><thead><tr><th>#</th><th>المادة</th><th>اسم الجدول</th><th>اليوم</th><th>التاريخ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+ }catch(err){
+   console.error("Exam schedule error:",err);
+   area.innerHTML='<div class="parent-empty">تعذر تحميل جدول الاختبارات حاليًا.</div>';
+ }
+}
+
 async function loadParentExamSchedules(){
  const area=document.getElementById("parentExamScheduleTable");if(!area||!currentStudent)return;
  const snap=await db.collection("examSchedules").get(),list=[];
@@ -894,6 +948,7 @@ tbody tr:hover{
 .parent-schedule-body{padding:15px 18px}
 .parent-schedule-controls{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px}
 .parent-schedule-meta{text-align:center;color:#748596;font-size:12px;margin:5px 0 12px}
+.parent-loading{text-align:center;padding:20px;color:#748596;font-size:12px}.parent-note{font-size:12px;color:#64748b;line-height:1.8;margin-bottom:10px}.parent-exam-table{width:100%;border-collapse:collapse;min-width:600px}.parent-exam-table th{background:#eaf1f6;color:#073653;padding:10px 7px;border-bottom:1px solid #cad6df;font-size:11px}.parent-exam-table td{padding:10px 7px;text-align:center;border-bottom:1px solid #e2e8ed;font-size:11px}
 .parent-schedule-table-wrap{overflow-x:auto;border:1px solid #d5dfe6;border-radius:10px}
 .parent-schedule-table{width:100%;border-collapse:collapse;min-width:720px}
 .parent-schedule-table th{background:#eaf1f6;color:#073653;padding:9px 7px;font-size:11px;border-bottom:1px solid #cad6df}
@@ -1331,7 +1386,7 @@ async function searchStudent(){
 
 
         renderResults();
-        await loadParentSchedules();
+        await renderStudentExamSchedule();
 
     }
 
@@ -1686,6 +1741,14 @@ function renderResults(){
 
                 ${buildResultsTable()}
                 ${parentProgressSection()}
+
+                <div class="parent-schedule-card" style="margin-top:18px;">
+                    <div class="parent-schedule-title">🗓️ جدول الاختبارات</div>
+                    <div class="parent-schedule-body">
+                        <div class="parent-note">جدول الاختبارات المعلن للصف والشعبة الخاصة بالطالب، وهو مستقل عن النتائج والدرجات.</div>
+                        <div id="inlineExamSchedule"><div class="parent-loading">جاري تحميل جدول الاختبارات...</div></div>
+                    </div>
+                </div>
 
             </div>
 
