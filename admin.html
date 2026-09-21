@@ -589,6 +589,22 @@ font-weight:bold
 .progress-table th{background:#174f7c;color:#fff}
 @media(max-width:700px){.progress-stats{grid-template-columns:repeat(2,1fr)}.progress-chart{height:230px}}
 
+
+/* =========================================
+   جدول الاختبارات المرن
+========================================= */
+.exam-schedule-row{display:grid;grid-template-columns:1.1fr 1fr 1.5fr 1.1fr 1fr auto;gap:10px;align-items:end;padding:12px;margin-bottom:10px;border:1px solid #dbe5ef;border-radius:10px;background:#fafcff}
+.exam-schedule-row .field label{margin-bottom:6px}
+.exam-schedule-row .remove-day{height:44px;white-space:nowrap}
+.exam-schedule-tools{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.exam-schedule-summary{margin-top:12px;padding:10px 12px;background:#eef4fa;color:#174f7c;border-radius:8px;font-weight:bold;font-size:13px;line-height:1.8}
+.exam-schedule-editing{display:inline-block;padding:5px 9px;border-radius:20px;background:#fff3cd;color:#7a5b00;font-size:12px;font-weight:bold;margin-right:7px}
+.exam-schedule-table-wrap{overflow:auto;margin-top:15px}
+.exam-schedule-table{min-width:900px}
+.exam-schedule-name{font-weight:bold;color:#174f7c}
+@media(max-width:1050px){.exam-schedule-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.exam-schedule-row{grid-template-columns:1fr}.exam-schedule-row .remove-day{width:100%}}
+
 </style>
 </head>
 
@@ -1604,6 +1620,24 @@ onclick="clearCurrentTeacherAssignments()">
 <div class="danger-zone"><button class="btn-danger" onclick="deleteAllTests()">🗑️ حذف جميع الاختبارات</button></div>
 </div></div>
 
+
+<!-- =========================================
+     جدول الاختبارات المرن
+========================================= -->
+<div class="box" id="examScheduleSection">
+<div class="box-title">🗓️ جدول الاختبارات <span id="examScheduleEditingBadge"></span></div>
+<div class="box-body">
+<input type="hidden" id="examScheduleEditId">
+<div class="row"><div class="col" style="flex:2 1 380px"><label>اسم الجدول</label><input id="examScheduleName" placeholder="مثال: اختبارات الفترة الأولى أو الاختبارات النهائية"></div></div>
+<div class="note">هذا الجدول مستقل تمامًا عن <strong>الاختبارات والدرجات الرسمية</strong>. حفظه يتم في مجموعة <strong>examSchedules</strong> فقط، ولا ينشئ أي اختبار داخل مجموعة tests ولا أي درجة داخل grades.</div>
+<div style="margin-top:18px"><label style="font-size:15px">أيام الاختبار</label><div id="examScheduleRows"></div>
+<div class="exam-schedule-tools"><button class="btn-success" type="button" onclick="addExamScheduleRow()">➕ إضافة يوم اختبار</button><button class="btn-light" type="button" onclick="clearExamScheduleForm()">🧹 جدول جديد</button></div>
+<div id="examScheduleSummary" class="exam-schedule-summary">لم تتم إضافة أيام بعد.</div></div>
+<div class="actions"><button class="btn-primary" onclick="saveExamSchedule()">💾 حفظ الجدول بالكامل</button><button class="btn-light" onclick="clearExamScheduleForm()">جدول جديد</button></div>
+<div class="table-wrap exam-schedule-table-wrap"><table class="exam-schedule-table"><thead><tr><th>اسم الجدول</th><th>اليوم</th><th>التاريخ</th><th>المادة</th><th>الصف</th><th>الشعبة</th><th>الإجراءات</th></tr></thead><tbody id="examSchedulesBody"></tbody></table></div>
+<div class="danger-zone"><button class="btn-danger" onclick="deleteAllExamSchedules()">🗑️ حذف جميع جداول الاختبارات</button></div>
+</div></div>
+
 <!-- =========================================
      سجل الرسائل
 ========================================= -->
@@ -1963,6 +1997,7 @@ let messageLogs=[];
 let filteredMessageLogs=[];
 let monitors=[];
 let examAccessEnabledSubjectIds=null;
+let examSchedules=[];
 
 
 /* =========================================
@@ -6571,6 +6606,7 @@ await loadMonitors();
 }
 
 
+/* =========================================    جدول الاختبارات المرن ========================================= */ const examScheduleDays=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"]; function examScheduleDayOptions(selected=""){return '<option value="">-- اختر اليوم --</option>'+examScheduleDays.map(day=>`<option value="${escapeHtml(day)}" ${day===selected?"selected":""}>${escapeHtml(day)}</option>`).join("");} function examScheduleSubjectOptions(selected=""){return '<option value="">-- اختر المادة --</option>'+subjects.map(subject=>`<option value="${escapeHtml(subject.id)}" ${String(subject.id)===String(selected)?"selected":""}>${escapeHtml(subject.name||"")}</option>`).join("");} function examScheduleGradeOptions(selected=""){return '<option value="">-- اختر الصف --</option>'+grades.map(grade=>`<option value="${escapeHtml(grade)}" ${grade===selected?"selected":""}>${escapeHtml(grade)}</option>`).join("");} function examScheduleSectionOptions(selected=""){return '<option value="">-- اختر الشعبة --</option>'+sections.map(section=>`<option value="${escapeHtml(section)}" ${section===selected?"selected":""}>${escapeHtml(section)}</option>`).join("");} function addExamScheduleRow(data={}){const wrap=document.getElementById("examScheduleRows");if(!wrap)return;const row=document.createElement("div");row.className="exam-schedule-row";row.innerHTML=`<div class="field"><label>اليوم</label><select class="exam-schedule-day">${examScheduleDayOptions(data.day||"")}</select></div><div class="field"><label>التاريخ</label><input class="exam-schedule-date" type="date" value="${escapeHtml(data.date||"")}"></div><div class="field"><label>المادة</label><select class="exam-schedule-subject">${examScheduleSubjectOptions(data.subjectId||"")}</select></div><div class="field"><label>الصف</label><select class="exam-schedule-grade">${examScheduleGradeOptions(data.grade||"")}</select></div><div class="field"><label>الشعبة</label><select class="exam-schedule-section">${examScheduleSectionOptions(data.section||"")}</select></div><button type="button" class="btn-danger remove-day">🗑️ حذف اليوم</button>`;row.querySelector(".remove-day").addEventListener("click",()=>{row.remove();updateExamScheduleSummary();});wrap.appendChild(row);updateExamScheduleSummary();} function getExamScheduleRows(){return Array.from(document.querySelectorAll("#examScheduleRows .exam-schedule-row")).map(row=>{const subjectId=row.querySelector(".exam-schedule-subject")?.value||"";const subject=subjects.find(s=>String(s.id)===String(subjectId));return {day:row.querySelector(".exam-schedule-day")?.value||"",date:row.querySelector(".exam-schedule-date")?.value||"",subjectId,subjectName:subject?.name||"",grade:row.querySelector(".exam-schedule-grade")?.value||"",section:row.querySelector(".exam-schedule-section")?.value||""};});} function updateExamScheduleSummary(){const el=document.getElementById("examScheduleSummary");if(!el)return;const rows=getExamScheduleRows();if(!rows.length){el.textContent="لم تتم إضافة أيام بعد.";return;}const valid=rows.filter(r=>r.day&&r.date&&r.subjectId&&r.grade&&r.section);el.textContent=`أيام الجدول: ${rows.length} | مكتمل: ${valid.length} | يحتاج بيانات: ${rows.length-valid.length}`;} function clearExamScheduleForm(){const id=document.getElementById("examScheduleEditId");if(id)id.value="";document.getElementById("examScheduleName").value="";document.getElementById("examScheduleRows").innerHTML="";const badge=document.getElementById("examScheduleEditingBadge");if(badge)badge.innerHTML="";addExamScheduleRow();} async function loadExamSchedules(){const body=document.getElementById("examSchedulesBody");if(!body)return;body.innerHTML='<tr><td colspan="7">جاري تحميل جداول الاختبارات...</td></tr>';try{const snap=await db.collection("examSchedules").get();examSchedules=[];snap.forEach(doc=>examSchedules.push({id:doc.id,...(doc.data()||{})}));examSchedules.sort((a,b)=>{const na=String(a.scheduleName||a.name||""),nb=String(b.scheduleName||b.name||"");const nc=na.localeCompare(nb,"ar");return nc!==0?nc:String(a.date||"").localeCompare(String(b.date||""));});renderExamSchedules();}catch(error){console.error(error);body.innerHTML='<tr><td colspan="7">تعذر تحميل جدول الاختبارات: '+escapeHtml(error.message)+'</td></tr>';}} function renderExamSchedules(){const body=document.getElementById("examSchedulesBody");if(!body)return;body.innerHTML="";if(!examSchedules.length){body.innerHTML="<tr><td colspan='7'>لا توجد جداول اختبارات محفوظة.</td></tr>";return;}examSchedules.forEach(item=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="exam-schedule-name">${escapeHtml(item.scheduleName||item.name||"-")}</td><td>${escapeHtml(item.day||"-")}</td><td>${escapeHtml(item.date||"-")}</td><td>${escapeHtml(item.subjectName||"-")}</td><td>${escapeHtml(item.grade||"-")}</td><td>${escapeHtml(item.section||"-")}</td><td><button class="small-btn btn-warning" onclick='editExamSchedule(${JSON.stringify(item.id)})'>تعديل الجدول</button><button class="small-btn btn-danger" onclick='deleteExamScheduleDay(${JSON.stringify(item.id)})'>حذف اليوم</button></td>`;body.appendChild(tr);});} function validateExamScheduleRows(name,rows){if(!name){alert("اكتب اسم جدول الاختبارات أولًا.");return false;}if(!rows.length){alert("أضف يوم اختبار واحدًا على الأقل.");return false;}const incomplete=rows.findIndex(r=>!r.day||!r.date||!r.subjectId||!r.grade||!r.section);if(incomplete>=0){alert("أكمل بيانات يوم الاختبار رقم "+(incomplete+1)+": اليوم والتاريخ والمادة والصف والشعبة.");return false;}return true;} async function saveExamSchedule(){const editId=document.getElementById("examScheduleEditId").value.trim();const name=document.getElementById("examScheduleName").value.trim();const rows=getExamScheduleRows();if(!validateExamScheduleRows(name,rows))return;try{const scheduleId=editId||db.collection("examSchedules").doc().id;if(editId){const oldSnap=await db.collection("examSchedules").where("scheduleId","==",editId).get();const batchDelete=db.batch();oldSnap.forEach(doc=>batchDelete.delete(doc.ref));await batchDelete.commit();}const batch=db.batch();rows.forEach((row,index)=>{const ref=db.collection("examSchedules").doc();const data={scheduleId,scheduleName:name,day:row.day,date:row.date,subjectId:row.subjectId,subjectName:row.subjectName,grade:row.grade,section:row.section,visibleToParent:true,dayOrder:index,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};if(!editId)data.createdAt=firebase.firestore.FieldValue.serverTimestamp();batch.set(ref,data);});await batch.commit();alert(editId?"تم تعديل جدول الاختبارات بالكامل ✅":"تم حفظ جدول الاختبارات بالكامل ✅");clearExamScheduleForm();await loadExamSchedules();}catch(error){console.error(error);alert("تعذر حفظ جدول الاختبارات: "+error.message);}} async function editExamSchedule(id){const item=examSchedules.find(x=>x.id===id);if(!item)return;const scheduleId=item.scheduleId||item.id;const group=examSchedules.filter(x=>(x.scheduleId||x.id)===scheduleId).sort((a,b)=>Number(a.dayOrder||0)-Number(b.dayOrder||0));document.getElementById("examScheduleEditId").value=scheduleId;document.getElementById("examScheduleName").value=item.scheduleName||item.name||"";document.getElementById("examScheduleRows").innerHTML="";group.forEach(row=>addExamScheduleRow(row));const badge=document.getElementById("examScheduleEditingBadge");if(badge)badge.innerHTML='<span class="exam-schedule-editing">وضع تعديل الجدول</span>';scrollToSection("examScheduleSection");} async function deleteExamScheduleDay(id){const item=examSchedules.find(x=>x.id===id);if(!item)return;if(!confirm("هل تريد حذف يوم الاختبار: "+(item.day||"")+" - "+(item.date||"")+" "+(item.subjectName||"")+" ؟"))return;try{await db.collection("examSchedules").doc(id).delete();await loadExamSchedules();}catch(error){console.error(error);alert("تعذر حذف يوم الاختبار: "+error.message);}} async function deleteAllExamSchedules(){if(!examSchedules.length){alert("لا توجد جداول اختبارات.");return;}const answer=prompt("⚠️ سيتم حذف جميع جداول الاختبارات فقط. لن يتم حذف أي اختبار أو درجة.  اكتب: حذف جداول الاختبارات");if(answer!=="حذف جداول الاختبارات"){alert("تم إلغاء العملية");return;}await deleteCollection("examSchedules");alert("تم حذف جميع جداول الاختبارات ✅");await loadExamSchedules();} 
 /* =========================================
    حذف Collection
 ========================================= */
@@ -7068,6 +7104,7 @@ protectAdmin();
 fillSelectors();
 
 buildAllClassGrids();
+clearExamScheduleForm();
 
 
 try{
@@ -7083,6 +7120,7 @@ loadMonitors()
 ]);
 
 await loadMessageLogs();
+await loadExamSchedules();
 
 }
 
@@ -7111,3 +7149,5 @@ start();
 
 </body>
 </html>
+<button class="btn-gold" onclick="scrollToSection('examScheduleSection')">🗓️ جدول الاختبارات</button>
+
