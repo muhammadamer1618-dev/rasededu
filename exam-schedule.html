@@ -91,13 +91,71 @@ async function searchStudent(){
  finally{b.disabled=false;b.textContent="عرض جدول الاختبارات"}
 }
 async function loadExams(){
- const snap=await db.collection("examSchedules").get(),list=[];
- snap.forEach(d=>{const x=d.data()||{};if(x.visibleToParent===false)return;if(gradesMatch(currentStudent.grade,x.grade,x.stage)&&sectionsMatch(currentStudent.section,x.section))list.push({id:d.id,...x})});
- list.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
+ const snap=await db.collection("examSchedules").get();
+ const list=[];
+
+ snap.forEach(doc=>{
+   const schedule=doc.data()||{};
+
+   if(schedule.visibleToParent===false)return;
+
+   const days=Array.isArray(schedule.days)?schedule.days:[];
+
+   days.forEach(day=>{
+     if(
+       gradesMatch(currentStudent.grade,day.grade,day.grade) &&
+       sectionsMatch(currentStudent.section,day.section)
+     ){
+       list.push({
+         id:doc.id,
+         scheduleName:schedule.name||"جدول الاختبارات",
+         subjectName:day.subjectName||day.subject||"-",
+         date:day.date||"-",
+         day:day.day||"-",
+         grade:day.grade||"",
+         section:day.section||""
+       });
+     }
+   });
+ });
+
+ list.sort((a,b)=>
+   String(a.date||"").localeCompare(String(b.date||"")) ||
+   String(a.day||"").localeCompare(String(b.day||"")) ||
+   String(a.subjectName||"").localeCompare(String(b.subjectName||""),"ar")
+ );
+
  const area=document.getElementById("examArea");
- if(!list.length){area.innerHTML='<div class="empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div>';return}
- const rows=list.map((x,i)=>`<tr><td>${i+1}</td><td class="subject">${esc(x.subjectName||"-")}</td><td>${esc(x.name||"-")}</td><td>${esc(x.type||"-")}</td><td>${esc(x.date||"-")}</td><td>${esc(x.day||"-")}</td><td>${esc(x.time||"-")}</td><td>${esc(x.place||"-")}</td><td>${esc(x.notes||"-")}</td></tr>`).join("");
- area.innerHTML=`<table class="schedule"><thead><tr><th>#</th><th>المادة</th><th>الاختبار</th><th>النوع</th><th>التاريخ</th><th>اليوم</th><th>الوقت</th><th>المكان</th><th>ملاحظات</th></tr></thead><tbody>${rows}</tbody></table>`
+
+ if(!list.length){
+   area.innerHTML='<div class="empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div>';
+   return;
+ }
+
+ const rows=list.map((x,i)=>`
+   <tr>
+     <td>${i+1}</td>
+     <td class="subject">${esc(x.subjectName)}</td>
+     <td>${esc(x.scheduleName)}</td>
+     <td>${esc(x.day)}</td>
+     <td>${esc(x.date)}</td>
+   </tr>
+ `).join("");
+
+ area.innerHTML=`
+   <table class="schedule">
+     <thead>
+       <tr>
+         <th>#</th>
+         <th>المادة</th>
+         <th>اسم الجدول</th>
+         <th>اليوم</th>
+         <th>التاريخ</th>
+       </tr>
+     </thead>
+     <tbody>${rows}</tbody>
+   </table>
+ `;
 }
 function show(t){const m=document.getElementById("message");m.textContent=t;m.className="message show error"}
 function hide(){const m=document.getElementById("message");m.textContent="";m.className="message"}
