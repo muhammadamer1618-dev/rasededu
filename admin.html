@@ -593,6 +593,28 @@ font-weight:bold
 /* =========================================
    جدول الاختبارات المرن
 ========================================= */
+
+.exam-schedule-copy-modal{
+ display:none;position:fixed;inset:0;background:rgba(7,54,83,.45);
+ z-index:999999;align-items:center;justify-content:center;padding:18px;
+}
+.exam-schedule-copy-modal.show{display:flex}
+.exam-schedule-copy-card{
+ width:min(520px,100%);background:#fff;border-radius:18px;
+ box-shadow:0 24px 70px rgba(0,0,0,.25);overflow:hidden;
+}
+.exam-schedule-copy-head{
+ background:linear-gradient(135deg,#073653,#0b4b78);color:#fff;
+ padding:16px 18px;font-weight:bold;font-size:17px;
+}
+.exam-schedule-copy-body{padding:18px}
+.exam-schedule-copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.exam-schedule-copy-actions{display:flex;gap:8px;justify-content:flex-start;margin-top:16px;flex-wrap:wrap}
+.exam-schedule-copy-help{
+ background:#f7fafc;border:1px solid #dce6ec;border-radius:10px;
+ padding:10px 12px;font-size:12px;color:#637484;line-height:1.8;margin-bottom:14px
+}
+@media(max-width:650px){.exam-schedule-copy-grid{grid-template-columns:1fr}}
 .exam-schedule-toolbar{
 display:flex;
 flex-wrap:wrap;
@@ -6489,6 +6511,40 @@ window.print();
 };
 <\/script>
 
+
+<div id="examScheduleCopyModal" class="exam-schedule-copy-modal" role="dialog" aria-modal="true" aria-labelledby="examScheduleCopyTitle">
+  <div class="exam-schedule-copy-card">
+    <div class="exam-schedule-copy-head" id="examScheduleCopyTitle">📋 نسخ جدول الاختبارات</div>
+    <div class="exam-schedule-copy-body">
+      <div class="exam-schedule-copy-help">
+        سيتم نسخ جميع أيام الجدول والمواد كما هي، مع تطبيق <strong>الصف والشعبة الجديدين</strong> على جميع الأيام.
+      </div>
+      <input type="hidden" id="examScheduleCopySourceId">
+      <div class="row">
+        <div class="col" style="flex:1 1 100%">
+          <label>اسم الجدول الجديد</label>
+          <input id="examScheduleCopyName" placeholder="اسم الجدول">
+        </div>
+      </div>
+      <div class="exam-schedule-copy-grid">
+        <div>
+          <label>الصف الجديد</label>
+          <select id="examScheduleCopyGrade"></select>
+        </div>
+        <div>
+          <label>الشعبة الجديدة</label>
+          <select id="examScheduleCopySection"></select>
+        </div>
+      </div>
+      <div class="exam-schedule-copy-actions">
+        <button class="btn-success" type="button" onclick="confirmCopyExamSchedule()">📋 نسخ وحفظ</button>
+        <button class="btn-light" type="button" onclick="closeCopyExamSchedule()">إلغاء</button>
+      </div>
+      <div id="examScheduleCopyStatus" class="status"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 
 </html>
@@ -6993,6 +7049,7 @@ function renderExamSchedules(){
      <td>${formatTimestamp(schedule.updatedAt||schedule.createdAt)}</td>
      <td>
        <button class="small-btn btn-warning" type="button" onclick='editExamSchedule(${JSON.stringify(schedule.id)})'>تعديل</button>
+       <button class="small-btn btn-primary" type="button" onclick='openCopyExamSchedule(${JSON.stringify(schedule.id)})'>📋 نسخ الجدول</button>
        <button class="small-btn btn-danger" type="button" onclick='deleteExamSchedule(${JSON.stringify(schedule.id)})'>حذف</button>
      </td>`;
    body.appendChild(tr);
@@ -7010,6 +7067,87 @@ function editExamSchedule(id){
  if(!schedule.days?.length)addExamScheduleDay();
  setExamScheduleStatus("أنت الآن تعدل جدول: "+(schedule.name||""),"info");
  scrollToSection("examScheduleSection");
+}
+
+
+function fillCopyExamScheduleSelectors(){
+ const grade=document.getElementById("examScheduleCopyGrade");
+ const section=document.getElementById("examScheduleCopySection");
+ if(!grade||!section)return;
+ grade.innerHTML='<option value="">اختر الصف</option>'+
+   grades.map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join("");
+ section.innerHTML='<option value="">اختر الشعبة</option>'+
+   sections.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+}
+
+function openCopyExamSchedule(id){
+ const schedule=examSchedules.find(x=>x.id===id);
+ if(!schedule)return;
+ fillCopyExamScheduleSelectors();
+ document.getElementById("examScheduleCopySourceId").value=schedule.id;
+ document.getElementById("examScheduleCopyName").value=(schedule.name||"جدول الاختبارات")+" - نسخة";
+ document.getElementById("examScheduleCopyGrade").value="";
+ document.getElementById("examScheduleCopySection").value="";
+ const status=document.getElementById("examScheduleCopyStatus");
+ if(status){status.className="status";status.textContent="";}
+ document.getElementById("examScheduleCopyModal").classList.add("show");
+}
+
+function closeCopyExamSchedule(){
+ const modal=document.getElementById("examScheduleCopyModal");
+ if(modal)modal.classList.remove("show");
+}
+
+async function confirmCopyExamSchedule(){
+ const sourceId=document.getElementById("examScheduleCopySourceId")?.value||"";
+ const name=document.getElementById("examScheduleCopyName")?.value.trim()||"";
+ const grade=document.getElementById("examScheduleCopyGrade")?.value||"";
+ const section=document.getElementById("examScheduleCopySection")?.value||"";
+ const status=document.getElementById("examScheduleCopyStatus");
+ const source=examSchedules.find(x=>x.id===sourceId);
+
+ if(!source){if(status){status.className="status error";status.textContent="لم يتم العثور على الجدول الأصلي.";};return;}
+ if(!name){if(status){status.className="status error";status.textContent="اكتب اسم الجدول الجديد.";};return;}
+ if(!grade||!section){if(status){status.className="status error";status.textContent="اختر الصف والشعبة الجديدين.";};return;}
+
+ const days=(Array.isArray(source.days)?source.days:[]).map((day,index)=>({
+   order:index+1,
+   day:day.day||"",
+   date:day.date||"",
+   subjectId:day.subjectId||"",
+   subjectName:day.subjectName||"",
+   grade:grade,
+   section:section
+ }));
+
+ if(!days.length){if(status){status.className="status error";status.textContent="الجدول الأصلي لا يحتوي على أيام.";};return;}
+
+ const duplicate=examSchedules.some(s=>{
+   if(String(s.name||"")!==name)return false;
+   return JSON.stringify(s.days||[])===JSON.stringify(days);
+ });
+ if(duplicate){
+   if(status){status.className="status error";status.textContent="هذا الجدول موجود بالفعل بنفس البيانات.";};
+   return;
+ }
+
+ try{
+   const now=firebase.firestore.FieldValue.serverTimestamp();
+   await db.collection("examSchedules").add({
+     name:name,
+     days:days,
+     visibleToParent:true,
+     createdAt:now,
+     updatedAt:now
+   });
+   closeCopyExamSchedule();
+   await loadExamSchedules();
+   setExamScheduleStatus("تم نسخ الجدول وحفظه للصف "+grade+" / الشعبة "+section+" ✅","success");
+   scrollToSection("examScheduleSection");
+ }catch(error){
+   console.error("EXAM SCHEDULE COPY ERROR:",error);
+   if(status){status.className="status error";status.textContent="تعذر نسخ الجدول: "+error.message;}
+ }
 }
 
 function clearExamScheduleForm(){
