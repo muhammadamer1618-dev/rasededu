@@ -148,9 +148,9 @@ async function loadExams(){
      return `
        <tr>
          <td>${globalIndex}</td>
-         <td class="subject">${esc(x.subjectName)}</td>
          <td>${esc(x.day)}</td>
          <td>${esc(x.date)}</td>
+         <td class="subject">${esc(x.subjectName)}</td>
        </tr>
      `;
    }).join("");
@@ -161,10 +161,10 @@ async function loadExams(){
        <table class="schedule">
          <thead>
            <tr>
-             <th>#</th>
-             <th>المادة</th>
+             <th>م.</th>
              <th>اليوم</th>
              <th>التاريخ</th>
+             <th>المادة</th>
            </tr>
          </thead>
          <tbody>${rows}</tbody>
