@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جدول الحصص | مدارس الفلاح</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--navy:#0b4b78;--navy2:#073653;--blue:#0e6fa9;--gold:#d7aa2d;--bg:#f2f6f9;--text:#17344b;--muted:#748596;--border:#dbe4eb}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 10% 10%,rgba(215,170,45,.10),transparent 24%),radial-gradient(circle at 90% 90%,rgba(14,111,169,.10),transparent 28%),linear-gradient(135deg,#f8fafc,#edf3f7)}
+.top-line{height:6px;background:linear-gradient(90deg,var(--navy2),var(--navy),var(--gold),var(--navy))}
+.page{width:min(1120px,calc(100% - 24px));margin:24px auto 35px}
+.card{background:#fff;border:1px solid rgba(11,75,120,.12);border-radius:22px;box-shadow:0 18px 50px rgba(18,52,75,.10);overflow:hidden}
+.header{padding:18px 22px;background:linear-gradient(135deg,var(--navy2),var(--navy));color:#fff;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}.title{margin:0;font-size:21px}.sub{margin:3px 0 0;font-size:11px;color:#dbeaf4}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:10px 13px;font-family:inherit;font-weight:bold;cursor:pointer}.btn.gold{background:var(--gold);color:#fff}.btn.light{background:#fff;color:var(--navy)}
+.search{padding:24px}.field{max-width:520px;margin:auto}.label{display:block;font-size:13px;font-weight:bold;margin:0 3px 7px}.input{width:100%;height:54px;border:1.5px solid #cad8e2;border-radius:13px;background:#fbfcfd;font:700 17px Tahoma;text-align:center;direction:ltr;outline:none}.input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(14,111,169,.09)}.searchbtn{width:100%;margin-top:10px;height:50px;border:0;border-radius:13px;background:linear-gradient(135deg,var(--navy2),var(--navy),#116a9e);color:#fff;font:bold 15px Tahoma;cursor:pointer}.searchbtn:disabled{opacity:.65;cursor:not-allowed}.message{display:none;margin-top:11px;padding:11px;border-radius:11px;text-align:center;font-size:12px;font-weight:bold}.message.show{display:block}.error{background:#fff0f1;color:#ad2631;border:1px solid #f1c4c8}.success{background:#edf9f2;color:#247647;border:1px solid #bde5ce}
+.studentbar{display:none;padding:13px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);grid-template-columns:2fr 1fr 1fr}.studentbar.show{display:grid}.info{padding:4px 14px;border-left:1px solid var(--border)}.info:last-child{border-left:0}.lab{display:block;font-size:9px;color:#80909d;margin-bottom:4px}.val{font-size:13px;font-weight:bold}
+.content{display:none;padding:20px}.content.show{display:block}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}.week-select{min-width:220px;height:44px;border:1px solid #cfdbe3;border-radius:10px;padding:0 12px;background:#fff;font:700 13px Tahoma;color:var(--navy2)}.meta{font-size:12px;color:var(--muted)}
+.table-wrap{overflow-x:auto;border:1px solid #d5dfe6;border-radius:12px}.schedule{width:100%;min-width:780px;border-collapse:collapse}.schedule th{background:#eaf1f6;color:var(--navy2);font-size:11px;padding:10px 7px;border-bottom:1px solid #cad6df}.schedule td{padding:9px 7px;font-size:11px;text-align:center;border-bottom:1px solid #e2e8ed}.schedule tr:last-child td{border-bottom:0}.day{font-weight:bold;color:var(--navy);background:#f7fafc}.period{font-weight:bold;color:var(--navy2);width:60px}.subject{font-weight:bold;color:var(--navy)}.empty{text-align:center;padding:45px 15px;color:#7d8d9a;font-size:13px}.footer{text-align:center;color:#8a99a6;font-size:10px;padding:14px}
+@media(max-width:650px){.page{width:min(100% - 12px,1120px);margin:12px auto}.header{padding:15px}.logo{width:48px;height:48px}.title{font-size:17px}.studentbar{grid-template-columns:1fr;gap:6px}.info{border-left:0;border-bottom:1px solid var(--border);padding:7px}.info:last-child{border-bottom:0}.search,.content{padding:15px}}
+@media print{body{background:#fff}.top-line,.search,.actions,.footer{display:none!important}.page{width:100%;margin:0}.card{box-shadow:none;border:0}.header{border-radius:0}.content,.studentbar{display:block!important}.studentbar{display:grid!important}}
+</style>
+</head>
+<body>
+<div class="top-line"></div>
+<main class="page">
+<section class="card">
+<header class="header">
+<div class="brand">
+<img src="logo.jpeg" class="logo" alt="شعار مدارس الفلاح">
+<div><h1 class="title">📚 جدول الحصص</h1><p class="sub">مدارس الفلاح الأهلية • بوابة الطالب</p></div>
+</div>
+<div class="actions">
+<button class="btn light" type="button" onclick="newSearch()">بحث جديد</button>
+<button class="btn gold" type="button" onclick="window.print()">طباعة</button>
+</div>
+</header>
+
+<section class="search" id="searchArea">
+<div class="field">
+<label class="label" for="identityInput">رقم هوية الطالب</label>
+<input id="identityInput" class="input" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="أدخل رقم الهوية">
+<button id="searchBtn" class="searchbtn" type="button" onclick="searchStudent()">عرض جدول الحصص</button>
+<div id="message" class="message"></div>
+</div>
+</section>
+
+<section id="studentBar" class="studentbar">
+<div class="info"><span class="lab">اسم الطالب</span><span class="val" id="studentName">—</span></div>
+<div class="info"><span class="lab">الصف</span><span class="val" id="studentGrade">—</span></div>
+<div class="info"><span class="lab">الشعبة</span><span class="val" id="studentSection">—</span></div>
+</section>
+
+<section id="content" class="content">
+<div class="toolbar">
+<div class="meta" id="planMeta">—</div>
+<select id="weekSelect" class="week-select" aria-label="اختر الأسبوع"></select>
+</div>
+<div id="planArea" class="table-wrap"><div class="empty">لا توجد خطة أسبوعية متاحة.</div></div>
+</section>
+<div class="footer">نظام راصد • مدارس الفلاح الأهلية • تصميم محمد عامر أحمد 2026</div>
+</section>
+</main>
+<script>
+const rasedConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:421421115694:web:96f55fd9fd1d5b18b31abf"};
+const weeklyConfig={apiKey:"AIzaSyBYxW_pdFvE1VZyDoTok4-EutPe6oigJhY",authDomain:"weekly-plan-3a743.firebaseapp.com",projectId:"weekly-plan-3a743",storageBucket:"weekly-plan-3a743.firebasestorage.app",messagingSenderId:"575884603803",appId:"1:575884603803:web:e8c4d82c69fd545bed313e"};
+firebase.initializeApp(rasedConfig);
+const db=firebase.firestore();
+const weeklyApp=firebase.initializeApp(weeklyConfig,"weeklyScheduleApp");
+const weeklyDb=firebase.firestore(weeklyApp);
+let currentStudent=null,plans=[];
+
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+function clean(v){return String(v||"").replace(/[^\d]/g,"").trim()}
+function norm(v){return String(v??"").trim().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[()\-_/]/g," ").replace(/\s+/g," ").toLowerCase()}
+function normSection(v){return norm(v).replace(/^الشعبه\s*/,"").replace(/^فصل\s*/,"").trim()}
+function gradeNum(v){const t=norm(v),d=t.match(/\d+/);if(d)return Number(d[0]);const m=[["الاول",1],["الاولى",1],["الثاني",2],["الثانيه",2],["الثالث",3],["الثالثه",3],["الرابع",4],["الرابعه",4],["الخامس",5],["الخامسه",5],["السادس",6],["السادسه",6]];for(const [w,n] of m)if(t.includes(w))return n;return null}
+function stage(v){const t=norm(v);if(t.includes("ابتد"))return"primary";if(t.includes("متوسط"))return"middle";if(t.includes("ثانوي"))return"secondary";return""}
+function gradesMatch(s,g,ps){if(norm(s)===norm(g))return true;const a=gradeNum(s),b=gradeNum(g);if(a===null||b===null||a!==b)return false;const as=stage(s),bs=stage(ps||g);return !as||!bs||as===bs}
+function sectionsMatch(a,b){return normSection(a)===normSection(b)}
+function date(v){if(!v)return"-";const p=String(v).split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:String(v)}
+function homework(row){if(row?.homework!==undefined&&row?.homework!==null&&String(row.homework).trim())return String(row.homework);const p=[];if(row?.book)p.push(row.book);if(row?.page)p.push("ص "+row.page);if(row?.exercise)p.push("تمرين "+row.exercise);if(row?.madrasati===true)p.push("منصة مدرستي");return p.join(" - ")}
+function emptyDay(){return Array.from({length:8},(_,i)=>({subject:"",topic:"",homework:"",period:i+1}))}
+function normalizePlan(p){const days={};for(const d of ["sunday","monday","tuesday","wednesday","thursday"]){days[d]=emptyDay();const rows=Array.isArray(p.days?.[d])?p.days[d]:[];for(let i=0;i<8;i++){const r=rows[i]||{};days[d][i]={period:i+1,subject:r.subject||"",topic:r.topic||"",homework:homework(r)}}}return {...p,days}}
+async function searchStudent(){
+ hide();const id=clean(document.getElementById("identityInput").value);if(!id){show("فضلاً أدخل رقم الهوية.");return}
+ const b=document.getElementById("searchBtn");b.disabled=true;b.textContent="جاري البحث...";
+ try{
+  let doc=await db.collection("students").doc(id).get();
+  if(!doc.exists){const q=await db.collection("students").where("code","==",id).limit(1).get();if(!q.empty)doc=q.docs[0]}
+  if(!doc.exists){show("لم يتم العثور على طالب بهذا الرقم.");return}
+  currentStudent={...(doc.data()||{}),code:(doc.data()||{}).code||doc.id};
+  document.getElementById("studentName").textContent=currentStudent.name||"—";
+  document.getElementById("studentGrade").textContent=currentStudent.grade||"—";
+  document.getElementById("studentSection").textContent=currentStudent.section||"—";
+  await loadPlans();renderWeeks();document.getElementById("studentBar").classList.add("show");document.getElementById("content").classList.add("show");document.getElementById("searchArea").style.display="none";
+ }catch(e){console.error(e);show("تعذر تحميل جدول الحصص حاليًا.");}
+ finally{b.disabled=false;b.textContent="عرض جدول الحصص"}
+}
+async function loadPlans(){
+ const snap=await weeklyDb.collection("weeklyPlans").get();plans=[];snap.forEach(d=>{const x=d.data()||{};const w=Number(x.weekNumber);if(w>=1&&w<=18&&x.grade&&x.section&&gradesMatch(currentStudent.grade,x.grade,x.stage)&&sectionsMatch(currentStudent.section,x.section))plans.push({id:d.id,...x})});plans.sort((a,b)=>Number(a.weekNumber)-Number(b.weekNumber))
+}
+function renderWeeks(){
+ const s=document.getElementById("weekSelect");const weeks=[...new Set(plans.map(x=>Number(x.weekNumber)))];s.innerHTML=weeks.length?weeks.map(w=>`<option value="${w}">الأسبوع ${w}</option>`).join(""):'<option value="">لا توجد أسابيع</option>';if(weeks.length){s.value=String(Math.max(...weeks));renderPlan(Number(s.value))}else{document.getElementById("planArea").innerHTML='<div class="empty">لا توجد خطة أسبوعية متاحة لهذا الصف والشعبة حاليًا.</div>';document.getElementById("planMeta").textContent=""}
+}
+function renderPlan(week){
+ const p=plans.find(x=>Number(x.weekNumber)===Number(week));if(!p){document.getElementById("planArea").innerHTML='<div class="empty">لا توجد خطة لهذا الأسبوع.</div>';return}
+ const x=normalizePlan(p),labels={sunday:"الأحد",monday:"الاثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس"};let rows="";
+ for(const d of Object.keys(labels)){x.days[d].forEach((r,i)=>{rows+=`<tr>${i===0?`<td rowspan="8" class="day">${labels[d]}</td>`:""}<td class="period">${i+1}</td><td class="subject">${esc(r.subject)||"-"}</td><td>${esc(r.topic)||"-"}</td><td>${esc(r.homework)||"-"}</td></tr>`})}
+ document.getElementById("planMeta").textContent=`الأسبوع ${x.weekNumber} — من ${date(x.startDate)} إلى ${date(x.endDate)}`;
+ document.getElementById("planArea").innerHTML=`<table class="schedule"><thead><tr><th>اليوم</th><th>الحصة</th><th>المادة</th><th>موضوع الدرس</th><th>الواجب</th></tr></thead><tbody>${rows}</tbody></table>`
+}
+function show(t){const m=document.getElementById("message");m.textContent=t;m.className="message show error"}
+function hide(){const m=document.getElementById("message");m.textContent="";m.className="message"}
+function newSearch(){location.reload()}
+document.getElementById("weekSelect").addEventListener("change",e=>renderPlan(Number(e.target.value)));
+document.getElementById("identityInput").addEventListener("keydown",e=>{if(e.key==="Enter")searchStudent()});
+</script>
+</body>
+</html>
