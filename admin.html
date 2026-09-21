@@ -7352,6 +7352,10 @@ loadMonitors()
 
 ]);
 
+/* جدول الاختبارات يعتمد على المواد المحملة من Firebase */
+fillExamScheduleSelectors();
+await loadExamSchedules();
+
 await loadMessageLogs();
 
 }
