@@ -167,6 +167,70 @@ body{
     line-height:1.8;
 }
 
+
+/* ===== جداول ولي الأمر ===== */
+function parentNormalizeText(v){return String(v??"").trim().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/\s+/g," ");}
+function parentGradesMatch(a,b,stage){
+ a=parentNormalizeText(a);b=parentNormalizeText(b);
+ if(a===b)return true;
+ const na=(a.match(/\d+/)||[])[0],nb=(b.match(/\d+/)||[])[0];
+ if(!na||!nb||na!==nb)return false;
+ const sa=a.includes("ابتد")?"primary":a.includes("متوسط")?"middle":a.includes("ثانوي")?"secondary":"";
+ const sb=parentNormalizeText(stage||b).includes("ابتد")?"primary":parentNormalizeText(stage||b).includes("متوسط")?"middle":parentNormalizeText(stage||b).includes("ثانوي")?"secondary":"";
+ return !sa||!sb||sa===sb;
+}
+function parentSectionsMatch(a,b){return parentNormalizeText(a)===parentNormalizeText(b);}
+function parentDate(v){if(!v)return "-";const p=String(v).split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:String(v);}
+async function loadParentWeeklyPlans(){
+ const snap=await weeklyDb.collection("weeklyPlans").get();
+ parentWeeklyPlans=[];
+ snap.forEach(d=>{const x=d.data()||{};if(x.grade&&x.section&&Number(x.weekNumber)>=1&&Number(x.weekNumber)<=18)parentWeeklyPlans.push({id:d.id,...x});});
+}
+function parentHomework(row){
+ if(row?.homework!=null&&String(row.homework).trim())return String(row.homework);
+ const p=[];if(row?.book)p.push(row.book);if(row?.page)p.push("ص "+row.page);if(row?.exercise)p.push("تمرين "+row.exercise);if(row?.madrasati===true)p.push("منصة مدرستي");return p.join(" - ");
+}
+function parentPlanNorm(plan){
+ const days={};["sunday","monday","tuesday","wednesday","thursday"].forEach(day=>{days[day]=[];const rows=Array.isArray(plan.days?.[day])?plan.days[day]:[];for(let i=0;i<8;i++){const r=rows[i]||{};days[day].push({subject:r.subject||"",topic:r.topic||"",homework:parentHomework(r)});}});
+ return {...plan,days};
+}
+function renderParentPlanSelector(){
+ const sel=document.getElementById("parentPlanWeek");if(!sel)return;
+ const weeks=[...new Set(parentWeeklyPlans.map(x=>Number(x.weekNumber)).filter(Number.isFinite))].sort((a,b)=>a-b);
+ sel.innerHTML='<option value="">اختر الأسبوع</option>'+weeks.map(w=>`<option value="${w}">الأسبوع ${w}</option>`).join("");
+ if(weeks.length){const latest=Math.max(...weeks);sel.value=String(latest);renderParentWeeklyPlan(latest);}
+}
+function renderParentWeeklyPlan(week){
+ const area=document.getElementById("parentPlanTable"),meta=document.getElementById("parentPlanMeta");if(!area)return;
+ const plan=parentWeeklyPlans.find(x=>Number(x.weekNumber)===Number(week));
+ if(!plan){area.innerHTML='<div class="parent-empty">لا توجد خطة أسبوعية متاحة.</div>';if(meta)meta.textContent="";return;}
+ const p=parentPlanNorm(plan);
+ if(meta)meta.textContent=`الأسبوع ${plan.weekNumber} — من ${parentDate(plan.startDate)} إلى ${parentDate(plan.endDate)}`;
+ const days={sunday:"الأحد",monday:"الاثنين",tuesday:"الثلاثاء",wednesday:"الأربعاء",thursday:"الخميس"};
+ let rows="";
+ Object.keys(days).forEach(day=>p.days[day].forEach((r,i)=>{rows+=`<tr>${i===0?`<td rowspan="8" class="day-cell">${days[day]}</td>`:""}<td class="period-cell">${i+1}</td><td class="subject-cell">${escapeHtml(r.subject)||"-"}</td><td>${escapeHtml(r.topic)||"-"}</td><td>${escapeHtml(r.homework)||"-"}</td></tr>`;}));
+ area.innerHTML=`<div class="parent-schedule-table-wrap"><table class="parent-schedule-table"><thead><tr><th>اليوم</th><th>الحصة</th><th>المادة</th><th>موضوع الدرس</th><th>الواجب</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+async function loadParentExamSchedules(){
+ const area=document.getElementById("parentExamScheduleTable");if(!area||!currentStudent)return;
+ const snap=await db.collection("examSchedules").get(),list=[];
+ snap.forEach(d=>{const x=d.data()||{};if(x.visibleToParent===false)return;if(parentGradesMatch(currentStudent.grade,x.grade,x.stage)&&parentSectionsMatch(currentStudent.section,x.section))list.push({id:d.id,...x});});
+ list.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
+ if(!list.length){area.innerHTML='<div class="parent-empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div>';return;}
+ const rows=list.map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(x.subjectName||"-")}</td><td>${escapeHtml(x.name||"-")}</td><td>${escapeHtml(x.type||"-")}</td><td>${escapeHtml(x.date||"-")}</td><td>${escapeHtml(x.day||"-")}</td><td>${escapeHtml(x.time||"-")}</td><td>${escapeHtml(x.place||"-")}</td><td>${escapeHtml(x.notes||"-")}</td></tr>`).join("");
+ area.innerHTML=`<div class="parent-schedule-table-wrap"><table class="parent-exam-table"><thead><tr><th>#</th><th>المادة</th><th>الاختبار</th><th>النوع</th><th>التاريخ</th><th>اليوم</th><th>الوقت</th><th>المكان</th><th>ملاحظات</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+async function loadParentSchedules(){
+ const area=document.getElementById("parentSchedulesArea");if(!area||!currentStudent)return;
+ area.style.display="block";
+ try{
+  await loadParentWeeklyPlans();
+  parentWeeklyPlans=parentWeeklyPlans.filter(x=>parentGradesMatch(currentStudent.grade,x.grade,x.stage)&&parentSectionsMatch(currentStudent.section,x.section));
+  renderParentPlanSelector();
+ }catch(e){console.error(e);document.getElementById("parentPlanTable").innerHTML='<div class="parent-empty">تعذر تحميل جدول الحصص حاليًا.</div>';}
+ try{await loadParentExamSchedules();}catch(e){console.error(e);document.getElementById("parentExamScheduleTable").innerHTML='<div class="parent-empty">تعذر تحميل جدول الاختبارات حاليًا.</div>';}
+}
+
 /* =========================
    SEARCH
 ========================= */
@@ -802,6 +866,30 @@ tbody tr:hover{
     z-index:1;
 }
 
+
+/* ===== جدول الحصص + جدول الاختبارات لولي الأمر ===== */
+.parent-schedules{width:min(1050px,100%);margin:18px auto 0;display:none}
+.parent-schedule-card{background:#fff;border:1px solid #dce5eb;border-radius:16px;box-shadow:0 8px 24px rgba(18,52,75,.07);overflow:hidden;margin-bottom:16px}
+.parent-schedule-title{padding:14px 18px;background:linear-gradient(135deg,#073653,#0b4b78);color:#fff;font-size:17px;font-weight:bold;border-bottom:3px solid #d7aa2d}
+.parent-schedule-body{padding:15px 18px}
+.parent-schedule-controls{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px}
+.parent-schedule-meta{text-align:center;color:#748596;font-size:12px;margin:5px 0 12px}
+.parent-schedule-table-wrap{overflow-x:auto;border:1px solid #d5dfe6;border-radius:10px}
+.parent-schedule-table{width:100%;border-collapse:collapse;min-width:720px}
+.parent-schedule-table th{background:#eaf1f6;color:#073653;padding:9px 7px;font-size:11px;border-bottom:1px solid #cad6df}
+.parent-schedule-table td{padding:9px 7px;font-size:11px;text-align:center;border-bottom:1px solid #e2e8ed}
+.parent-schedule-table .day-cell{background:#0b4b78;color:#fff;font-weight:bold;white-space:nowrap}
+.parent-schedule-table .period-cell{background:#f8f4e7;font-weight:bold}
+.parent-schedule-table .subject-cell{color:#0b4b78;font-weight:bold}
+.parent-exam-table{width:100%;border-collapse:collapse;min-width:800px}
+.parent-exam-table th{background:#eaf1f6;color:#073653;padding:9px 7px;font-size:11px}
+.parent-exam-table td{padding:9px 7px;font-size:11px;text-align:center;border-bottom:1px solid #e2e8ed}
+.parent-exam-table tbody tr:nth-child(even){background:#f8fafc}
+.parent-empty{text-align:center;padding:25px 10px;color:#7d8d9a}
+.parent-note{background:#fff8db;color:#715d00;padding:10px;border-radius:9px;font-size:11px;line-height:1.7;margin-bottom:12px}
+@media(max-width:650px){.parent-schedule-controls{grid-template-columns:1fr}.parent-schedule-title{font-size:15px}.parent-schedule-body{padding:12px}}
+@media print{.parent-schedules{display:block!important}.parent-schedule-card{box-shadow:none;border:1px solid #aaa}.parent-schedule-controls{display:none}}
+
 </style>
 </head>
 
@@ -899,6 +987,28 @@ tbody tr:hover{
         ========================== -->
 
         <section id="resultsArea"></section>
+
+<section id="parentSchedulesArea" class="parent-schedules">
+<div class="parent-schedule-card">
+<div class="parent-schedule-title">📚 جدول الحصص</div>
+<div class="parent-schedule-body">
+<div class="parent-schedule-controls">
+<div><label class="field-label" for="parentPlanWeek">الأسبوع</label><select id="parentPlanWeek"><option value="">جاري التحميل...</option></select></div>
+<div></div>
+</div>
+<div id="parentPlanMeta" class="parent-schedule-meta"></div>
+<div id="parentPlanTable"></div>
+</div>
+</div>
+<div class="parent-schedule-card">
+<div class="parent-schedule-title">📝 جدول الاختبارات</div>
+<div class="parent-schedule-body">
+<div class="parent-note">هذا جدول مواعيد الاختبارات المعلن من المدرسة، وهو مستقل عن نتائج ودرجات راصد.</div>
+<div id="parentExamScheduleTable"></div>
+</div>
+</div>
+</section>
+
 
     </main>
 
@@ -1010,6 +1120,20 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 
 const db=firebase.firestore();
+
+/* ===== Firebase: الخطة الأسبوعية ===== */
+const weeklyPlanConfig={
+ apiKey:"AIzaSyBYxW_pdFvE1VZyDoTok4-EutPe6oigJhY",
+ authDomain:"weekly-plan-3a743.firebaseapp.com",
+ projectId:"weekly-plan-3a743",
+ storageBucket:"weekly-plan-3a743.firebasestorage.app",
+ messagingSenderId:"575884603803",
+ appId:"1:575884603803:web:e8c4d82c69fd545bed313e"
+};
+const weeklyPlanApp=firebase.initializeApp(weeklyPlanConfig,"weeklyPlanAppParent");
+const weeklyDb=firebase.firestore(weeklyPlanApp);
+let parentWeeklyPlans=[];
+
 
 
 /* =========================
@@ -1187,6 +1311,7 @@ async function searchStudent(){
 
 
         renderResults();
+        await loadParentSchedules();
 
     }
 
@@ -1797,6 +1922,9 @@ function newSearch(){
 
     el("resultsArea").innerHTML="";
 
+    const scheduleArea=el("parentSchedulesArea");
+    if(scheduleArea) scheduleArea.style.display="none";
+
 
     el("searchPortal").style.display="block";
 
@@ -1850,6 +1978,9 @@ el("identityInput")
 
     }
 );
+
+const parentPlanWeekSelect=document.getElementById("parentPlanWeek");
+if(parentPlanWeekSelect)parentPlanWeekSelect.addEventListener("change",()=>renderParentWeeklyPlan(parentPlanWeekSelect.value));
 
 </script>
 
