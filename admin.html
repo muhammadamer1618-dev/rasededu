@@ -589,6 +589,17 @@ font-weight:bold
 .progress-table th{background:#174f7c;color:#fff}
 @media(max-width:700px){.progress-stats{grid-template-columns:repeat(2,1fr)}.progress-chart{height:230px}}
 
+
+/* ===== جدول الاختبارات لولي الأمر ===== */
+.exam-schedule-grid{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:12px}
+.exam-schedule-grid .wide{grid-column:span 2}
+.exam-schedule-list table{min-width:1050px}
+.schedule-visible{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:bold}
+.schedule-visible.on{background:#d1e7dd;color:#0f6b3e;border:1px solid #9ed1b5}
+.schedule-visible.off{background:#eceff2;color:#59636c;border:1px solid #cfd5da}
+@media(max-width:900px){.exam-schedule-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}.exam-schedule-grid .wide{grid-column:span 2}}
+@media(max-width:600px){.exam-schedule-grid{grid-template-columns:1fr}.exam-schedule-grid .wide{grid-column:span 1}}
+
 </style>
 </head>
 
@@ -644,6 +655,7 @@ onclick="openComparison()">
 
 <button class="btn-success" onclick="openMonitoring()">📋 حالة الرصد</button>
 <button class="btn-gold" onclick="openSupportStudents()">👥 الطلاب المحتاجون للدعم</button>
+<button class="btn-success" onclick="scrollToSection('examScheduleSection')">📅 جدول الاختبارات لولي الأمر</button>
 <button class="btn-purple" onclick="openExamMonitoring()">📝 متابعة الاختبارات الإلكترونية</button>
 
 <button
@@ -1604,6 +1616,51 @@ onclick="clearCurrentTeacherAssignments()">
 <div class="danger-zone"><button class="btn-danger" onclick="deleteAllTests()">🗑️ حذف جميع الاختبارات</button></div>
 </div></div>
 
+
+<!-- =========================================
+     جدول الاختبارات لولي الأمر
+========================================= -->
+<div class="box" id="examScheduleSection">
+<div class="box-title">📅 جدول الاختبارات لولي الأمر</div>
+<div class="box-body">
+<input type="hidden" id="examScheduleEditId">
+
+<div class="exam-schedule-grid">
+<div><label>الصف</label><select id="examScheduleGrade"></select></div>
+<div><label>الشعبة</label><select id="examScheduleSection"></select></div>
+<div><label>المادة</label><select id="examScheduleSubject"></select></div>
+<div><label>اسم الاختبار</label><input id="examScheduleName" placeholder="مثال: اختبار منتصف الفصل"></div>
+<div><label>نوع الاختبار</label><input id="examScheduleType" placeholder="شفهي / تحريري / عملي ..."></div>
+<div><label>التاريخ</label><input id="examScheduleDate" type="date"></div>
+<div><label>اليوم</label><select id="examScheduleDay"><option value="">اختر اليوم</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
+<div><label>الوقت</label><input id="examScheduleTime" type="time"></div>
+<div><label>المكان</label><input id="examSchedulePlace" placeholder="مثال: الفصل / المعمل"></div>
+<div class="wide"><label>ملاحظات</label><input id="examScheduleNotes" placeholder="أي تعليمات أو ملاحظات لولي الأمر"></div>
+</div>
+
+<div class="actions">
+<button class="btn-primary" onclick="saveExamSchedule()">💾 حفظ موعد الاختبار</button>
+<button class="btn-light" onclick="clearExamScheduleForm()">موعد جديد</button>
+</div>
+
+<div class="note">
+هذا الجدول مستقل عن نتائج الاختبارات. تعديله هنا يغيّر فقط المواعيد الظاهرة لولي الأمر، ولا يغيّر درجات راصد أو مجموعة <strong>tests</strong>.
+</div>
+
+<div class="table-wrap exam-schedule-list">
+<table>
+<thead>
+<tr>
+<th>الصف</th><th>الشعبة</th><th>المادة</th><th>الاختبار</th><th>النوع</th>
+<th>التاريخ</th><th>اليوم</th><th>الوقت</th><th>المكان</th><th>الظهور</th><th>الإجراءات</th>
+</tr>
+</thead>
+<tbody id="examSchedulesBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+
 <!-- =========================================
      سجل الرسائل
 ========================================= -->
@@ -1963,6 +2020,7 @@ let messageLogs=[];
 let filteredMessageLogs=[];
 let monitors=[];
 let examAccessEnabledSubjectIds=null;
+let examSchedules=[];
 
 
 /* =========================================
@@ -5494,6 +5552,130 @@ clearAllAssignments();
 
 }
 
+
+
+/* =========================================
+   جدول الاختبارات لولي الأمر
+========================================= */
+function fillExamScheduleSelectors(){
+ const g=document.getElementById("examScheduleGrade");
+ const s=document.getElementById("examScheduleSection");
+ const sub=document.getElementById("examScheduleSubject");
+ if(!g||!s||!sub)return;
+ g.innerHTML='<option value="">اختر الصف</option>'+grades.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+ s.innerHTML='<option value="">اختر الشعبة</option>'+sections.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+ sub.innerHTML='<option value="">اختر المادة</option>'+subjects.map(x=>`<option value="${escapeHtml(x.id)}">${escapeHtml(x.name)}</option>`).join("");
+}
+function autoExamScheduleDay(){
+ const date=document.getElementById("examScheduleDate")?.value;
+ const day=document.getElementById("examScheduleDay");
+ if(!date||!day)return;
+ const p=date.split("-").map(Number);
+ if(p.length!==3)return;
+ const d=new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay();
+ const names=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+ if(d<=4)day.value=names[d];
+}
+async function loadExamSchedules(){
+ const snap=await db.collection("examSchedules").get();
+ examSchedules=[];
+ snap.forEach(d=>examSchedules.push({id:d.id,...d.data()}));
+ examSchedules.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
+ renderExamSchedules();
+}
+function renderExamSchedules(){
+ const body=document.getElementById("examSchedulesBody");
+ if(!body)return;
+ body.innerHTML="";
+ if(!examSchedules.length){body.innerHTML='<tr><td colspan="11">لا توجد مواعيد اختبارات محفوظة.</td></tr>';return;}
+ examSchedules.forEach(item=>{
+  const tr=document.createElement("tr");
+  const subjectName=item.subjectName||subjects.find(s=>s.id===item.subjectId)?.name||"-";
+  const visible=item.visibleToParent!==false;
+  tr.innerHTML=`<td>${escapeHtml(item.grade||"-")}</td>
+  <td>${escapeHtml(item.section||"-")}</td>
+  <td>${escapeHtml(subjectName)}</td>
+  <td>${escapeHtml(item.name||"-")}</td>
+  <td>${escapeHtml(item.type||"-")}</td>
+  <td>${escapeHtml(item.date||"-")}</td>
+  <td>${escapeHtml(item.day||"-")}</td>
+  <td>${escapeHtml(item.time||"-")}</td>
+  <td>${escapeHtml(item.place||"-")}</td>
+  <td><span class="schedule-visible ${visible?"on":"off"}">${visible?"🟢 ظاهر":"⚪ مخفي"}</span><br>
+  <button class="small-btn ${visible?"btn-hidden":"btn-visible"}" onclick='toggleExamScheduleVisibility(${JSON.stringify(item.id)})'>${visible?"إخفاء":"إظهار"}</button></td>
+  <td><button class="small-btn btn-warning" onclick='editExamSchedule(${JSON.stringify(item.id)})'>تعديل</button>
+  <button class="small-btn btn-danger" onclick='deleteExamSchedule(${JSON.stringify(item.id)})'>حذف</button></td>`;
+  body.appendChild(tr);
+ });
+}
+async function saveExamSchedule(){
+ const id=document.getElementById("examScheduleEditId").value;
+ const grade=document.getElementById("examScheduleGrade").value;
+ const section=document.getElementById("examScheduleSection").value;
+ const subjectId=document.getElementById("examScheduleSubject").value;
+ const name=document.getElementById("examScheduleName").value.trim();
+ const type=document.getElementById("examScheduleType").value.trim();
+ const date=document.getElementById("examScheduleDate").value;
+ const day=document.getElementById("examScheduleDay").value;
+ const time=document.getElementById("examScheduleTime").value;
+ const place=document.getElementById("examSchedulePlace").value.trim();
+ const notes=document.getElementById("examScheduleNotes").value.trim();
+ if(!grade||!section||!subjectId||!name||!date){alert("أكمل الصف والشعبة والمادة واسم الاختبار والتاريخ.");return;}
+ const subject=subjects.find(s=>s.id===subjectId);
+ if(!subject){alert("المادة غير موجودة.");return;}
+ const old=examSchedules.find(x=>x.id===id);
+ const data={grade,section,subjectId,subjectName:subject.name,name,type,date,day,time,place,notes,
+ visibleToParent:old?old.visibleToParent!==false:true,
+ updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+ try{
+  if(id){
+   await db.collection("examSchedules").doc(id).set(data,{merge:true});
+   alert("تم تعديل موعد الاختبار بنجاح ✅");
+  }else{
+   data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+   await db.collection("examSchedules").add(data);
+   alert("تمت إضافة موعد الاختبار بنجاح ✅");
+  }
+  clearExamScheduleForm();
+  await loadExamSchedules();
+ }catch(error){console.error(error);alert("تعذر حفظ موعد الاختبار:\n"+error.message);}
+}
+function editExamSchedule(id){
+ const x=examSchedules.find(v=>v.id===id);if(!x)return;
+ document.getElementById("examScheduleEditId").value=x.id;
+ document.getElementById("examScheduleGrade").value=x.grade||"";
+ document.getElementById("examScheduleSection").value=x.section||"";
+ document.getElementById("examScheduleSubject").value=x.subjectId||"";
+ document.getElementById("examScheduleName").value=x.name||"";
+ document.getElementById("examScheduleType").value=x.type||"";
+ document.getElementById("examScheduleDate").value=x.date||"";
+ document.getElementById("examScheduleDay").value=x.day||"";
+ document.getElementById("examScheduleTime").value=x.time||"";
+ document.getElementById("examSchedulePlace").value=x.place||"";
+ document.getElementById("examScheduleNotes").value=x.notes||"";
+ scrollToSection("examScheduleSection");
+}
+function clearExamScheduleForm(){
+ ["examScheduleEditId","examScheduleName","examScheduleType","examScheduleDate","examScheduleTime","examSchedulePlace","examScheduleNotes"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+ ["examScheduleGrade","examScheduleSection","examScheduleSubject","examScheduleDay"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+}
+async function toggleExamScheduleVisibility(id){
+ const x=examSchedules.find(v=>v.id===id);if(!x)return;
+ const next=x.visibleToParent===false;
+ if(!confirm(next?"إظهار موعد الاختبار لولي الأمر؟":"إخفاء موعد الاختبار عن ولي الأمر؟"))return;
+ try{
+  await db.collection("examSchedules").doc(id).set({visibleToParent:next,visibilityUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  await loadExamSchedules();
+ }catch(error){alert("تعذر تغيير حالة الظهور:\n"+error.message);}
+}
+async function deleteExamSchedule(id){
+ const x=examSchedules.find(v=>v.id===id);if(!x)return;
+ if(!confirm("هل تريد حذف موعد الاختبار:\n"+(x.name||"")+" ؟"))return;
+ try{
+  await db.collection("examSchedules").doc(id).delete();
+  await loadExamSchedules();
+ }catch(error){alert("تعذر حذف الموعد:\n"+error.message);}
+}
 
 /* =========================================
    الاختبارات
