@@ -1774,6 +1774,10 @@ function renderResults(){
         top:0,
         behavior:"smooth"
     });
+
+    // تحميل جدول الاختبارات بعد إنشاء منطقة العرض فعليًا
+    // لأن #inlineExamSchedule يتم إنشاؤها داخل renderResults()
+    renderStudentExamSchedule();
 }
 
 
