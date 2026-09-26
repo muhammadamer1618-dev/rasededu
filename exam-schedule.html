@@ -17,9 +17,9 @@ body{margin:0;font-family:Tahoma,Arial,sans-serif;color:var(--text);background:r
 .brand{display:flex;align-items:center;gap:12px}.logo{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}.title{margin:0;font-size:21px}.sub{margin:3px 0 0;font-size:11px;color:#dbeaf4}
 .actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:10px 13px;font-family:inherit;font-weight:bold;cursor:pointer}.btn.gold{background:var(--gold);color:#fff}.btn.light{background:#fff;color:var(--navy)}
 .search{padding:24px}.field{max-width:520px;margin:auto}.label{display:block;font-size:13px;font-weight:bold;margin:0 3px 7px}.input{width:100%;height:54px;border:1.5px solid #cad8e2;border-radius:13px;background:#fbfcfd;font:700 17px Tahoma;text-align:center;direction:ltr;outline:none}.input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(14,111,169,.09)}.searchbtn{width:100%;margin-top:10px;height:50px;border:0;border-radius:13px;background:linear-gradient(135deg,var(--navy2),var(--navy),#116a9e);color:#fff;font:bold 15px Tahoma;cursor:pointer}.searchbtn:disabled{opacity:.65;cursor:not-allowed}.message{display:none;margin-top:11px;padding:11px;border-radius:11px;text-align:center;font-size:12px;font-weight:bold}.message.show{display:block}.error{background:#fff0f1;color:#ad2631;border:1px solid #f1c4c8}
-.studentbar{display:none;padding:13px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);grid-template-columns:2fr 1fr 1fr}.studentbar.show{display:grid}.info{padding:4px 14px;border-left:1px solid var(--border)}.info:last-child{border-left:0}.lab{display:block;font-size:9px;color:#80909d;margin-bottom:4px}.val{font-size:13px;font-weight:bold}
-.content{display:none;padding:20px}.content.show{display:block}.notice{background:#f7fafc;border:1px solid #dce6ec;border-radius:12px;padding:12px 14px;margin-bottom:14px;color:#617384;font-size:12px;line-height:1.8}.table-wrap{overflow-x:auto;border:1px solid #d5dfe6;border-radius:12px}.schedule-title{font-size:18px;font-weight:900;color:var(--navy2);padding:12px 15px;margin:0 0 10px;background:#f7fafc;border:1px solid #dce6ec;border-radius:12px;text-align:center}.schedule-title+.table-wrap{margin-bottom:16px}.schedule{width:100%;min-width:900px;border-collapse:collapse}.schedule th{background:#eaf1f6;color:var(--navy2);font-size:11px;padding:10px 7px;border-bottom:1px solid #cad6df}.schedule td{padding:10px 7px;font-size:11px;text-align:center;border-bottom:1px solid #e2e8ed}.schedule tr:last-child td{border-bottom:0}.subject{font-weight:bold;color:var(--navy)}.empty{text-align:center;padding:45px 15px;color:#7d8d9a;font-size:13px}.footer{text-align:center;color:#8a99a6;font-size:10px;padding:14px}
-@media(max-width:650px){.page{width:min(100% - 12px,1120px);margin:12px auto}.header{padding:15px}.logo{width:48px;height:48px}.title{font-size:17px}.studentbar{grid-template-columns:1fr;gap:6px}.info{border-left:0;border-bottom:1px solid var(--border);padding:7px}.info:last-child{border-bottom:0}.search,.content{padding:15px}}
+.studentbar{display:none;padding:16px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);grid-template-columns:2fr 1fr 1fr;background:#fbfdff}.studentbar.show{display:grid}.info{padding:5px 14px;border-left:1px solid var(--border)}.info:last-child{border-left:0}.lab{display:block;font-size:9px;color:#80909d;margin-bottom:5px}.val{font-size:13px;font-weight:900;color:var(--navy2)}
+.content{display:none;padding:20px}.content.show{display:block}.notice{background:linear-gradient(135deg,#f7fafc,#eef6fb);border:1px solid #dce6ec;border-radius:14px;padding:12px 14px;margin-bottom:16px;color:#617384;font-size:12px;line-height:1.8}.exam-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy2),var(--navy));border-radius:18px;padding:20px;color:#fff;margin-bottom:18px;box-shadow:0 14px 32px rgba(7,54,83,.16)}.exam-hero:after{content:"";position:absolute;width:180px;height:180px;border:1px solid rgba(215,170,45,.22);border-radius:50%;left:-60px;top:-80px}.exam-kicker{font-size:10px;color:#dbeaf4;font-weight:bold;margin-bottom:5px}.exam-main-title{margin:0;font-size:23px;font-weight:900;position:relative;z-index:1}.exam-hero-sub{margin:6px 0 15px;color:#dbeaf4;font-size:11px;position:relative;z-index:1}.countdown-label{font-size:10px;color:#f8e7ad;margin-bottom:7px;font-weight:bold;position:relative;z-index:1}.countdown{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}.count-box{min-width:72px;padding:10px 8px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.10);border-radius:12px;text-align:center}.count-num{display:block;font-size:22px;font-weight:900;line-height:1.1}.count-unit{display:block;font-size:9px;color:#dbeaf4;margin-top:4px}.today-badge{display:inline-flex;padding:8px 12px;border-radius:10px;background:var(--gold);color:#fff;font-size:12px;font-weight:900}.table-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}.table-heading h2{margin:0;color:var(--navy2);font-size:17px}.table-heading span{font-size:10px;color:#80909d}.table-wrap{overflow-x:auto;border:1px solid #d5dfe6;border-radius:14px;background:#fff;box-shadow:0 7px 22px rgba(18,52,75,.05)}.schedule-title{font-size:18px;font-weight:900;color:#fff;padding:13px 15px;margin:0;background:linear-gradient(135deg,var(--navy2),var(--navy));text-align:center}.schedule-title+.table-wrap{margin-bottom:16px}.schedule{width:100%;min-width:650px;border-collapse:separate;border-spacing:0}.schedule th{background:#f0f5f8;color:var(--navy2);font-size:11px;padding:12px 8px;border-bottom:1px solid #d6e0e7}.schedule td{padding:13px 8px;font-size:11px;text-align:center;border-bottom:1px solid #e8edf1}.schedule tbody tr:last-child td{border-bottom:0}.schedule tbody tr:hover td{background:#fbfdff}.subject{font-weight:900;color:var(--navy)}.day-cell{font-weight:800;color:var(--navy2)}.date-cell{font-weight:bold;color:#556d7e;direction:ltr}.exam-no{display:inline-flex;width:27px;height:27px;align-items:center;justify-content:center;border-radius:50%;background:#edf4f8;color:var(--navy2);font-weight:900}.empty{text-align:center;padding:45px 15px;color:#7d8d9a;font-size:13px}.footer{text-align:center;color:#8a99a6;font-size:10px;padding:16px;border-top:1px solid #edf1f4}.footer strong{color:var(--navy2)}
+@media(max-width:650px){.page{width:min(100% - 12px,1120px);margin:12px auto}.header{padding:15px}.logo{width:48px;height:48px}.title{font-size:17px}.studentbar{grid-template-columns:1fr;gap:6px}.info{border-left:0;border-bottom:1px solid var(--border);padding:7px}.info:last-child{border-bottom:0}.search,.content{padding:15px}.exam-main-title{font-size:19px}.count-box{min-width:64px}.table-heading{align-items:flex-start;flex-direction:column;gap:3px}}
 @media print{body{background:#fff}.top-line,.search,.actions,.footer{display:none!important}.page{width:100%;margin:0}.card{box-shadow:none;border:0}.header{border-radius:0}.content,.studentbar{display:block!important}.studentbar{display:grid!important}}
 </style>
 </head>
@@ -54,10 +54,12 @@ body{margin:0;font-family:Tahoma,Arial,sans-serif;color:var(--text);background:r
 </section>
 
 <section id="content" class="content">
+<div id="examHero" class="exam-hero" style="display:none"></div>
 <div class="notice">هذا الجدول مخصص لمواعيد الاختبارات المعلنة من المدرسة، وهو مستقل عن نتائج ودرجات الطالب في نظام راصد.</div>
-<div id="examArea" class="table-wrap"><div class="empty">لا توجد اختبارات معلنة حاليًا.</div></div>
+<div class="table-heading"><h2>🗓️ جدول اختبارات الطالب</h2><span>حسب الصف والشعبة</span></div>
+<div id="examArea"><div class="empty">لا توجد اختبارات معلنة حاليًا.</div></div>
 </section>
-<div class="footer">نظام راصد • مدارس الفلاح الأهلية • تصميم محمد عامر أحمد 2026</div>
+<div class="footer">نظام راصد • مدارس الفلاح الأهلية • <strong>تصميم محمد عامر أحمد</strong> • 2026</div>
 </section>
 </main>
 <script>
@@ -65,6 +67,7 @@ const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomai
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 let currentStudent=null;
+let countdownTimer=null;
 
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 function clean(v){return String(v||"").replace(/[^\d]/g,"").trim()}
@@ -93,19 +96,12 @@ async function searchStudent(){
 async function loadExams(){
  const snap=await db.collection("examSchedules").get();
  const list=[];
-
  snap.forEach(doc=>{
    const schedule=doc.data()||{};
-
    if(schedule.visibleToParent===false)return;
-
    const days=Array.isArray(schedule.days)?schedule.days:[];
-
    days.forEach(day=>{
-     if(
-       gradesMatch(currentStudent.grade,day.grade,day.grade) &&
-       sectionsMatch(currentStudent.section,day.section)
-     ){
+     if(gradesMatch(currentStudent.grade,day.grade,day.grade) && sectionsMatch(currentStudent.section,day.section)){
        list.push({
          id:doc.id,
          scheduleName:schedule.name||"جدول الاختبارات",
@@ -118,62 +114,59 @@ async function loadExams(){
      }
    });
  });
-
- list.sort((a,b)=>
-   String(a.date||"").localeCompare(String(b.date||"")) ||
-   String(a.day||"").localeCompare(String(b.day||"")) ||
-   String(a.subjectName||"").localeCompare(String(b.subjectName||""),"ar")
- );
-
+ list.sort((a,b)=>dateValue(a.date)-dateValue(b.date)||String(a.day||"").localeCompare(String(b.day||""))||String(a.subjectName||"").localeCompare(String(b.subjectName||""),"ar"));
  const area=document.getElementById("examArea");
-
+ if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null}
  if(!list.length){
-   area.innerHTML='<div class="empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div>';
+   document.getElementById("examHero").style.display="none";
+   area.innerHTML='<div class="table-wrap"><div class="empty">لا توجد اختبارات معلنة حاليًا لهذا الصف والشعبة.</div></div>';
    return;
  }
-
+ renderExamHero(list);
  const groups={};
- list.forEach(x=>{
-   const key=String(x.scheduleName||"جدول الاختبارات");
-   if(!groups[key]) groups[key]=[];
-   groups[key].push(x);
- });
-
+ list.forEach(x=>{const key=String(x.scheduleName||"جدول الاختبارات");if(!groups[key])groups[key]=[];groups[key].push(x)});
  let html="";
- let globalIndex=0;
-
  Object.keys(groups).forEach(scheduleName=>{
-   const rows=groups[scheduleName].map(x=>{
-     globalIndex++;
-     return `
-       <tr>
-         <td>${globalIndex}</td>
-         <td>${esc(x.day)}</td>
-         <td>${esc(x.date)}</td>
-         <td class="subject">${esc(x.subjectName)}</td>
-       </tr>
-     `;
-   }).join("");
-
-   html+=`
-     <div class="schedule-title">${esc(scheduleName)}</div>
-     <div class="table-wrap">
-       <table class="schedule">
-         <thead>
-           <tr>
-             <th>م.</th>
-             <th>اليوم</th>
-             <th>التاريخ</th>
-             <th>المادة</th>
-           </tr>
-         </thead>
-         <tbody>${rows}</tbody>
-       </table>
-     </div>
-   `;
+   const rows=groups[scheduleName].map((x,i)=>`
+     <tr>
+       <td><span class="exam-no">${i+1}</span></td>
+       <td class="day-cell">${esc(x.day)}</td>
+       <td class="date-cell">${esc(x.date)}</td>
+       <td class="subject">${esc(x.subjectName)}</td>
+     </tr>`).join("");
+   html+=`<div class="table-wrap"><div class="schedule-title">${esc(scheduleName)}</div><table class="schedule"><thead><tr><th>م.</th><th>اليوم</th><th>التاريخ</th><th>المادة</th></tr></thead><tbody>${rows}</tbody></table></div>`;
  });
-
  area.innerHTML=html;
+}
+function dateValue(v){
+ const t=String(v||"").trim();
+ if(!t)return Number.POSITIVE_INFINITY;
+ let m=t.match(/^(\d{4})[-\/]?(\d{1,2})[-\/]?(\d{1,2})/);
+ if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3])).getTime();
+ m=t.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+ if(m)return new Date(Number(m[3]),Number(m[2])-1,Number(m[1])).getTime();
+ const d=new Date(t);return Number.isNaN(d.getTime())?Number.POSITIVE_INFINITY:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+}
+function parseExamDate(v){const n=dateValue(v);return Number.isFinite(n)?new Date(n):null}
+function renderExamHero(list){
+ const hero=document.getElementById("examHero");
+ const now=new Date();
+ const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+ const upcoming=list.find(x=>dateValue(x.date)>=today) || list[0];
+ const d=parseExamDate(upcoming.date);
+ hero.style.display="block";
+ hero.innerHTML=`<div class="exam-kicker">الاختبار القادم</div><h2 class="exam-main-title">${esc(upcoming.scheduleName)}</h2><div class="exam-hero-sub">${esc(upcoming.subjectName)} • ${esc(upcoming.day)} • ${esc(upcoming.date)}</div><div id="countdownArea"></div>`;
+ const countdown=document.getElementById("countdownArea");
+ if(!d){countdown.innerHTML='<div class="countdown-label">موعد الاختبار</div><span class="today-badge">موعد الاختبار: '+esc(upcoming.date)+'</span>';return}
+ function tick(){
+   const now2=new Date();
+   const target=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+   const diff=target.getTime()-now2.getTime();
+   if(diff<=0){countdown.innerHTML='<div class="countdown-label">موعد الاختبار</div><span class="today-badge">الاختبار اليوم</span>';return}
+   const days=Math.floor(diff/86400000), hours=Math.floor(diff/3600000)%24, mins=Math.floor(diff/60000)%60, secs=Math.floor(diff/1000)%60;
+   countdown.innerHTML=`<div class="countdown-label">متبقي على موعد الاختبار</div><div class="countdown"><div class="count-box"><span class="count-num">${days}</span><span class="count-unit">يوم</span></div><div class="count-box"><span class="count-num">${String(hours).padStart(2,"0")}</span><span class="count-unit">ساعة</span></div><div class="count-box"><span class="count-num">${String(mins).padStart(2,"0")}</span><span class="count-unit">دقيقة</span></div><div class="count-box"><span class="count-num">${String(secs).padStart(2,"0")}</span><span class="count-unit">ثانية</span></div></div>`;
+ }
+ tick(); countdownTimer=setInterval(tick,1000);
 }
 function show(t){const m=document.getElementById("message");m.textContent=t;m.className="message show error"}
 function hide(){const m=document.getElementById("message");m.textContent="";m.className="message"}
