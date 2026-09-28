@@ -29,7 +29,14 @@ const order=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابت�
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function auth(){let r=localStorage.getItem("currentUserRole")||"";if(!["admin","superadmin","monitor"].includes(r)){alert("يجب تسجيل الدخول أولًا");location.href="index.html";return false}return true}
 function goBack(){location.href=(localStorage.getItem("currentUserRole")==="monitor")?"monitor-dashboard.html":"admin.html"}
-async function load(){let [a,b,c,d,e]=await Promise.all(["subjects","tests","students","grades","teachers"].map(x=>db.collection(x).get()));subjects=a.docs.map(x=>({id:x.id,...x.data()}));tests=b.docs.map(x=>({id:x.id,...x.data()}));students=c.docs.map(x=>({code:x.data().code||x.id,...x.data()}));grades=d.docs.map(x=>({id:x.id,...x.data()}));teachers=e.docs.map(x=>({email:x.data().email||x.id,...x.data()}));teachers.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar")).forEach(x=>{let o=document.createElement("option");o.value=x.email;o.textContent=x.name||x.email;teacherFilter.appendChild(o)});renderSubjectOptions()}
+async function load(){let [a,b,c,d,e]=await Promise.all(["subjects","tests","students","grades","teachers"].map(x=>db.collection(x).get()));subjects=a.docs.map(x=>({id:x.id,...x.data()}));tests=b.docs.map(x=>({id:x.id,...x.data()}));students=c.docs.map(x=>{
+const data=x.data()||{};
+return {
+  code:data.code||x.id,
+  ...data,
+  guardianPhone:data.guardianPhone||data.phone||data.parentPhone||data.parentMobile||data.guardianMobile||""
+};
+});grades=d.docs.map(x=>({id:x.id,...x.data()}));teachers=e.docs.map(x=>({email:x.data().email||x.id,...x.data()}));teachers.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar")).forEach(x=>{let o=document.createElement("option");o.value=x.email;o.textContent=x.name||x.email;teacherFilter.appendChild(o)});renderSubjectOptions()}
 function selectedTeacher(){return teachers.find(t=>t.email===teacherFilter.value)}
 function teacherAssignments(){let t=selectedTeacher();return t&&Array.isArray(t.assignments)?t.assignments:[]}
 function renderSubjectOptions(){let current=subject.value;subject.innerHTML='<option value="">اختر المادة</option>';let list=subjects;if(teacherFilter.value){let ids=new Set(teacherAssignments().map(a=>a.subjectId));list=subjects.filter(s=>ids.has(s.id))}list.forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent=x.name;subject.appendChild(o)});if([...subject.options].some(o=>o.value===current))subject.value=current;fillTests()}
@@ -99,7 +106,7 @@ assignedClasses.forEach(a=>{
                 mark:markRaw,
                 full:fullRaw,
                 testName:r.testName||td?.name||tn,
-                guardianPhone:st.guardianPhone||st.parentPhone||st.parentMobile||st.guardianMobile||st.phone||"",
+                guardianPhone:st.guardianPhone||st.phone||st.parentPhone||st.parentMobile||st.guardianMobile||"",
                 p:pct,
                 cat
             });
@@ -125,6 +132,7 @@ render(groups,subjects.find(x=>x.id===sid)?.name||"",tn,dl,cl,selectedTeacher()?
 }
 function normalizeGuardianPhone(value){
 let p=String(value||"").replace(/\D/g,"");
+if(!p) return "";
 if(p.startsWith("00966")) p=p.substring(2);
 if(p.startsWith("966")) return p;
 if(p.startsWith("05") && p.length===10) return "966"+p.substring(1);
@@ -134,7 +142,7 @@ return p;
 
 function sendSupportWhatsApp(student,sn,tn){
 const phone=normalizeGuardianPhone(student.guardianPhone);
-if(!phone || !/^9665\\d{8}$/.test(phone)){
+if(!phone || !/^9665\d{8}$/.test(phone)){
 alert("لا يوجد رقم جوال صحيح لولي أمر الطالب:\n"+(student.name||""));
 return;
 }
