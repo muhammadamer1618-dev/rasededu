@@ -11,7 +11,7 @@ body{margin:0;font-family:Tahoma,Arial;background:#f4f7fb;color:#1f2937}
 .reportInfo{display:none;background:#fff;border:1px solid var(--border);border-radius:13px;padding:12px 15px;margin-bottom:14px;box-shadow:0 2px 10px #0001}.reportInfoGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.infoItem{background:#f8fafc;border:1px solid #dce4eb;border-radius:8px;padding:9px;text-align:center}.infoItem span{display:block;color:#64748b;font-size:10px;margin-bottom:3px}.infoItem strong{color:var(--navy);font-size:12px}
 .summary{display:none;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}.stat{text-align:center;padding:13px;border:1px solid #e1e7ed}.stat strong{display:block;font-size:25px;color:var(--navy2)}.stat span{font-size:11px;color:#64748b}.care strong{color:var(--care)}.case strong{color:var(--case)}
 .classCard{overflow:hidden;margin-bottom:16px;border:1px solid #cbd6df}.classHead{background:linear-gradient(90deg,#123e67,#174f7c);color:#fff;padding:12px 15px;display:flex;justify-content:space-between;align-items:center}.classTitle{font-size:15px;font-weight:bold}.teacher{color:#ffe29a;font-size:12px;font-weight:bold;margin-top:5px}.classCount{background:#ffffff1f;border:1px solid #ffffff40;border-radius:20px;padding:7px 11px;font-size:11px;font-weight:bold}
-table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #d5dde5;padding:9px 6px;text-align:center;font-size:11px}th{background:#eef4fa;color:#123e67;font-weight:bold}.name{text-align:right;font-weight:bold}.score{font-weight:bold;color:#123e67}.badge{display:inline-block;padding:5px 10px;border-radius:20px;font-weight:bold;font-size:10px}.careB{background:#fff0c2;color:#805b00}.caseB{background:#f8d7da;color:#842029}.empty{background:#fff;text-align:center;padding:38px;border-radius:12px;color:#64748b;border:1px solid #e0e6ec}.printHead{display:none;text-align:center}.printHead img{width:65px;height:65px;object-fit:contain}.printHead h2{margin:4px 0;color:var(--navy)}.printHead p{margin:3px 0;font-size:10px}.footer{text-align:center;color:#64748b;font-size:11px;padding:13px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #d5dde5;padding:9px 6px;text-align:center;font-size:11px}th{background:#eef4fa;color:#123e67;font-weight:bold}.name{text-align:right;font-weight:bold}.score{font-weight:bold;color:#123e67}.badge{display:inline-block;padding:5px 10px;border-radius:20px;font-weight:bold;font-size:10px}.careB{background:#fff0c2;color:#805b00}.caseB{background:#f8d7da;color:#842029}.empty{background:#fff;text-align:center;padding:38px;border-radius:12px;color:#64748b;border:1px solid #e0e6ec}.printHead{display:none;text-align:center}.printHead img{width:65px;height:65px;object-fit:contain}.printHead h2{margin:4px 0;color:var(--navy)}.printHead p{margin:3px 0;font-size:10px}.send-parent-btn{background:#1f8f4d;color:#fff;border:0;border-radius:7px;padding:6px 9px;font-family:inherit;font-size:10px;font-weight:bold;cursor:pointer}.send-parent-btn:disabled{background:#cbd5e1;color:#64748b;cursor:not-allowed}.footer{text-align:center;color:#64748b;font-size:11px;padding:13px}
 @media(max-width:850px){.controls,.summary,.reportInfoGrid{grid-template-columns:1fr 1fr}.classHead{display:block}.classCount{display:inline-block;margin-top:8px}table{min-width:720px}.classCard{overflow:auto}}
 @media print{@page{size:A4 portrait;margin:7mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.head,.filters,.footer{display:none!important}body,.container{background:#fff;margin:0;padding:0;max-width:none}.printHead{display:block!important;border-bottom:1px solid #777;padding-bottom:2mm;margin-bottom:3mm}.printHead h2,.printHead h3{color:#222!important}.reportInfo{display:block!important;box-shadow:none;padding:2mm;margin-bottom:2mm;border-color:#aaa}.reportInfoGrid{grid-template-columns:repeat(4,1fr);gap:1mm}.infoItem{padding:1.5mm;background:#fff!important;border-color:#bbb}.infoItem strong,.stat strong{color:#222!important}.summary{grid-template-columns:repeat(4,1fr);gap:1.5mm;margin-bottom:3mm}.stat{box-shadow:none;padding:1.5mm;background:#fff!important;border-color:#bbb}.stat strong{font-size:13pt}.classCard{box-shadow:none;border-radius:0;break-inside:avoid;margin-bottom:3mm;border-color:#999}.classHead{padding:2mm 3mm;background:#f1f1f1!important;color:#111!important;border-bottom:1px solid #999}.classTitle{color:#111!important}.teacher{color:#333!important}.classCount{background:#fff!important;color:#222!important;border:1px solid #aaa!important}th{background:#f1f1f1!important;color:#111!important;border-color:#aaa}td{background:#fff!important;color:#111!important;border-color:#bbb}.score{color:#111!important}.careB,.caseB{background:#f3f3f3!important;color:#111!important;border:1px solid #aaa}.badge{font-size:6.5pt;padding:1mm 2mm}th,td{font-size:7pt;padding:1.3mm 1mm}}
 </style></head><body>
@@ -99,6 +99,7 @@ assignedClasses.forEach(a=>{
                 mark:markRaw,
                 full:fullRaw,
                 testName:r.testName||td?.name||tn,
+                guardianPhone:st.guardianPhone||st.parentPhone||st.parentMobile||st.guardianMobile||st.phone||"",
                 p:pct,
                 cat
             });
@@ -122,6 +123,40 @@ groups.sort((a,b)=>
 
 render(groups,subjects.find(x=>x.id===sid)?.name||"",tn,dl,cl,selectedTeacher()?.name||"");
 }
-function render(gs,sn,tn,dl,cl,teacherNameText){let ca=0,cs=0,total=0;gs.forEach(g=>g.weak.forEach(x=>{total++;x.cat==="care"?ca++:cs++}));summary.style.display="grid";reportInfo.style.display="block";nAll.textContent=total;nCare.textContent=ca;nCase.textContent=cs;nClasses.textContent=gs.length;infoSubject.textContent=sn;infoTest.textContent=tn;infoCase.textContent=`أقل من ${dl}%`;infoCare.textContent=`من ${dl}% إلى أقل من ${cl}%`;meta.textContent=`المعلم: ${teacherNameText} | المادة: ${sn} | الاختبار: ${tn} | دراسة حالة: أقل من ${dl}% | أولى بالرعاية: من ${dl}% إلى أقل من ${cl}%`;report.innerHTML=gs.length?"":'<div class="empty">لا يوجد طلاب ضمن النسب المحددة.</div>';gs.forEach(g=>{let c=document.createElement("div");c.className="classCard";let rows=g.weak.map((x,i)=>`<tr><td>${i+1}</td><td class="name">${esc(x.name)}</td><td>${esc(g.g)} / ${esc(g.s)}</td><td>${esc(x.testName)}</td><td class="score">${esc(x.mark)}</td><td class="score">${esc(x.full)}</td><td><b>${x.p.toFixed(1)}%</b></td><td><span class="badge ${x.cat==='case'?'caseB':'careB'}">${x.cat==='case'?'دراسة حالة':'أولى بالرعاية'}</span></td></tr>`).join("");c.innerHTML=`<div class="classHead"><div><div class="classTitle">${esc(g.g)} / ${esc(g.s)}</div><div class="teacher">المعلم: ${esc(g.teacher)}</div></div><div class="classCount">إجمالي الحالات: ${g.weak.length}</div></div><div style="overflow:auto"><table><thead><tr><th style="width:4%">م</th><th style="width:23%">اسم الطالب</th><th style="width:13%">الصف / الفصل</th><th style="width:16%">اسم الاختبار</th><th style="width:10%">درجة الاختبار</th><th style="width:10%">الدرجة النهائية</th><th style="width:10%">النسبة</th><th style="width:14%">التصنيف</th></tr></thead><tbody>${rows}</tbody></table></div>`;report.appendChild(c)})}
+function normalizeGuardianPhone(value){
+let p=String(value||"").replace(/\D/g,"");
+if(p.startsWith("00966")) p=p.substring(2);
+if(p.startsWith("966")) return p;
+if(p.startsWith("05") && p.length===10) return "966"+p.substring(1);
+if(p.startsWith("5") && p.length===9) return "966"+p;
+return p;
+}
+
+function sendSupportWhatsApp(student,sn,tn){
+const phone=normalizeGuardianPhone(student.guardianPhone);
+if(!phone || !/^9665\\d{8}$/.test(phone)){
+alert("لا يوجد رقم جوال صحيح لولي أمر الطالب:\n"+(student.name||""));
+return;
+}
+const percentage=Number(student.p);
+const percentageText=Number.isFinite(percentage)?percentage.toFixed(1)+"%":"";
+const text=`السلام عليكم ورحمة الله وبركاته
+
+ولي أمر الطالب/ ${student.name||""}
+
+نفيدكم بأنه تم إدخال ابنكم في برنامج التقوية في مادة ${sn||""}، وذلك وفقًا لدرجته في الاختبار.
+
+درجة الطالب: ${student.mark} من ${student.full}
+النسبة: ${percentageText}
+
+نأمل منكم التعاون والمتابعة مع المدرسة خلال فترة التقوية، بما يسهم في رفع مستوى الطالب وتحسين تحصيله الدراسي.
+
+شاكرين لكم تعاونكم
+مدارس الفلاح الأهلية
+نظام راصد`;
+window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(text),"_blank");
+}
+
+function render(gs,sn,tn,dl,cl,teacherNameText){let ca=0,cs=0,total=0;gs.forEach(g=>g.weak.forEach(x=>{total++;x.cat==="care"?ca++:cs++}));summary.style.display="grid";reportInfo.style.display="block";nAll.textContent=total;nCare.textContent=ca;nCase.textContent=cs;nClasses.textContent=gs.length;infoSubject.textContent=sn;infoTest.textContent=tn;infoCase.textContent=`أقل من ${dl}%`;infoCare.textContent=`من ${dl}% إلى أقل من ${cl}%`;meta.textContent=`المعلم: ${teacherNameText} | المادة: ${sn} | الاختبار: ${tn} | دراسة حالة: أقل من ${dl}% | أولى بالرعاية: من ${dl}% إلى أقل من ${cl}%`;report.innerHTML=gs.length?"":'<div class="empty">لا يوجد طلاب ضمن النسب المحددة.</div>';gs.forEach(g=>{let c=document.createElement("div");c.className="classCard";let rows=g.weak.map((x,i)=>{const hasPhone=!!normalizeGuardianPhone(x.guardianPhone);return `<tr><td>${i+1}</td><td class="name">${esc(x.name)}</td><td>${esc(g.g)} / ${esc(g.s)}</td><td>${esc(x.testName)}</td><td class="score">${esc(x.mark)}</td><td class="score">${esc(x.full)}</td><td><b>${x.p.toFixed(1)}%</b></td><td><span class="badge ${x.cat==='case'?'caseB':'careB'}">${x.cat==='case'?'دراسة حالة':'أولى بالرعاية'}</span></td><td><button type="button" class="send-parent-btn" ${hasPhone?'':'disabled'} onclick='sendSupportWhatsApp(${JSON.stringify(x)},${JSON.stringify(sn)},${JSON.stringify(tn)})'>📱 رسالة لولي الأمر</button></td></tr>`}).join("");c.innerHTML=`<div class="classHead"><div><div class="classTitle">${esc(g.g)} / ${esc(g.s)}</div><div class="teacher">المعلم: ${esc(g.teacher)}</div></div><div class="classCount">إجمالي الحالات: ${g.weak.length}</div></div><div style="overflow:auto"><table><thead><tr><th style="width:4%">م</th><th style="width:19%">اسم الطالب</th><th style="width:11%">الصف / الفصل</th><th style="width:13%">اسم الاختبار</th><th style="width:8%">درجة الاختبار</th><th style="width:8%">الدرجة النهائية</th><th style="width:8%">النسبة</th><th style="width:11%">التصنيف</th><th style="width:18%">التواصل</th></tr></thead><tbody>${rows}</tbody></table></div>`;report.appendChild(c)})}
 async function start(){if(!auth())return;try{await load()}catch(e){console.error(e);alert("حدث خطأ أثناء تحميل البيانات: "+e.message)}}start();
 </script></body></html>
