@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>راصد - أنشطة المعلم</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#172b3f}.header{background:linear-gradient(135deg,#06365f,#0a558b);color:#fff;padding:16px;text-align:center}.logo{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}.container{width:min(1180px,96%);margin:20px auto}.card{background:#fff;border:1px solid #dfe6ec;border-radius:14px;margin-bottom:18px;box-shadow:0 3px 14px rgba(0,0,0,.06);overflow:hidden}.title{padding:15px 18px;background:#eef4fa;color:#0a4779;font-weight:bold;font-size:18px}.body{padding:18px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.full{grid-column:1/-1}label{display:block;font-weight:bold;font-size:13px;margin-bottom:6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-family:inherit;background:#fff}textarea{min-height:110px;resize:vertical}.classes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.class-item{border:1px solid #dbe5ef;border-radius:8px;padding:9px;background:#fafcff}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.btn{border:0;border-radius:8px;padding:11px 16px;font-weight:bold;cursor:pointer}.primary{background:#174f7c;color:#fff}.gold{background:#d6a821;color:#173b5d}.green{background:#198754;color:#fff}.light{background:#e9eef4}.danger{background:#dc3545;color:#fff}.status{display:inline-block;padding:5px 10px;border-radius:18px;background:#eef4fa;font-weight:bold}.activity{border:1px solid #dfe6ec;border-radius:10px;padding:14px;margin-bottom:10px}.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px}.muted{color:#6b7280;font-size:12px}@media(max-width:700px){.grid{grid-template-columns:1fr}.photos{grid-template-columns:1fr}}</style></head><body>
+<header class="header"><img src="logo.jpeg" class="logo"><h1>مدارس الفلاح الأهلية</h1><div>نظام راصد - الأنشطة والتقارير</div></header>
+<div class="container"><div class="actions"><button class="btn light" onclick="history.back()">← العودة لصفحة المعلم</button></div>
+<div class="card"><div class="title">🎯 إنشاء نشاط جديد</div><div class="body"><input type="hidden" id="editId"><div class="grid">
+<div><label>اسم النشاط</label><input id="title"></div><div><label>نوع النشاط</label><select id="type"><option>صفي</option><option>لا صفي</option><option>مسابقة</option><option>برنامج</option><option>زيارة</option><option>فعالية</option><option>أخرى</option></select></div>
+<div><label>اليوم</label><input id="day" placeholder="مثال: الأحد"></div><div><label>التاريخ</label><input type="date" id="date"></div>
+<div><label>المكان</label><input id="location"></div><div><label>وقت التنفيذ (اختياري)</label><input type="time" id="time"></div>
+<div><label>المادة (اختياري)</label><select id="subject"><option value="">بدون مادة محددة</option></select></div><div><label>عدد الطلاب المشاركين (اختياري)</label><input type="number" min="0" id="participants"></div>
+<div class="full"><label>الفصول المستهدفة</label><div id="classes" class="classes"></div></div>
+<div class="full"><label>وصف النشاط / نبذة التنفيذ</label><textarea id="description"></textarea></div><div class="full"><label>أهداف النشاط</label><textarea id="objectives"></textarea></div><div class="full"><label>ملاحظات (اختياري)</label><textarea id="notes"></textarea></div>
+<div class="full"><label>صور النشاط (من 1 إلى 3 صور)</label><input type="file" id="images" accept="image/*" multiple><div class="muted">الحد الأقصى 3 صور. يتم ضغط الصور تلقائيًا وحفظها داخل تقرير النشاط.</div></div></div>
+<div class="actions"><button class="btn primary" onclick="saveActivity(false)">💾 حفظ مسودة</button><button class="btn green" onclick="saveActivity(true)">📤 حفظ وإرسال للمشرف</button><button class="btn light" onclick="resetForm()">جديد</button></div><div id="msg" class="muted"></div></div></div>
+<div class="card"><div class="title">📋 تقاريري وأنشطتي</div><div class="body"><div id="list">جاري التحميل...</div></div></div></div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+let teacher=null,username="",assignments=[],activities=[];const el=id=>document.getElementById(id);const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+function protect(){if((localStorage.getItem('currentUserRole')||'')!=='teacher'){alert('هذه الصفحة للمعلمين فقط');location.href='index.html';return false}return true}
+async function loadTeacher(){username=(localStorage.getItem('currentUserEmail')||localStorage.getItem('currentUser')||'').trim().toLowerCase();const d=await db.collection('teachers').doc(username).get();if(!d.exists)throw Error('تعذر تحميل بيانات المعلم');teacher={email:d.id,...d.data()};assignments=Array.isArray(teacher.assignments)?teacher.assignments:[];renderSelectors()}
+function renderSelectors(){const subs=new Map();assignments.forEach(a=>{if(a.subjectId)subs.set(a.subjectId,a.subjectName||'المادة')});el('subject').innerHTML='<option value="">بدون مادة محددة</option>'+[...subs].map(([id,n])=>`<option value="${esc(id)}">${esc(n)}</option>`).join('');const seen=new Set();const arr=[];assignments.forEach(a=>{const k=a.grade+'|||'+a.section;if(a.grade&&a.section&&!seen.has(k)){seen.add(k);arr.push(a)}});el('classes').innerHTML=arr.map(a=>`<label class="class-item"><input type="checkbox" class="cls" data-grade="${esc(a.grade)}" data-section="${esc(a.section)}"> ${esc(a.grade)} / ${esc(a.section)}</label>`).join('')||'لا توجد فصول مسندة.'}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(reader.error||new Error('تعذر قراءة الصورة'));
+    reader.readAsDataURL(blob);
+  });
+}
+async function compressActivityImageToDataUrl(file){
+  if(!file || !String(file.type||'').startsWith('image/'))throw new Error('الملف المحدد ليس صورة.');
+  const image=await new Promise((resolve,reject)=>{
+    const img=new Image(),u=URL.createObjectURL(file);
+    img.onload=()=>{URL.revokeObjectURL(u);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('تعذر فتح الصورة: '+file.name))};
+    img.src=u;
+  });
+  let maxSide=1200,quality=.72,blob=null;
+  for(let attempt=0;attempt<8;attempt++){
+    let w=image.naturalWidth||image.width,h=image.naturalHeight||image.height;
+    const scale=Math.min(1,maxSide/Math.max(w,h));
+    w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext('2d',{alpha:false});
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(image,0,0,w,h);
+    blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));
+    if(!blob)throw new Error('تعذر ضغط الصورة: '+file.name);
+    if(blob.size<=120*1024)break;
+    if(quality>.42)quality-=.10;else maxSide=Math.max(700,Math.round(maxSide*.82));
+  }
+  if(!blob || blob.size>170*1024)throw new Error('الصورة كبيرة جدًا بعد الضغط. جرّب صورة أصغر.');
+  return {url:await blobToDataUrl(blob),name:file.name,storage:'firestore',size:blob.size};
+}
+async function uploadImages(files){
+  const out=[];
+  for(let i=0;i<files.length;i++){
+    el('msg').textContent='جاري ضغط وتجهيز الصورة '+(i+1)+' من '+files.length+'...';
+    out.push(await compressActivityImageToDataUrl(files[i]));
+  }
+  return out;
+}
+function getClasses(){return [...document.querySelectorAll('.cls:checked')].map(x=>({grade:x.dataset.grade,section:x.dataset.section}))}
+async function saveActivity(submit){const id=el('editId').value;const old=id?activities.find(x=>x.id===id):null;if(old&&['submitted','reviewed','published'].includes(old.status)){alert('التقرير المرسل للمشرف لا يمكن تعديله إلا بعد إعادته للتعديل.');return}const title=el('title').value.trim(),date=el('date').value,location=el('location').value.trim(),classes=getClasses();if(!title||!date||!location||!classes.length){alert('أدخل اسم النشاط والتاريخ والمكان واختر فصلًا واحدًا على الأقل.');return}const files=[...el('images').files];if(files.length>3){alert('الحد الأقصى 3 صور');return}el('msg').textContent='جاري الحفظ...';try{let imgs=old?.images||[];if(files.length)imgs=await uploadImages(files);if(!imgs.length){alert('ارفع صورة واحدة على الأقل للنشاط.');el('msg').textContent='';return}const sid=el('subject').value;const subj=assignments.find(a=>String(a.subjectId)===String(sid));const now=firebase.firestore.FieldValue.serverTimestamp();const data={title,type:el('type').value,day:el('day').value.trim(),date,location,time:el('time').value,subjectId:sid,subjectName:subj?.subjectName||'',classes,description:el('description').value.trim(),objectives:el('objectives').value.trim(),notes:el('notes').value.trim(),participantsCount:Number(el('participants').value||0)||null,images:imgs,teacherEmail:username,teacherName:teacher?.name||'',status:submit?'submitted':'draft',updatedAt:now};if(!id){data.createdAt=now;data.history=[{status:submit?'submitted':'draft',label:submit?'تم الإرسال للمشرف':'تم إنشاء المسودة',at:new Date().toISOString(),by:teacher?.name||username}]}else{data.history=[...(old?.history||[]),{status:submit?'submitted':'draft',label:submit?'تم الإرسال للمشرف':'تم تحديث المسودة',at:new Date().toISOString(),by:teacher?.name||username}]}
+if(submit)data.submittedAt=now; if(id)await db.collection('activities').doc(id).set(data,{merge:true});else await db.collection('activities').add(data);resetForm();await loadActivities();el('msg').textContent='تم الحفظ بنجاح ✅'}catch(e){console.error('ACTIVITY SAVE ERROR',e);const msg=(e&&e.message)?e.message:String(e||'');if(/resource-exhausted|maximum|too large|larger than|exceeds/i.test(msg)){alert('تعذر الحفظ لأن حجم الصور أكبر من الحد المسموح. جرّب صورًا أصغر.');}else{alert('تعذر الحفظ: '+msg)}el('msg').textContent=''} }
+async function loadActivities(){const s=await db.collection('activities').where('teacherEmail','==',username).get();activities=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));renderList()}
+function statusLabel(s){return {draft:'مسودة',submitted:'مرسل للمشرف',reviewed:'تمت المراجعة',revision_requested:'معاد للتعديل',published:'منشور لولي الأمر'}[s]||s}
+function renderList(){el('list').innerHTML=activities.map(a=>`<div class="activity"><div><strong>${esc(a.title)}</strong> <span class="status">${esc(statusLabel(a.status))}</span></div><div class="muted">${esc(a.date)} • ${esc(a.location)} • ${(a.classes||[]).map(c=>esc(c.grade+' / '+c.section)).join('، ')}</div><div class="actions"><button class="btn primary" onclick="location.href='activity-report.html?id=${a.id}'">📄 عرض التقرير</button>${['draft','revision_requested'].includes(a.status)?`<button class="btn gold" onclick="editActivity('${a.id}')">✏️ تعديل</button>`:''}${['draft','revision_requested'].includes(a.status)?`<button class="btn danger" onclick="deleteActivity('${a.id}')">🗑️ حذف التقرير</button>`:''}</div></div>`).join('')||'لا توجد أنشطة حتى الآن.'}
+function editActivity(id){const a=activities.find(x=>x.id===id);if(!a)return;el('editId').value=id;['title','type','day','date','location','time','description','objectives','notes'].forEach(k=>{if(el(k))el(k).value=a[k]||''});el('participants').value=a.participantsCount||'';el('subject').value=a.subjectId||'';document.querySelectorAll('.cls').forEach(x=>x.checked=(a.classes||[]).some(c=>c.grade===x.dataset.grade&&c.section===x.dataset.section));scrollTo({top:0,behavior:'smooth'})}
+async function deleteActivity(id){
+  const a=activities.find(x=>x.id===id);
+  if(!a)return;
+  if(!['draft','revision_requested'].includes(a.status)){
+    alert('بعد إرسال التقرير للمشرف لا يمكن للمعلم حذفه. تواصل مع المشرف العام إذا كان يلزم حذف التقرير.');
+    return;
+  }
+  const ok=confirm('⚠️ حذف تقرير النشاط نهائيًا؟\n\n'+(a.title||'')+'\n\nلن يمكن التراجع عن الحذف.');
+  if(!ok)return;
+  await db.collection('activities').doc(id).delete();
+  await loadActivities();
+  alert('تم حذف تقرير النشاط ✅');
+}
+function resetForm(){el('editId').value='';document.querySelectorAll('input:not([type=checkbox]),textarea').forEach(x=>{if(x.id!=='editId')x.value=''});document.querySelectorAll('.cls').forEach(x=>x.checked=false);el('type').selectedIndex=0;el('subject').value=''}
+(async()=>{if(!protect())return;try{await loadTeacher();await loadActivities()}catch(e){alert(e.message)}})();
+</script></body></html>
