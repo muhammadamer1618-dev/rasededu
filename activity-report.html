@@ -108,7 +108,7 @@ async function load(){
     ${images.length?`<div class="section"><h3>التوثيق المصور</h3><div class="photos ${photoClass}">${images.map(im=>`<img src="${esc(im.url)}" alt="صورة النشاط">`).join('')}</div></div>`:''}
     ${!parent&&a.reviewNote?`<div class="section"><h3>ملاحظة المشرف</h3><p>${esc(a.reviewNote)}</p></div>`:''}
     ${leadershipHtml()}
-    <div class="report-footer">نظام راصد - مدارس الفلاح الأهلية</div>`;
+    <div class="report-footer">مدارس الفلاح الأهلية</div>`;
   applyPrintDensity(a,images);
 }
 load().then(async()=>{const p=new URLSearchParams(location.search);if(p.get('print')==='1'){await waitForReportImages();setTimeout(()=>window.print(),180)}}).catch(e=>{console.error(e);document.getElementById('report').textContent='تعذر تحميل التقرير.'});
