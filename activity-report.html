@@ -72,7 +72,7 @@ function waitForReportImages(){const imgs=[...document.querySelectorAll('#report
 async function printActivityReport(){try{const report=document.getElementById('report');if(!report||/جاري التحميل|تعذر تحميل التقرير/.test(report.textContent||'')){alert('انتظر حتى يكتمل تحميل التقرير أولًا.');return}await waitForReportImages();setTimeout(()=>window.print(),120)}catch(e){console.error(e);window.print()}}
 async function parentAllowed(a,studentCode){if(!studentCode)return false;let d=await db.collection('students').doc(String(studentCode)).get();if(!d.exists){const q=await db.collection('students').where('code','==',String(studentCode)).limit(1).get();if(!q.empty)d=q.docs[0]}if(!d.exists)return false;const st=d.data()||{};return (Array.isArray(a.classes)?a.classes:[]).some(c=>c.grade===st.grade&&c.section===st.section)}
 async function fullAllowed(a){const role=(localStorage.getItem('currentUserRole')||'').toLowerCase();if(['admin','superadmin','supervisor','manager'].includes(role))return true;if(role!=='teacher')return false;const user=(localStorage.getItem('currentUserEmail')||localStorage.getItem('currentUser')||'').trim().toLowerCase();return user&&String(a.teacherEmail||'').toLowerCase()===user}
-function leadershipHtml(){return `<div class="leadership-footer"><div class="leadership-item"><div class="leadership-role">المشرف العام</div><div class="leadership-name">أحمد سمير</div></div><div class="leadership-item"><div class="leadership-role">مدير المدرسة</div><div class="leadership-name">عبد العزيز القحطاني</div></div><div class="leadership-item"><div class="leadership-role">تصميم</div><div class="leadership-name">محمد عامر أحمد</div></div></div>`}
+function leadershipHtml(){return `<div class="leadership-footer"><div class="leadership-item"><div class="leadership-role">المشرف العام</div><div class="leadership-name">أحمد سمير</div></div><div class="leadership-item"><div class="leadership-role">مدير المدرسة</div><div class="leadership-name">عبد العزيز القحطاني</div>`}
 function applyPrintDensity(a,images){const out=document.getElementById('report');const textLen=[a.description,a.objectives,a.notes,a.reviewNote].filter(Boolean).join(' ').length;if(textLen>900||images.length>=3)out.classList.add('print-compact');if(textLen>1600||(textLen>1100&&images.length>=2))out.classList.add('print-tight')}
 async function load(){
   const p=new URLSearchParams(location.search),id=p.get('id'),parent=p.get('view')==='parent',studentCode=p.get('studentCode')||'';
@@ -108,7 +108,7 @@ async function load(){
     ${images.length?`<div class="section"><h3>التوثيق المصور</h3><div class="photos ${photoClass}">${images.map(im=>`<img src="${esc(im.url)}" alt="صورة النشاط">`).join('')}</div></div>`:''}
     ${!parent&&a.reviewNote?`<div class="section"><h3>ملاحظة المشرف</h3><p>${esc(a.reviewNote)}</p></div>`:''}
     ${leadershipHtml()}
-    <div class="report-footer">مدارس الفلاح الأهلية</div>`;
+    <div class="report-footer">مدارس الفلاح الأهلية - تصميم محمد عامر أحمد</div>`;
   applyPrintDensity(a,images);
 }
 load().then(async()=>{const p=new URLSearchParams(location.search);if(p.get('print')==='1'){await waitForReportImages();setTimeout(()=>window.print(),180)}}).catch(e=>{console.error(e);document.getElementById('report').textContent='تعذر تحميل التقرير.'});
