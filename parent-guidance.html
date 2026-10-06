@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>التوجيه الطلابي - ولي الأمر</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f4f8f6;color:#17384f}.head{background:linear-gradient(135deg,#0b5d4a,#15806a);color:#fff;text-align:center;padding:20px 12px}.logo{width:78px;height:78px;border-radius:50%;background:#fff;padding:4px;object-fit:contain}.head h1{margin:7px 0 3px}.head p{margin:0;color:#f6d66d;font-weight:bold}.wrap{max-width:1000px;margin:18px auto;padding:0 12px 30px}.lookup,.card{background:#fff;border:1px solid #dbe6e1;border-radius:14px;box-shadow:0 3px 13px #0001;margin-bottom:14px}.lookup{padding:15px}.lookup-grid{display:grid;grid-template-columns:1fr auto;gap:8px}.lookup input{height:44px;border:1px solid #bdcec7;border-radius:9px;padding:10px;font-family:inherit}.lookup button{border:0;border-radius:9px;padding:10px 18px;background:#0b6654;color:#fff;font-family:inherit;font-weight:bold;cursor:pointer}.student{padding:14px 16px;background:#eef8f4;border:1px solid #cfe7de;border-radius:12px;margin-bottom:14px;display:none}.student b{color:#0b6654}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}.stat{background:#fff;border:1px solid #dbe6e1;border-radius:9px;padding:10px;text-align:center;color:#64748b;font-size:11px}.stat strong{display:block;font-size:20px;color:#0b6654;margin-top:4px}.card{overflow:hidden}.title{padding:13px 16px;background:#eef8f4;border-bottom:1px solid #dbe6e1;color:#0b6654;font-weight:900}.body{padding:15px}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.box{padding:9px;border:1px solid #e1e8e5;border-radius:9px;background:#fafcfb;font-size:12px;line-height:1.7}.full{grid-column:1/-1}.label{font-size:10px;color:#718493;font-weight:bold;display:block;margin-bottom:3px}.status{display:inline-block;padding:4px 8px;border-radius:20px;background:#e8f7ee;color:#167044;font-weight:bold}.empty{padding:40px 15px;text-align:center;color:#7a8d86}.note{padding:11px 13px;background:#fff8df;border:1px solid #f0dc92;border-radius:10px;color:#725d16;font-size:12px;line-height:1.8}.foot{text-align:center;color:#718493;font-size:11px;padding:18px}
+@media(max-width:650px){.lookup-grid{grid-template-columns:1fr}.meta,.summary{grid-template-columns:1fr}.full{grid-column:auto}}
+</style></head>
+<body>
+<header class="head"><img src="logo.jpeg" class="logo"><h1>مدارس الفلاح الأهلية</h1><p>التوجيه الطلابي - صفحة ولي الأمر</p></header>
+<div class="wrap">
+<div class="lookup"><div class="lookup-grid"><input id="studentCode" placeholder="أدخل كود الطالب"><button onclick="loadParent()">عرض المتابعة الإرشادية</button></div></div>
+<div id="studentBox" class="student"></div>
+<div class="note">تعرض هذه الصفحة فقط المعلومات التي اعتمد المشرف نشرها لولي الأمر. الملاحظات الداخلية والأطراف واسم المبلّغ لا تظهر هنا.</div>
+<div id="records" style="margin-top:14px"><div class="empty">أدخل كود الطالب لعرض ما تم نشره من التوجيه الطلابي.</div></div>
+<div class="foot">التوجيه الطلابي - مدارس الفلاح الأهلية | المشرف العام أحمد سمير | مدير المدرسة عبد العزيز القحطاني | تصميم محمد عامر أحمد</div>
+</div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+const el=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function effectiveProblem(x){return x.problemType==="أخرى"?(x.customProblem||"أخرى"):(x.problemType||"—")}
+async function findStudent(code){let d=await db.collection("students").doc(String(code)).get();if(d.exists){const z=d.data()||{};return {...z,code:String(z.code||d.id)}};const s=await db.collection("students").where("code","==",String(code)).limit(1).get();if(!s.empty){const x=s.docs[0];const z=x.data()||{};return {...z,code:String(z.code||x.id)}}const n=Number(code);if(Number.isFinite(n)){const q=await db.collection("students").where("code","==",n).limit(1).get();if(!q.empty){const x=q.docs[0];const z=x.data()||{};return {...z,code:String(z.code||x.id)}}}return null}
+async function loadParent(){
+const code=el("studentCode").value.trim();if(!code){alert("أدخل كود الطالب.");return}el("records").innerHTML='<div class="empty">جاري التحميل...</div>';
+try{
+const student=await findStudent(code);if(!student){el("studentBox").style.display="none";el("records").innerHTML='<div class="empty">لم يتم العثور على الطالب.</div>';return}
+const snap=await db.collection("guidanceIncidents").where("studentCode","==",String(student.code)).get();let rows=snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.parentPublished===true);
+rows.sort((a,b)=>(String(b.date||"")+String(b.time||"")).localeCompare(String(a.date||"")+String(a.time||"")));
+const open=rows.filter(x=>["مفتوحة","تحت المتابعة"].includes(x.caseStatus)).length;
+el("studentBox").style.display="block";el("studentBox").innerHTML=`<b>${esc(student.name||"الطالب")}</b><br>${esc(student.grade||"")} / ${esc(student.section||"")}<div class="summary"><div class="stat">السجلات المنشورة<strong>${rows.length}</strong></div><div class="stat">تحت المتابعة<strong>${open}</strong></div><div class="stat">تمت المعالجة / أغلقت<strong>${rows.length-open}</strong></div></div>`;
+if(!rows.length){el("records").innerHTML='<div class="empty">لا توجد متابعة إرشادية منشورة لولي الأمر حاليًا.</div>';return}
+el("records").innerHTML=rows.map(x=>card(x)).join("");
+}catch(e){console.error(e);el("records").innerHTML='<div class="empty">تعذر تحميل البيانات.</div>'}
+}
+function card(x){const v=x.parentVisibility||{};const show=(k)=>v[k]===true;return `<div class="card"><div class="title">${show("problemType")?esc(effectiveProblem(x)):"متابعة إرشادية"}</div><div class="body"><div class="meta">
+${show("date")?`<div class="box"><span class="label">التاريخ</span>${esc(x.date||"—")}</div>`:""}
+${show("time")?`<div class="box"><span class="label">الوقت</span>${esc(x.time||"—")}</div>`:""}
+${show("period")?`<div class="box"><span class="label">الفترة المدرسية</span>${esc(x.schoolPeriod||"—")}</div>`:""}
+${show("location")?`<div class="box"><span class="label">المكان</span>${esc(x.location||"—")}</div>`:""}
+${show("status")?`<div class="box"><span class="label">حالة المتابعة</span><span class="status">${esc(x.caseStatus||"—")}</span></div>`:""}
+${show("summary")?`<div class="box full"><span class="label">نبذة</span>${esc(x.description||"—")}</div>`:""}
+${show("action")?`<div class="box full"><span class="label">الإجراء المتخذ</span>${esc(x.actionTaken||"—")}</div>`:""}
+${show("recommendation")?`<div class="box full"><span class="label">توصية التوجيه الطلابي</span>${esc(x.recommendation||"—")}</div>`:""}
+</div></div></div>`}
+const params=new URLSearchParams(location.search);const code=params.get("studentCode")||params.get("code")||"";if(code){el("studentCode").value=code;loadParent()}
+</script></body></html>
