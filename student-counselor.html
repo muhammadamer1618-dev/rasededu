@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - التوجيه الطلابي</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f4f7fb;color:#172b3f}
+.head{position:relative;background:linear-gradient(135deg,#073b68,#0d6b8a);color:#fff;text-align:center;padding:18px}
+.logo{width:76px;height:76px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}.head h1{margin:6px 0 2px}.head p{margin:0;color:#f4d36b;font-weight:bold}
+.logout{position:absolute;left:16px;top:16px;border:0;border-radius:8px;padding:10px 14px;font-weight:bold;cursor:pointer}
+.user{position:absolute;right:16px;top:16px;background:#ffffff18;border:1px solid #ffffff25;padding:9px 12px;border-radius:9px;font-size:12px}
+.wrap{max-width:1380px;margin:18px auto;padding:0 12px 35px}.grid{display:grid;grid-template-columns:1.12fr .88fr;gap:14px}
+.card{background:#fff;border:1px solid #dfe6ed;border-radius:14px;box-shadow:0 3px 14px #0001;margin-bottom:14px;overflow:hidden}
+.title{padding:13px 16px;background:#eef5f8;color:#0b4b78;font-size:17px;font-weight:900;border-bottom:1px solid #dfe6ed}.body{padding:15px}
+.note{padding:10px 12px;border-radius:9px;background:#eef7ff;border:1px solid #cfe1f0;color:#31556d;font-size:12px;line-height:1.8;margin-bottom:12px}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px;color:#29465a}
+input,select,textarea{width:100%;border:1px solid #c7d2dc;border-radius:8px;padding:9px 10px;font-family:inherit;background:#fff;color:#111}
+input,select{height:42px}textarea{min-height:95px;resize:vertical;line-height:1.7}.span2{grid-column:span 2}.span3{grid-column:1/-1}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{border:0;border-radius:8px;padding:10px 15px;font-family:inherit;font-weight:bold;cursor:pointer}.primary{background:#0b4b78;color:#fff}.green{background:#198754;color:#fff}.light{background:#e8eef3;color:#21364a}.red{background:#dc3545;color:#fff}.gold{background:#c69a2b;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:11px}.stat{background:#f8fbfd;border:1px solid #e0e7ee;border-radius:10px;padding:10px;text-align:center;font-size:11px;color:#64748b}.stat b{display:block;font-size:20px;color:#0b4b78;margin-top:4px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}.chart{border:1px solid #e1e8ef;border-radius:10px;padding:10px;background:#fff;min-height:180px}.chart h4{margin:0 0 9px;color:#173b5d;font-size:13px}.line-chart{width:100%;height:250px;overflow:hidden}.line-chart svg{width:100%;height:100%;display:block}.line-chart-note{font-size:10px;color:#64748b;text-align:center;margin-top:5px}
+.bar-row{display:grid;grid-template-columns:95px 1fr 34px;gap:7px;align-items:center;margin:7px 0;font-size:10px}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:12px;background:#edf2f6;border-radius:20px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#0b4b78,#1d8bb8);border-radius:20px}
+.table-wrap{overflow:auto;border:1px solid #e0e6ec;border-radius:9px;max-height:430px}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:8px 6px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:11px}th{position:sticky;top:0;background:#174f7c;color:#fff;z-index:2}.badge{display:inline-block;padding:4px 7px;border-radius:20px;background:#eef4fa;color:#174f7c;font-weight:bold}.pub{background:#e9f8ef;color:#14703f}.hidden{background:#f1f3f5;color:#6b7280}
+.mini{padding:5px 8px;font-size:10px}.empty{padding:30px;text-align:center;color:#778899}.foot{text-align:center;color:#718493;font-size:11px;padding:16px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}.fields{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.fields{grid-template-columns:1fr}.span2,.span3{grid-column:auto}.charts{grid-template-columns:1fr}.user{position:static;margin-top:8px;display:inline-block}.logout{position:static;margin-top:8px}.head{display:flex;flex-direction:column;align-items:center}}
+@media print{.head,.actions,.editor-card,.foot{display:none!important}.wrap{max-width:none;margin:0}.grid{display:block}.card{box-shadow:none;break-inside:avoid}.table-wrap{max-height:none;overflow:visible}}
+</style>
+</head>
+<body>
+<header class="head">
+<div class="user">الموجه الطلابي: <strong id="counselorName">...</strong></div>
+<img src="logo.jpeg" class="logo">
+<h1>مدارس الفلاح الأهلية</h1>
+<p>نظام راصد - التوجيه الطلابي</p>
+<button class="logout" onclick="logout()">تسجيل الخروج</button>
+</header>
+
+<div class="wrap">
+
+<div class="card editor-card">
+<div class="title">🧭 تسجيل حالة / مشكلة طلابية</div>
+<div class="body">
+<div class="note">كل واقعة تحفظ بوقت وتاريخ دقيقين لتكوين تحليل سلوكي وزمني للطالب ونوع المشكلة. السجل داخلي ولا يظهر لولي الأمر تلقائيًا.</div>
+<input type="hidden" id="editId">
+
+<div class="fields">
+<div><label>الصف</label><select id="gradeFilter" onchange="fillSections()"><option value="">اختر الصف</option></select></div>
+<div><label>الشعبة</label><select id="sectionFilter" onchange="fillStudents()"><option value="">اختر الشعبة</option></select></div>
+<div><label>الطالب</label><select id="studentSelect" onchange="studentChanged()"><option value="">اختر الطالب</option></select></div>
+
+<div><label>نوع المشكلة</label><select id="problemType" onchange="problemChanged()"></select></div>
+<div id="customProblemWrap" style="display:none"><label>اسم المشكلة الأخرى</label><input id="customProblem" oninput="renderProblemAnalytics()"></div>
+<div><label>عنوان مختصر</label><input id="problemTitle" placeholder="مثال: مشاجرة أثناء الفسحة"></div>
+
+<div><label>التاريخ</label><input id="incidentDate" type="date" onchange="syncDay()"></div>
+<div><label>اليوم</label><input id="incidentDay" readonly></div>
+<div><label>الساعة الدقيقة</label><input id="incidentTime" type="time"></div>
+
+<div><label>الفترة المدرسية</label><select id="schoolPeriod"></select></div>
+<div><label>المكان</label><select id="location"></select></div>
+<div><label>درجة الخطورة</label><select id="severity"><option>منخفضة</option><option selected>متوسطة</option><option>مرتفعة</option><option>عاجلة</option></select></div>
+
+<div><label>من أبلغ عن الحالة</label><input id="reportedBy" placeholder="معلم / طالب / إدارة / ملاحظة مباشرة"></div>
+<div class="span2"><label>الأطراف الأخرى</label><input id="parties" placeholder="أسماء أو وصف الأطراف المشاركة - إن وجد"></div>
+
+<div class="span3"><label>نبذة وتفاصيل الواقعة</label><textarea id="description"></textarea></div>
+<div class="span2"><label>الإجراء المتخذ</label><textarea id="actionTaken"></textarea></div>
+<div><label>حالة الحالة</label><select id="caseStatus"><option>مفتوحة</option><option>تحت المتابعة</option><option>تمت المعالجة</option><option>مغلقة</option></select></div>
+
+<div class="span2"><label>توصية الموجه</label><textarea id="recommendation"></textarea></div>
+<div><label>تحتاج متابعة؟</label><select id="followUpRequired" onchange="toggleFollowUp()"><option value="no">لا</option><option value="yes">نعم</option></select></div>
+<div id="followUpDateWrap" style="display:none"><label>موعد المتابعة</label><input id="followUpDate" type="date"></div>
+
+<div class="span3"><label>ملاحظات داخلية خاصة بالتوجيه</label><textarea id="privateNotes" placeholder="هذه الملاحظات لا تُعرض لولي الأمر."></textarea></div>
+</div>
+
+<div class="actions">
+<button class="primary" onclick="saveIncident()">💾 حفظ الواقعة</button>
+<button class="light" onclick="resetForm()">جديد</button>
+<button class="gold" onclick="window.print()">🖨️ طباعة التقرير والتحليل</button>
+</div>
+</div>
+</div>
+
+<div class="grid">
+
+<div>
+
+<div class="card">
+<div class="title">👨‍🎓 تحليل الطالب المحدد</div>
+<div class="body" id="studentAnalytics">
+<div class="empty">اختر طالبًا لعرض تاريخه وتحليل أوقات تكرار المشكلات.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="title">📋 سجل الحالات</div>
+<div class="body">
+<div class="fields" style="grid-template-columns:2fr 1fr 1fr">
+<div><label>بحث</label><input id="incidentSearch" placeholder="اسم الطالب أو المشكلة أو الوصف" oninput="renderIncidents()"></div>
+<div><label>نوع المشكلة</label><select id="incidentProblemFilter" onchange="renderIncidents()"><option value="">كل المشكلات</option></select></div>
+<div><label>حالة الحالة</label><select id="incidentStatusFilter" onchange="renderIncidents()"><option value="">كل الحالات</option><option>مفتوحة</option><option>تحت المتابعة</option><option>تمت المعالجة</option><option>مغلقة</option></select></div>
+</div>
+<div class="table-wrap" style="margin-top:10px">
+<table>
+<thead><tr><th>#</th><th>المرجع</th><th>الطالب</th><th>المشكلة</th><th>التاريخ</th><th>الوقت</th><th>الفترة</th><th>الحالة</th><th>ولي الأمر</th><th>إجراءات</th></tr></thead>
+<tbody id="incidentsBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">📊 تحليل نوع المشكلة المحدد</div>
+<div class="body" id="problemAnalytics">
+<div class="empty">اختر نوع مشكلة لعرض تكرارها وأوقاتها الأكثر شيوعًا.</div>
+</div>
+</div>
+
+<div class="card">
+<div class="title">📌 كيف تقرأ التحليل؟</div>
+<div class="body">
+<div class="note" style="margin:0">
+يعتمد التحليل الزمني على <strong>الساعة المسجلة فعليًا</strong> لكل واقعة، ويقسم اليوم إلى فترات نصف ساعة لزيادة الدقة.
+كما يعرض الفترة المدرسية التي حددها الموجه، لذلك يمكن مقارنة بداية اليوم والفسحة وما بعد الفسحة ونهاية اليوم بسهولة.
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="foot">
+الموجه الطلابي: <span id="footerCounselor">—</span> |
+المشرف العام: أحمد سمير |
+مدير المدرسة: عبد العزيز القحطاني |
+تصميم محمد عامر أحمد
+</div>
+
+</div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+
+const PROBLEMS=["التأخر الصباحي","الغياب المتكرر","الهروب من الحصة","الخروج من الفصل دون إذن","عدم إحضار الأدوات","عدم أداء الواجب","إزعاج الحصة","عدم الالتزام بالتعليمات","المشاجرة","التنمر","التلفظ غير اللائق","الاعتداء الجسدي","العبث بممتلكات المدرسة","إتلاف الممتلكات","استخدام الجوال","الغش","مخالفة الزي المدرسي","مشكلة أكاديمية","مشكلة اجتماعية","مشكلة أسرية","مشكلة انفعالية","أخرى"];
+const PERIODS=["بداية اليوم","الحصص الصباحية","قبل الفسحة","الفسحة","بعد الفسحة","الحصص الأخيرة","نهاية اليوم","بعد الدوام","أخرى"];
+const LOCATIONS=["الفصل","الفناء","الممر","الملعب","المقصف","البوابة","الحافلة","المعمل","المكتبة","دورة المياه","مكتب الإدارة","أخرى"];
+const GRADES=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي","1 متوسط","2 متوسط","3 متوسط","1 ثانوي","2 ثانوي","3 ثانوي"];
+const SECTIONS=["أ","ب","ج","د"];
+let students=[],incidents=[],currentUser="",currentName="";
+
+const el=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function logout(){["currentUserRole","currentUser","currentUserName","currentUserEmail","currentUserType","currentUserPermissions"].forEach(k=>localStorage.removeItem(k));location.href="index.html"}
+function tsMillis(v){try{return v?.toMillis?v.toMillis():new Date(v).getTime()||0}catch{return 0}}
+function effectiveProblem(x){return x.problemType==="أخرى"?(x.customProblem||"أخرى"):(x.problemType||"—")}
+function halfHourBucket(t){if(!/^\d{2}:\d{2}$/.test(String(t||"")))return "غير محدد";const [h,m]=t.split(":").map(Number);const s=m<30?0:30;const e=s===0?29:59;return `${String(h).padStart(2,"0")}:${String(s).padStart(2,"0")}–${String(h).padStart(2,"0")}:${String(e).padStart(2,"0")}`}
+function counts(rows,getter){const m={};rows.forEach(x=>{const k=String(getter(x)||"غير محدد");m[k]=(m[k]||0)+1});return m}
+function topEntry(map){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0]),"ar"));return arr[0]||["—",0]}
+function chartHtml(title,map,limit=10){
+ const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,limit);
+ if(!arr.length)return `<div class="chart"><h4>${esc(title)}</h4><div class="empty" style="padding:20px">لا توجد بيانات</div></div>`;
+ const max=Math.max(...arr.map(x=>x[1]),1);
+ return `<div class="chart"><h4>${esc(title)}</h4>${arr.map(([k,v])=>`<div class="bar-row"><div class="bar-label" title="${esc(k)}">${esc(k)}</div><div class="bar-track"><div class="bar" style="width:${(v/max)*100}%"></div></div><b>${v}</b></div>`).join("")}</div>`
+}
+function exactTimeEntries(list){
+ const m={};list.forEach(x=>{const t=String(x.time||"").trim();if(/^\d{2}:\d{2}$/.test(t))m[t]=(m[t]||0)+1});
+ return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0])).map(([t,n])=>{const [h,mn]=t.split(":").map(Number);return [t,n,h*60+mn]});
+}
+function dateEntries(list){
+ const m={};list.forEach(x=>{const d=String(x.date||"").trim();if(d)m[d]=(m[d]||0)+1});
+ return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));
+}
+function orderedEntries(list,getter,order){const m={};list.forEach(x=>{const k=String(getter(x)||"غير محدد");m[k]=(m[k]||0)+1});return order.filter(k=>m[k]).map(k=>[k,m[k]]).concat(Object.entries(m).filter(([k])=>!order.includes(k)))}
+function lineChartHtml(title,entries,note=""){
+ const arr=(entries||[]).filter(x=>x&&x[0]!==undefined&&Number.isFinite(Number(x[1])));
+ if(!arr.length)return `<div class="chart"><h4>${esc(title)}</h4><div class="empty" style="padding:65px 15px">لا توجد بيانات كافية للرسم.</div></div>`;
+ const W=900,H=250,L=48,R=22,T=24,B=58,iw=W-L-R,ih=H-T-B,max=Math.max(1,...arr.map(x=>Number(x[1])));
+ const numericX=arr.every(p=>Number.isFinite(Number(p[2]))),xVals=numericX?arr.map(p=>Number(p[2])):[];
+ let xMin=numericX?Math.floor(Math.min(...xVals)/60)*60:0,xMax=numericX?Math.ceil(Math.max(...xVals)/60)*60:Math.max(1,arr.length-1);if(numericX&&xMax<=xMin)xMax=xMin+60;
+ const x=i=>numericX?L+((Number(arr[i][2])-xMin)/(xMax-xMin))*iw:(arr.length===1?L+iw/2:L+(i/(arr.length-1))*iw);
+ const y=v=>T+ih-(Number(v)/max)*ih;
+ let grid="";for(let i=0;i<=4;i++){const v=max*i/4,yy=y(v);grid+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#e5e7eb"/><text x="${L-7}" y="${yy+4}" text-anchor="end" font-size="10" fill="#64748b">${Number.isInteger(v)?v:v.toFixed(1)}</text>`}
+ const poly=arr.map((p,i)=>`${x(i)},${y(p[1])}`).join(" ");
+ const dots=arr.map((p,i)=>{const lbl=String(p[0]),short=lbl.length>12?lbl.slice(0,11)+"…":lbl;return `<circle cx="${x(i)}" cy="${y(p[1])}" r="5" fill="#174f7c"><title>${esc(lbl)} — ${p[1]}</title></circle><text x="${x(i)}" y="${y(p[1])-10}" text-anchor="middle" font-size="10" font-weight="bold" fill="#174f7c">${p[1]}</text><text x="${x(i)}" y="${H-24}" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(-30 ${x(i)} ${H-24})">${esc(short)}</text>`}).join("");
+ return `<div class="chart"><h4>${esc(title)}</h4><div class="line-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}<line x1="${L}" y1="${T}" x2="${L}" y2="${H-B}" stroke="#94a3b8"/><line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="#94a3b8"/>${arr.length>1?`<polyline points="${poly}" fill="none" stroke="#174f7c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`:""}${dots}</svg></div>${note?`<div class="line-chart-note">${esc(note)}</div>`:""}</div>`
+}
+function dayName(date){if(!date)return "";try{return new Intl.DateTimeFormat("ar-SA",{weekday:"long"}).format(new Date(date+"T12:00:00"))}catch{return ""}}
+function fmtDateTime(x){return `${x.date||"—"} ${x.time||""}`.trim()}
+
+async function protect(){
+const role=(localStorage.getItem("currentUserRole")||"").toLowerCase();
+if(role!=="student_counselor"){alert("هذه الصفحة مخصصة للتوجيه الطلابي.");location.href="index.html";return false}
+currentUser=(localStorage.getItem("currentUserEmail")||localStorage.getItem("currentUser")||"").trim().toLowerCase();
+if(!currentUser){location.href="index.html";return false}
+const d=await db.collection("users").doc(currentUser).get();
+if(!d.exists||String(d.data()?.role||"").toLowerCase()!=="student_counselor"){alert("حساب التوجيه غير صالح.");location.href="index.html";return false}
+currentName=d.data()?.name||localStorage.getItem("currentUserName")||currentUser;
+el("counselorName").textContent=currentName;el("footerCounselor").textContent=currentName;
+return true
+}
+
+function setup(){
+el("gradeFilter").innerHTML='<option value="">اختر الصف</option>'+GRADES.map(g=>`<option>${esc(g)}</option>`).join("");
+el("problemType").innerHTML='<option value="">اختر المشكلة</option>'+PROBLEMS.map(x=>`<option>${esc(x)}</option>`).join("");
+el("incidentProblemFilter").innerHTML='<option value="">كل المشكلات</option>'+PROBLEMS.filter(x=>x!=="أخرى").map(x=>`<option>${esc(x)}</option>`).join("");
+el("schoolPeriod").innerHTML='<option value="">اختر الفترة</option>'+PERIODS.map(x=>`<option>${esc(x)}</option>`).join("");
+el("location").innerHTML='<option value="">اختر المكان</option>'+LOCATIONS.map(x=>`<option>${esc(x)}</option>`).join("");
+const today=new Date();el("incidentDate").value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");syncDay();
+}
+
+async function loadStudents(){
+const snap=await db.collection("students").get();students=snap.docs.map(d=>{const x=d.data()||{};return {...x,code:String(x.code||d.id)}});students.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));fillSections()
+}
+function fillSections(){const g=el("gradeFilter").value;el("sectionFilter").innerHTML='<option value="">اختر الشعبة</option>'+SECTIONS.filter(s=>students.some(x=>x.grade===g&&x.section===s)).map(s=>`<option>${s}</option>`).join("");fillStudents()}
+function fillStudents(){const g=el("gradeFilter").value,s=el("sectionFilter").value;const rows=students.filter(x=>(!g||x.grade===g)&&(!s||x.section===s));el("studentSelect").innerHTML='<option value="">اختر الطالب</option>'+rows.map(x=>`<option value="${esc(x.code)}">${esc(x.name)} — ${esc(x.grade||"")} / ${esc(x.section||"")}</option>`).join("");renderStudentAnalytics()}
+function studentChanged(){renderStudentAnalytics()}
+function problemChanged(){el("customProblemWrap").style.display=el("problemType").value==="أخرى"?"block":"none";renderProblemAnalytics()}
+function syncDay(){el("incidentDay").value=dayName(el("incidentDate").value)}
+function toggleFollowUp(){el("followUpDateWrap").style.display=el("followUpRequired").value==="yes"?"block":"none"}
+
+async function loadIncidents(){
+const snap=await db.collection("guidanceIncidents").get();incidents=snap.docs.map(d=>({id:d.id,...d.data()}));incidents.sort((a,b)=>{const av=String(a.date||"")+" "+String(a.time||""),bv=String(b.date||"")+" "+String(b.time||"");return bv.localeCompare(av)});renderIncidents();renderStudentAnalytics();renderProblemAnalytics()
+}
+
+async function saveIncident(){
+const code=el("studentSelect").value,student=students.find(x=>String(x.code)===String(code));
+const problem=el("problemType").value,date=el("incidentDate").value,time=el("incidentTime").value,period=el("schoolPeriod").value,loc=el("location").value,description=el("description").value.trim();
+if(!student||!problem||!date||!time||!period||!loc||!description){alert("أكمل الطالب ونوع المشكلة والتاريخ والساعة والفترة والمكان وتفاصيل الواقعة.");return}
+if(problem==="أخرى"&&!el("customProblem").value.trim()){alert("اكتب اسم المشكلة الأخرى.");return}
+const id=el("editId").value;const ref=id?db.collection("guidanceIncidents").doc(id):db.collection("guidanceIncidents").doc();
+const old=id?incidents.find(x=>x.id===id):null;
+const data={
+reference:old?.reference||("GUID-"+date.replaceAll("-","")+"-"+ref.id.slice(-6).toUpperCase()),
+studentCode:String(student.code),studentName:student.name||"",grade:student.grade||"",section:student.section||"",
+problemType:problem,customProblem:problem==="أخرى"?el("customProblem").value.trim():"",
+problemTitle:el("problemTitle").value.trim(),description,
+date,day:el("incidentDay").value,time,schoolPeriod:period,location:loc,severity:el("severity").value,
+reportedBy:el("reportedBy").value.trim(),parties:el("parties").value.trim(),
+actionTaken:el("actionTaken").value.trim(),recommendation:el("recommendation").value.trim(),
+followUpRequired:el("followUpRequired").value==="yes",followUpDate:el("followUpDate").value,
+caseStatus:el("caseStatus").value,privateNotes:el("privateNotes").value.trim(),
+createdByEmail:old?.createdByEmail||currentUser,createdByName:old?.createdByName||currentName,createdByRole:"student_counselor",
+parentPublished:old?.parentPublished===true,parentVisibility:old?.parentVisibility||{},
+reviewStatus:old?.reviewStatus||"recorded",
+updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+};
+if(!id)data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+await ref.set(data,{merge:true});alert(id?"تم تحديث الحالة ✅":"تم تسجيل الحالة ✅");resetForm();await loadIncidents()
+}
+
+function resetForm(){
+el("editId").value="";["problemTitle","customProblem","reportedBy","parties","description","actionTaken","recommendation","followUpDate","privateNotes","incidentTime"].forEach(id=>el(id).value="");
+el("problemType").value="";el("customProblemWrap").style.display="none";el("schoolPeriod").value="";el("location").value="";el("severity").value="متوسطة";el("caseStatus").value="مفتوحة";el("followUpRequired").value="no";toggleFollowUp();const d=new Date();el("incidentDate").value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");syncDay();renderProblemAnalytics()
+}
+
+function editIncident(id){
+const x=incidents.find(r=>r.id===id);if(!x)return;
+el("editId").value=id;el("gradeFilter").value=x.grade||"";fillSections();el("sectionFilter").value=x.section||"";fillStudents();el("studentSelect").value=String(x.studentCode||"");
+el("problemType").value=x.problemType||"";problemChanged();el("customProblem").value=x.customProblem||"";el("problemTitle").value=x.problemTitle||"";el("incidentDate").value=x.date||"";syncDay();el("incidentTime").value=x.time||"";el("schoolPeriod").value=x.schoolPeriod||"";el("location").value=x.location||"";el("severity").value=x.severity||"متوسطة";el("reportedBy").value=x.reportedBy||"";el("parties").value=x.parties||"";el("description").value=x.description||"";el("actionTaken").value=x.actionTaken||"";el("recommendation").value=x.recommendation||"";el("followUpRequired").value=x.followUpRequired?"yes":"no";toggleFollowUp();el("followUpDate").value=x.followUpDate||"";el("caseStatus").value=x.caseStatus||"مفتوحة";el("privateNotes").value=x.privateNotes||"";renderStudentAnalytics();scrollTo({top:0,behavior:"smooth"})
+}
+async function deleteIncident(id){const x=incidents.find(r=>r.id===id);if(!x)return;if(!confirm("حذف هذه الواقعة نهائيًا؟\n"+(x.reference||"")+"\n"+x.studentName))return;if(x.parentPublished===true&&!confirm("هذه الواقعة منشورة لولي الأمر. حذفها سيزيلها من صفحة ولي الأمر أيضًا. متابعة؟"))return;await db.collection("guidanceIncidents").doc(id).delete();await loadIncidents()}
+
+function renderIncidents(){
+const q=String(el("incidentSearch").value||"").trim().toLowerCase(),pf=el("incidentProblemFilter").value,sf=el("incidentStatusFilter").value;
+const rows=incidents.filter(x=>{const p=effectiveProblem(x);return(!q||[x.studentName,x.studentCode,p,x.problemTitle,x.description,x.reference].join(" ").toLowerCase().includes(q))&&(!pf||p===pf||x.problemType===pf)&&(!sf||x.caseStatus===sf)});
+el("incidentsBody").innerHTML=rows.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.reference||x.id.slice(-8))}</td><td><b>${esc(x.studentName||"")}</b><br><small>${esc(x.grade||"")} / ${esc(x.section||"")}</small></td><td>${esc(effectiveProblem(x))}</td><td>${esc(x.date||"")}</td><td>${esc(x.time||"")}</td><td>${esc(x.schoolPeriod||"")}</td><td><span class="badge">${esc(x.caseStatus||"")}</span></td><td><span class="badge ${x.parentPublished===true?"pub":"hidden"}">${x.parentPublished===true?"منشور":"داخلي"}</span></td><td><button class="mini gold" onclick='editIncident(${JSON.stringify(x.id)})'>تعديل</button> <button class="mini red" onclick='deleteIncident(${JSON.stringify(x.id)})'>حذف</button></td></tr>`).join("")||'<tr><td colspan="10">لا توجد حالات مطابقة.</td></tr>'
+}
+
+function renderStudentAnalytics(){
+const code=el("studentSelect")?.value||"";const out=el("studentAnalytics");if(!out)return;
+if(!code){out.innerHTML='<div class="empty">اختر طالبًا لعرض تاريخه وتحليل أوقات تكرار المشكلات.</div>';return}
+const student=students.find(x=>String(x.code)===String(code));const rows=incidents.filter(x=>String(x.studentCode)===String(code));
+const problemMap=counts(rows,effectiveProblem),timeMap=counts(rows,x=>halfHourBucket(x.time)),periodMap=counts(rows,x=>x.schoolPeriod),dayMap=counts(rows,x=>x.day);
+const [topProblem,topProblemN]=topEntry(problemMap),[topTime,topTimeN]=topEntry(timeMap),[topPeriod,topPeriodN]=topEntry(periodMap);
+const last=rows.slice().sort((a,b)=>(String(b.date||"")+String(b.time||"")).localeCompare(String(a.date||"")+String(a.time||"")))[0];
+out.innerHTML=`<div class="note"><b>${esc(student?.name||"الطالب")}</b> — ${esc(student?.grade||"")} / ${esc(student?.section||"")}<br>هذا التحليل مبني على ${rows.length} واقعة مسجلة.</div>
+<div class="stats"><div class="stat">إجمالي الوقائع<b>${rows.length}</b></div><div class="stat">أكثر مشكلة<b style="font-size:13px">${esc(topProblem)} (${topProblemN})</b></div><div class="stat">أكثر وقت نصف ساعة<b style="font-size:13px">${esc(topTime)} (${topTimeN})</b></div><div class="stat">أكثر فترة<b style="font-size:13px">${esc(topPeriod)} (${topPeriodN})</b></div></div>
+<div class="note">آخر واقعة: <strong>${last?esc(fmtDateTime(last)):"لا توجد"}</strong></div>
+<div class="charts">${lineChartHtml("الخط الزمني الدقيق حسب الساعة",exactTimeEntries(rows),"كل نقطة تمثل الساعة الفعلية المسجلة للواقعة")}${lineChartHtml("التكرار عبر التواريخ",dateEntries(rows),"يعرض تطور عدد الوقائع حسب تاريخ التسجيل")}${lineChartHtml("التكرار حسب الفترة المدرسية",orderedEntries(rows,x=>x.schoolPeriod,["بداية اليوم","الحصة الأولى","الحصة الثانية","الحصة الثالثة","قبل الفسحة","الفسحة","بعد الفسحة","الحصة الأخيرة","نهاية اليوم"]),"ترتيب الفترات حسب سير اليوم الدراسي")}${lineChartHtml("التكرار حسب أيام الأسبوع",orderedEntries(rows,x=>x.day,["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس"]),"مقارنة نمط التكرار خلال أيام الدراسة")}</div>
+<div class="charts" style="margin-top:10px">${chartHtml("أنواع المشكلات الأكثر تكرارًا",problemMap,8)}${chartHtml("التجميع بنصف الساعة",timeMap,12)}</div>`
+}
+
+function renderProblemAnalytics(){
+const selected=el("problemType")?.value||"";const custom=el("customProblem")?.value.trim()||"";const out=el("problemAnalytics");if(!out)return;
+if(!selected){out.innerHTML='<div class="empty">اختر نوع مشكلة لعرض تكرارها وأوقاتها الأكثر شيوعًا.</div>';return}
+const name=selected==="أخرى"?(custom||"أخرى"):selected;const rows=incidents.filter(x=>effectiveProblem(x)===name||(selected!=="أخرى"&&x.problemType===selected));
+const timeMap=counts(rows,x=>halfHourBucket(x.time)),periodMap=counts(rows,x=>x.schoolPeriod),dayMap=counts(rows,x=>x.day),locationMap=counts(rows,x=>x.location);
+const uniqueStudents=new Set(rows.map(x=>String(x.studentCode))).size;const [topTime,topTimeN]=topEntry(timeMap),[topDay,topDayN]=topEntry(dayMap),[topLocation,topLocationN]=topEntry(locationMap);
+out.innerHTML=`<div class="note"><b>${esc(name)}</b></div><div class="stats"><div class="stat">عدد التكرار<b>${rows.length}</b></div><div class="stat">عدد الطلاب<b>${uniqueStudents}</b></div><div class="stat">أكثر وقت<b style="font-size:13px">${esc(topTime)} (${topTimeN})</b></div><div class="stat">أكثر يوم<b style="font-size:13px">${esc(topDay)} (${topDayN})</b></div></div>
+<div class="note">أكثر مكان: <strong>${esc(topLocation)}</strong> (${topLocationN})</div>
+<div class="charts">${lineChartHtml("الخط الزمني الدقيق حسب الساعة",exactTimeEntries(rows),"الساعة الفعلية لكل واقعة من هذا النوع")}${lineChartHtml("التكرار عبر التواريخ",dateEntries(rows),"يبين هل المشكلة تتزايد أو تنخفض مع الوقت")}${lineChartHtml("التكرار حسب الفترة المدرسية",orderedEntries(rows,x=>x.schoolPeriod,["بداية اليوم","الحصة الأولى","الحصة الثانية","الحصة الثالثة","قبل الفسحة","الفسحة","بعد الفسحة","الحصة الأخيرة","نهاية اليوم"]),"ترتيب الفترات حسب سير اليوم الدراسي")}${lineChartHtml("التكرار حسب أيام الأسبوع",orderedEntries(rows,x=>x.day,["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس"]),"نمط المشكلة خلال أيام الدراسة")}</div>
+<div class="charts" style="margin-top:10px">${chartHtml("التجميع بنصف الساعة",timeMap,12)}${chartHtml("التكرار حسب المكان",locationMap,10)}</div>`
+}
+
+async function start(){try{if(!await protect())return;setup();await Promise.all([loadStudents(),loadIncidents()])}catch(e){console.error(e);alert("تعذر تحميل التوجيه الطلابي:\n"+e.message)}}
+start();
+</script>
+</body>
+</html>
