@@ -2163,7 +2163,7 @@ onclick="clearCurrentTeacherAssignments()">
 <label>نوع الحساب</label>
 <select id="supervisorRole">
 <option value="general_supervisor">مشرف عام</option>
-<option value="manager">مدير</option>
+<option value="manager">وكيل</option>
 <option value="supervisor">مشرف</option>
 </select>
 </div>
@@ -2242,7 +2242,7 @@ onclick="clearCurrentTeacherAssignments()">
 
 <div class="note">
 يُحفظ الحساب داخل مجموعة <strong>users</strong> بدور تقني <strong>supervisor</strong> للحفاظ على توافق النظام القديم،
-ويتم تحديد نوعه كـ <strong>مشرف عام / مدير / مشرف</strong> بصورة مستقلة.
+ويتم تحديد نوعه كـ <strong>مشرف عام / وكيل / مشرف</strong> بصورة مستقلة.
 كل مربع محدد يعني أن القسم سيظهر لهذا الحساب في لوحة الإشراف.
 </div>
 
@@ -8104,7 +8104,7 @@ const SUPERVISOR_PERMISSION_DEFS=[
 ];
 
 function supervisorTypeLabel(type){
-return {general_supervisor:"مشرف عام",manager:"مدير",supervisor:"مشرف"}[String(type||"").toLowerCase()]||"مشرف عام";
+return {general_supervisor:"مشرف عام",manager:"وكيل",supervisor:"مشرف"}[String(type||"").toLowerCase()]||"مشرف عام";
 }
 
 function normalizeSupervisorPermissions(raw){
