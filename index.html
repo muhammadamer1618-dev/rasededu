@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+بوابة الطالب الرقمية
+</title>
+
+<link
+rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link
+rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap"
+rel="stylesheet">
+
+<style>
+
+:root{
+  --green:#004c3f;
+  --green2:#006653;
+  --green3:#0b7864;
+  --gold:#c9972c;
+  --gold2:#f0cf79;
+  --cream:#f7f1e4;
+  --cream2:#fffdf8;
+  --white:#ffffff;
+  --text:#17372f;
+  --muted:#6a776f;
+  --danger:#b42318;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:"Tajawal",Tahoma,Arial,sans-serif;
+}
+
+html,
+body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
+body{
+  background:
+  linear-gradient(
+    135deg,
+    #f9f3e6 0%,
+    #fffdf8 48%,
+    #f5eddd 100%
+  );
+  color:var(--text);
+}
+
+button,
+input{
+  font-family:inherit;
+}
+
+
+/* =========================================
+   MAIN PAGE
+========================================= */
+
+.page{
+  position:relative;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:12px 28px 10px;
+}
+
+
+/* =========================================
+   BACKGROUND DECORATION
+========================================= */
+
+.page::before{
+  content:"";
+  position:absolute;
+  width:520px;
+  height:300px;
+  background:
+  linear-gradient(
+    140deg,
+    var(--green),
+    #003a30
+  );
+  top:-170px;
+  right:-120px;
+  border-radius:0 0 0 80%;
+  transform:rotate(-8deg);
+  box-shadow:0 14px 0 var(--gold);
+  z-index:0;
+}
+
+.page::after{
+  content:"";
+  position:absolute;
+  width:520px;
+  height:300px;
+  background:
+  linear-gradient(
+    140deg,
+    #003a30,
+    var(--green)
+  );
+  bottom:-190px;
+  left:-120px;
+  border-radius:0 80% 0 0;
+  transform:rotate(8deg);
+  box-shadow:0 -12px 0 var(--gold);
+  z-index:0;
+}
+
+
+/* =========================================
+   CORNER TEXT
+========================================= */
+
+.corner-left,
+.corner-right{
+  position:absolute;
+  color:var(--gold2);
+  font-weight:800;
+  line-height:1.4;
+  z-index:2;
+  font-size:17px;
+}
+
+.corner-right{
+  top:10px;
+  right:34px;
+  text-align:right;
+}
+
+.corner-left{
+  bottom:30px;
+  left:34px;
+  text-align:left;
+}
+
+.corner-right::after,
+.corner-left::after{
+  content:"";
+  display:block;
+  width:54px;
+  height:2px;
+  background:var(--gold2);
+  margin-top:8px;
+}
+
+.corner-left::after{
+  margin-right:auto;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.top{
+  position:relative;
+  z-index:3;
+  text-align:center;
+  flex:none;
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo{
+  width:96px;
+  height:96px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto 0;
+  mix-blend-mode:multiply;
+  filter:
+  contrast(1.05)
+  saturate(1.05)
+  drop-shadow(
+    0 4px 7px
+    rgba(0,0,0,.05)
+  );
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.main-title{
+  color:var(--green);
+  font-size:clamp(34px,4vw,58px);
+  font-weight:900;
+  line-height:1.02;
+  margin-top:0;
+  text-shadow:
+  0 2px 0
+  rgba(255,255,255,.8);
+}
+
+
+/* =========================================
+   ENGLISH TITLE
+========================================= */
+
+.english-title{
+  margin-top:3px;
+  color:var(--gold);
+  font-size:clamp(16px,1.4vw,24px);
+  font-weight:800;
+  letter-spacing:1px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+.english-title::before,
+.english-title::after{
+  content:"";
+  width:70px;
+  height:2px;
+  background:
+  linear-gradient(
+    90deg,
+    transparent,
+    var(--gold)
+  );
+}
+
+.english-title::after{
+  background:
+  linear-gradient(
+    90deg,
+    var(--gold),
+    transparent
+  );
+}
+
+
+/* =========================================
+   PORTAL GRID
+========================================= */
+
+.portal-grid{
+  position:relative;
+  z-index:3;
+  width:min(1120px,90vw);
+  margin:7px auto;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+  flex:1;
+  align-items:center;
+}
+
+
+/* =========================================
+   PORTAL CARD
+========================================= */
+
+.portal-card{
+  position:relative;
+  min-height:205px;
+  border:none;
+  border-radius:25px;
+  cursor:pointer;
+  background:
+  linear-gradient(
+    145deg,
+    #0c725f 0%,
+    #005747 42%,
+    #003f35 100%
+  );
+  box-shadow:
+  0 0 0 3px rgba(214,170,65,.9),
+  0 0 0 6px rgba(255,241,196,.8),
+  0 16px 30px rgba(0,76,63,.20),
+  inset 0 1px 0 rgba(255,255,255,.2);
+  overflow:hidden;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transform:scale(1);
+  transition:
+  transform .28s cubic-bezier(.2,.8,.2,1),
+  box-shadow .28s ease,
+  filter .28s ease;
+  will-change:transform;
+}
+
+.portal-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+  radial-gradient(
+    circle at 50% 8%,
+    rgba(255,255,255,.22),
+    transparent 32%
+  );
+  pointer-events:none;
+}
+
+.portal-card::after{
+  content:"";
+  position:absolute;
+  left:-20%;
+  right:-20%;
+  bottom:-55px;
+  height:100px;
+  border-radius:50%;
+  background:rgba(255,255,255,.04);
+  pointer-events:none;
+}
+
+
+/* =========================================
+   CARD ZOOM
+========================================= */
+
+.portal-card:hover{
+  transform:
+  translateY(-7px)
+  scale(1.065);
+  z-index:20;
+  filter:brightness(1.06);
+  box-shadow:
+  0 0 0 3px rgba(230,185,74,.98),
+  0 0 0 7px rgba(255,243,204,.92),
+  0 27px 48px rgba(0,64,53,.32);
+}
+
+
+/* =========================================
+   CARD ICON
+========================================= */
+
+.card-icon{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:34px;
+  background:
+  radial-gradient(
+    circle,
+    #063f36 15%,
+    #012b25 100%
+  );
+  border:4px solid var(--gold);
+  box-shadow:
+  0 0 0 3px rgba(255,226,140,.30),
+  0 0 17px rgba(231,189,81,.35),
+  inset 0 0 15px rgba(0,0,0,.28);
+  margin-bottom:14px;
+  position:relative;
+  z-index:2;
+  transition:
+  transform .28s cubic-bezier(.2,.8,.2,1),
+  box-shadow .28s ease;
+}
+
+.portal-card:hover .card-icon{
+  transform:scale(1.13);
+  box-shadow:
+  0 0 0 3px rgba(255,226,140,.40),
+  0 0 27px rgba(231,189,81,.60),
+  inset 0 0 15px rgba(0,0,0,.28);
+}
+
+
+/* =========================================
+   CARD TITLE
+========================================= */
+
+.portal-card h2{
+  position:relative;
+  z-index:2;
+  font-size:27px;
+  font-weight:900;
+  color:#fff;
+  text-shadow:
+  0 2px 5px
+  rgba(0,0,0,.22);
+  transition:transform .28s ease;
+}
+
+.portal-card:hover h2{
+  transform:scale(1.05);
+}
+
+.portal-card h2::after{
+  content:"";
+  display:block;
+  width:48px;
+  height:3px;
+  background:var(--gold);
+  margin:10px auto 0;
+  border-radius:4px;
+  transition:width .28s ease;
+}
+
+.portal-card:hover h2::after{
+  width:68px;
+}
+
+
+/* =========================================
+   LEADERSHIP
+========================================= */
+
+.leadership{
+  position:relative;
+  z-index:3;
+  width:min(780px,80vw);
+  margin:0 auto 3px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  flex:none;
+  transform:translateX(42px);
+}
+
+.leader{
+  background:
+  linear-gradient(
+    180deg,
+    rgba(255,255,255,.92),
+    rgba(248,241,225,.92)
+  );
+  border:1px solid rgba(201,151,44,.42);
+  border-radius:20px;
+  padding:9px 20px;
+  text-align:center;
+  box-shadow:
+  0 8px 22px
+  rgba(82,63,24,.09);
+  position:relative;
+}
+
+.leader::before{
+  content:"";
+  position:absolute;
+  top:-2px;
+  right:24%;
+  left:24%;
+  height:3px;
+  background:
+  linear-gradient(
+    90deg,
+    transparent,
+    var(--gold),
+    transparent
+  );
+}
+
+.leader-role{
+  color:#ad7b15;
+  font-weight:800;
+  font-size:15px;
+  margin-bottom:2px;
+}
+
+.leader-name{
+  color:var(--green);
+  font-weight:900;
+  font-size:19px;
+}
+
+
+/* =========================================
+   DESIGN CREDIT
+========================================= */
+
+.credit{
+  position:relative;
+  z-index:4;
+  margin:5px auto 0;
+  padding:6px 22px 4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  font-size:18px;
+  font-weight:900;
+  color:#003f35;
+  background:rgba(255,253,248,.78);
+  border-radius:12px;
+  flex:none;
+}
+
+.credit::before,
+.credit::after{
+  content:"";
+  width:55px;
+  height:2px;
+  background:
+  linear-gradient(
+    90deg,
+    transparent,
+    var(--gold)
+  );
+}
+
+.credit::after{
+  background:
+  linear-gradient(
+    90deg,
+    var(--gold),
+    transparent
+  );
+}
+
+
+/* =========================================
+   MODAL
+========================================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(0,37,31,.76);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+
+.modal.open{
+  display:flex;
+}
+
+.modal-box{
+  width:min(650px,94vw);
+  max-height:88vh;
+  overflow:auto;
+  background:
+  linear-gradient(
+    180deg,
+    #fffefb,
+    #f8f1e4
+  );
+  border-radius:26px;
+  padding:22px;
+  box-shadow:
+  0 30px 80px
+  rgba(0,0,0,.35);
+  border:2px solid rgba(201,151,44,.42);
+}
+
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-bottom:14px;
+  border-bottom:1px solid #eadfc8;
+}
+
+.modal-head h3{
+  color:var(--green);
+  font-size:25px;
+  font-weight:900;
+}
+
+.close-btn{
+  width:40px;
+  height:40px;
+  border:none;
+  border-radius:50%;
+  background:#eee8da;
+  color:#3e514b;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.system-list{
+  display:grid;
+  gap:12px;
+  margin-top:18px;
+}
+
+.system-link{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  text-decoration:none;
+  color:inherit;
+  border:1px solid #ded2bb;
+  border-radius:16px;
+  padding:15px 16px;
+  background:#fff;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.system-link:hover{
+  border-color:var(--gold);
+  background:#fffaf0;
+  transform:translateX(-2px);
+}
+
+button.system-link{
+  font:inherit;
+  text-align:inherit;
+}
+
+.system-text{
+  text-align:right;
+}
+
+.system-text strong{
+  display:block;
+  color:var(--green);
+  font-size:17px;
+  font-weight:900;
+}
+
+.system-text span{
+  display:block;
+  color:var(--muted);
+  margin-top:3px;
+  font-size:13px;
+}
+
+.arrow{
+  color:var(--gold);
+  font-size:24px;
+  font-weight:900;
+}
+
+
+/* =========================================
+   PHONE LOOKUP
+========================================= */
+
+.phone-area{
+  text-align:center;
+  padding:8px 0 2px;
+}
+
+.phone-big-icon{
+  width:76px;
+  height:76px;
+  margin:0 auto 12px;
+  border-radius:50%;
+  background:
+  linear-gradient(
+    145deg,
+    var(--green2),
+    var(--green)
+  );
+  display:grid;
+  place-items:center;
+  font-size:34px;
+  border:4px solid var(--gold);
+  box-shadow:
+  0 8px 20px
+  rgba(0,76,63,.18);
+}
+
+.phone-area h4{
+  color:var(--green);
+  font-size:21px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+
+.phone-area p{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.7;
+  margin-bottom:15px;
+}
+
+.phone-input{
+  width:100%;
+  height:52px;
+  padding:0 14px;
+  border:1px solid #d8cbb1;
+  border-radius:14px;
+  outline:none;
+  font-size:18px;
+  text-align:center;
+  direction:ltr;
+  background:#fff;
+}
+
+.phone-input:focus{
+  border-color:var(--gold);
+  box-shadow:
+  0 0 0 3px
+  rgba(201,151,44,.14);
+}
+
+.phone-btn{
+  width:100%;
+  height:50px;
+  border:none;
+  border-radius:14px;
+  margin-top:12px;
+  background:
+  linear-gradient(
+    145deg,
+    var(--green2),
+    var(--green)
+  );
+  color:white;
+  font-size:16px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.phone-btn:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+
+.message{
+  min-height:22px;
+  margin-top:10px;
+  font-size:14px;
+  font-weight:800;
+}
+
+.back-btn{
+  margin-top:4px;
+  border:none;
+  background:transparent;
+  color:#68746e;
+  font-weight:700;
+  cursor:pointer;
+  padding:6px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:1000px){
+
+  html,
+  body{
+    overflow:auto;
+  }
+
+  .page{
+    height:auto;
+    min-height:100vh;
+    overflow:visible;
+    padding:15px 18px 22px;
+  }
+
+  .portal-grid{
+    grid-template-columns:repeat(2,1fr);
+    width:min(760px,92vw);
+    flex:none;
+    margin:18px auto;
+  }
+
+  .portal-card{
+    min-height:190px;
+  }
+
+  .corner-left,
+  .corner-right{
+    display:none;
+  }
+
+  .leadership{
+    width:min(760px,95vw);
+    transform:none;
+  }
+
+}
+
+@media(max-width:600px){
+
+  .logo{
+    width:72px;
+    height:72px;
+  }
+
+  .main-title{
+    font-size:28px;
+    line-height:1.2;
+  }
+
+  .english-title{
+    font-size:13px;
+  }
+
+  .portal-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+    width:min(430px,94vw);
+    margin:14px auto;
+  }
+
+  .portal-card{
+    min-height:128px;
+    border-radius:17px;
+    padding:12px 8px;
+  }
+
+  .card-icon{
+    width:48px;
+    height:48px;
+    font-size:22px;
+    border-width:2px;
+    margin-bottom:7px;
+  }
+
+  .portal-card h2{
+    font-size:16px;
+    line-height:1.25;
+  }
+
+  .portal-card p{
+    font-size:11px;
+    line-height:1.3;
+  }
+
+  .portal-card:hover{
+    transform:translateY(-2px);
+  }
+
+  .portal-card:hover .card-icon{
+    transform:scale(1.04);
+  }
+
+  .leadership{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  .leader{
+    padding:8px 10px;
+  }
+
+  .credit{
+    font-size:15px;
+  }
+
+}
+
+@media(max-width:380px){
+  .page{padding:10px 10px 18px;}
+  .logo{width:62px;height:62px;}
+  .main-title{font-size:24px;}
+  .english-title{font-size:12px;}
+  .portal-grid{gap:7px;width:96vw;}
+  .portal-card{min-height:116px;padding:9px 6px;border-radius:15px;}
+  .card-icon{width:42px;height:42px;font-size:19px;margin-bottom:5px;}
+  .portal-card h2{font-size:14px;}
+  .portal-card p{font-size:10px;}
+}
+
+</style>
+
+<style>
+
+/* ===== Mobile Friendly layer — preserves existing functionality ===== */
+html,body{min-width:0;max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%;height:auto}
+button,a,input,select,textarea{max-width:100%;box-sizing:border-box}
+@media (max-width:700px){
+  body{overflow-x:hidden}
+  .container,.wrapper,.page,.content,.main,.main-content{
+    max-width:100% !important;
+    width:100% !important;
+    box-sizing:border-box;
+  }
+  header,nav,main,footer,section,.header,.navbar{
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .grid,.cards,.portal-grid,.features,.links,.actions{
+    grid-template-columns:1fr !important;
+  }
+  .row,.header-row,.actions-row{
+    flex-wrap:wrap !important;
+  }
+  .card,.portal-card,.box,.panel,.section,.item{
+    width:100%;
+    box-sizing:border-box;
+  }
+  table{
+    width:100%;
+    min-width:560px;
+  }
+  .table-wrap,.table-container,.table-responsive{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  h1{font-size:clamp(24px,7vw,34px)}
+  h2{font-size:clamp(20px,6vw,28px)}
+  h3{font-size:clamp(18px,5vw,23px)}
+  input,select,textarea,button{
+    min-height:44px;
+    font-size:16px;
+  }
+  .modal,.dialog{
+    padding:10px !important;
+    box-sizing:border-box;
+  }
+  .modal-content,.modal-box,.dialog-content{
+    width:100% !important;
+    max-width:520px !important;
+    max-height:calc(100svh - 20px);
+    overflow:auto;
+    box-sizing:border-box;
+  }
+}
+@media (max-width:420px){
+  body{font-size:14px}
+  .container,.wrapper,.page{padding-left:10px !important;padding-right:10px !important}
+  .card,.portal-card,.box,.panel{border-radius:16px}
+  .actions button,.actions a{width:100%}
+}
+
+</style>
+
+<style>
+/* ===== بوابة الطالب: أيقونات دائرية في صف واحد ===== */
+.portal-grid{
+  width:min(1180px,96vw) !important;
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:16px !important;
+  align-items:center !important;
+  justify-items:center !important;
+  flex:1 !important;
+}
+
+.portal-card{
+  width:clamp(150px,17vw,190px) !important;
+  height:clamp(150px,17vw,190px) !important;
+  min-height:0 !important;
+  aspect-ratio:1/1 !important;
+  border-radius:50% !important;
+  padding:14px !important;
+}
+
+.portal-card .card-icon{
+  width:62px !important;
+  height:62px !important;
+  font-size:28px !important;
+  margin-bottom:9px !important;
+}
+
+.portal-card h2{
+  font-size:clamp(15px,1.35vw,20px) !important;
+  line-height:1.25 !important;
+  text-align:center !important;
+}
+
+.portal-card h2::after{
+  width:34px !important;
+  height:2px !important;
+  margin-top:6px !important;
+}
+
+.portal-card p{
+  display:none !important;
+}
+
+@media(max-width:900px){
+  .portal-grid{
+    width:98vw !important;
+    gap:8px !important;
+  }
+  .portal-card{
+    width:clamp(105px,18vw,145px) !important;
+    height:clamp(105px,18vw,145px) !important;
+    padding:8px !important;
+  }
+  .portal-card .card-icon{
+    width:48px !important;
+    height:48px !important;
+    font-size:22px !important;
+    margin-bottom:6px !important;
+    border-width:2px !important;
+  }
+  .portal-card h2{
+    font-size:clamp(11px,1.9vw,16px) !important;
+  }
+}
+
+@media(max-width:600px){
+  .page{
+    padding:8px 5px 12px !important;
+  }
+  .portal-grid{
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    width:100% !important;
+    gap:4px !important;
+    margin:10px auto !important;
+  }
+  .portal-card{
+    width:clamp(58px,18.5vw,86px) !important;
+    height:clamp(58px,18.5vw,86px) !important;
+    padding:4px !important;
+    box-shadow:
+      0 0 0 2px rgba(214,170,65,.9),
+      0 0 0 4px rgba(255,241,196,.7),
+      0 7px 13px rgba(0,76,63,.18) !important;
+  }
+  .portal-card .card-icon{
+    width:30px !important;
+    height:30px !important;
+    font-size:15px !important;
+    border-width:1.5px !important;
+    margin-bottom:3px !important;
+  }
+  .portal-card h2{
+    font-size:clamp(8px,2.5vw,11px) !important;
+    line-height:1.15 !important;
+    white-space:normal !important;
+  }
+  .portal-card h2::after{
+    display:none !important;
+  }
+  .portal-card:hover{
+    transform:translateY(-2px) scale(1.03) !important;
+  }
+}
+
+@media(max-width:380px){
+  .portal-grid{gap:3px !important}
+  .portal-card{
+    width:clamp(54px,18.7vw,70px) !important;
+    height:clamp(54px,18.7vw,70px) !important;
+  }
+  .portal-card .card-icon{
+    width:27px !important;
+    height:27px !important;
+    font-size:13px !important;
+  }
+  .portal-card h2{
+    font-size:8px !important;
+  }
+}
+</style>
+
+
+<style>
+/* ===== Final Student Gate Layout: 6 icons / 3 x 2 ===== */
+
+/* Lower and clarify logo without changing existing structure */
+.top{
+  padding-top:20px !important;
+}
+
+.logo{
+  width:104px !important;
+  height:104px !important;
+  padding:7px !important;
+  margin:0 auto 5px !important;
+  background:#ffffff !important;
+  border-radius:50% !important;
+  border:2px solid rgba(201,151,44,.38) !important;
+  mix-blend-mode:normal !important;
+  filter:
+    contrast(1.03)
+    saturate(1.04)
+    drop-shadow(0 5px 11px rgba(0,76,63,.10)) !important;
+}
+
+/* Always 3 cards per row: 3 above + 3 below */
+.portal-grid{
+  width:min(900px,92vw) !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:22px !important;
+  margin:12px auto 14px !important;
+  align-items:center !important;
+  justify-items:center !important;
+  flex:none !important;
+}
+
+.portal-card{
+  width:clamp(155px,16vw,190px) !important;
+  height:clamp(155px,16vw,190px) !important;
+  min-height:0 !important;
+  aspect-ratio:1/1 !important;
+  border-radius:50% !important;
+  padding:14px !important;
+}
+
+.portal-card .card-icon{
+  width:62px !important;
+  height:62px !important;
+  font-size:28px !important;
+  margin-bottom:9px !important;
+}
+
+.portal-card h2{
+  font-size:clamp(15px,1.25vw,19px) !important;
+  line-height:1.25 !important;
+  text-align:center !important;
+}
+
+/* Tablet */
+@media(max-width:900px){
+  .top{padding-top:18px !important}
+
+  .logo{
+    width:92px !important;
+    height:92px !important;
+  }
+
+  .portal-grid{
+    width:min(700px,94vw) !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:14px !important;
+    margin:14px auto 16px !important;
+  }
+
+  .portal-card{
+    width:clamp(125px,21vw,160px) !important;
+    height:clamp(125px,21vw,160px) !important;
+  }
+
+  .portal-card .card-icon{
+    width:52px !important;
+    height:52px !important;
+    font-size:24px !important;
+    margin-bottom:7px !important;
+  }
+
+  .portal-card h2{
+    font-size:clamp(12px,2vw,16px) !important;
+  }
+}
+
+/* Mobile: keep 3 x 2 while remaining touch friendly */
+@media(max-width:600px){
+  html,body{
+    overflow-x:hidden !important;
+  }
+
+  .page{
+    min-height:100svh !important;
+    height:auto !important;
+    overflow:visible !important;
+    padding:8px 8px 16px !important;
+  }
+
+  .top{
+    padding-top:14px !important;
+  }
+
+  .logo{
+    width:78px !important;
+    height:78px !important;
+    padding:5px !important;
+    margin-bottom:5px !important;
+  }
+
+  .main-title{
+    font-size:clamp(25px,7vw,31px) !important;
+  }
+
+  .english-title{
+    font-size:12px !important;
+    gap:8px !important;
+  }
+
+  .english-title::before,
+  .english-title::after{
+    width:42px !important;
+  }
+
+  .portal-grid{
+    width:100% !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:9px !important;
+    margin:14px auto 16px !important;
+  }
+
+  .portal-card{
+    width:min(28.5vw,104px) !important;
+    height:min(28.5vw,104px) !important;
+    min-height:88px !important;
+    padding:6px !important;
+    border-radius:50% !important;
+    box-shadow:
+      0 0 0 2px rgba(214,170,65,.9),
+      0 0 0 4px rgba(255,241,196,.72),
+      0 7px 13px rgba(0,76,63,.18) !important;
+  }
+
+  .portal-card .card-icon{
+    width:38px !important;
+    height:38px !important;
+    font-size:18px !important;
+    border-width:2px !important;
+    margin-bottom:5px !important;
+  }
+
+  .portal-card h2{
+    font-size:clamp(9px,2.7vw,12px) !important;
+    line-height:1.15 !important;
+  }
+
+  .portal-card h2::after{
+    display:none !important;
+  }
+
+  .portal-card:hover{
+    transform:translateY(-2px) scale(1.02) !important;
+  }
+
+  .leadership{
+    width:96vw !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:7px !important;
+    transform:none !important;
+  }
+
+  .leader{
+    padding:7px 6px !important;
+    border-radius:14px !important;
+  }
+
+  .leader-role{
+    font-size:11px !important;
+  }
+
+  .leader-name{
+    font-size:12px !important;
+    line-height:1.35 !important;
+  }
+
+  .credit{
+    font-size:13px !important;
+    padding:5px 10px !important;
+  }
+}
+
+@media(max-width:380px){
+  .top{padding-top:12px !important}
+  .logo{width:70px !important;height:70px !important}
+  .portal-grid{gap:7px !important}
+  .portal-card{
+    width:min(28vw,92px) !important;
+    height:min(28vw,92px) !important;
+    min-height:82px !important;
+  }
+  .portal-card .card-icon{
+    width:33px !important;
+    height:33px !important;
+    font-size:16px !important;
+    margin-bottom:4px !important;
+  }
+  .portal-card h2{font-size:9px !important}
+}
+</style>
+
+
+<style>
+/* ===== التوجيه الطلابي: البطاقة السابعة في المنتصف ===== */
+.portal-grid .guidance-card{grid-column:1;}
+.portal-grid .live-class-card{grid-column:3;}
+
+@media(max-width:600px){
+  .portal-grid .guidance-card{grid-column:1;}
+  .portal-grid .live-class-card{grid-column:3;}
+}
+</style>
+
+</head>
+
+<body>
+
+<main class="page">
+
+<div class="corner-right">
+قيم<br>
+معرفة<br>
+مهارات<br>
+مستقبل أفضل
+</div>
+
+<div class="corner-left">
+بالعلم نصنع<br>
+المستقبل
+</div>
+
+
+<header class="top">
+
+<img
+src="logo.jpeg"
+class="logo"
+alt="شعار مدارس الفلاح"
+>
+
+<h1 class="main-title">
+بوابة الطالب الرقمية
+</h1>
+
+<div class="english-title">
+AlFalah Student Gate
+</div>
+
+</header>
+
+
+<section class="portal-grid">
+
+<button class="portal-card" onclick="openStudentLink('exams')" type="button">
+<div class="card-icon">📝</div>
+<h2>الاختبارات الإلكترونية</h2>
+</button>
+
+<button class="portal-card" onclick="openStudentLink('results')" type="button">
+<div class="card-icon">📊</div>
+<h2>نتائج الاختبارات</h2>
+</button>
+
+<button class="portal-card" onclick="openStudentLink('plan')" type="button">
+<div class="card-icon">🗂️</div>
+<h2>الخطة الأسبوعية</h2>
+</button>
+
+<button class="portal-card" onclick="openStudentLink('schedule')" type="button">
+<div class="card-icon">📚</div>
+<h2>جدول الحصص</h2>
+<p>عرض جدول الحصص الأسبوعي</p>
+</button>
+
+<button class="portal-card" onclick="openStudentLink('examSchedule')" type="button">
+<div class="card-icon">🗓️</div>
+<h2>جدول الاختبارات</h2>
+</button>
+
+<button class="portal-card" onclick="openStudentLink('activities')" type="button">
+<div class="card-icon">🎯</div>
+<h2>الأنشطة الطلابية</h2>
+</button>
+
+<button class="portal-card guidance-card" onclick="openStudentLink('guidance')" type="button">
+<div class="card-icon">🧭</div>
+<h2>التوجيه الطلابي</h2>
+</button>
+
+<button class="portal-card live-class-card" onclick="openStudentLink('liveClasses')" type="button">
+<div class="card-icon">💻</div>
+<h2>الحصص المباشرة</h2>
+</button>
+
+</section>
+
+
+<section class="leadership">
+
+<div class="leader">
+
+<div class="leader-role">
+المشرف العام
+</div>
+
+<div class="leader-name">
+أحمد سمير
+</div>
+
+</div>
+
+
+<div class="leader">
+
+<div class="leader-role">
+مدير المدرسة
+</div>
+
+<div class="leader-name">
+عبد العزيز بن إبراهيم القحطاني
+</div>
+
+</div>
+
+</section>
+
+
+<div class="credit">
+تصميم محمد عامر أحمد
+</div>
+
+</main>
+
+
+<script>
+const studentLinks = {
+  exams:"https://muhammadamer1618-dev.github.io/Rased-System/exams.html",
+  results:"https://muhammadamer1618-dev.github.io/rasededu/student.html",
+  plan:"https://muhammadamer1618-dev.github.io/Weekly-Plan/student.html",
+  schedule:"https://muhammadamer1618-dev.github.io/rasededu/weekly.html",
+  examSchedule:"https://muhammadamer1618-dev.github.io/rasededu/exam-schedule.html",
+  activities:"https://muhammadamer1618-dev.github.io/rasededu/parent-activities.html",
+  guidance:"https://muhammadamer1618-dev.github.io/rasededu/parent-guidance.html",
+  liveClasses:"https://muhammadamer1618-dev.github.io/rasededu/student-live-classes.html"
+};
+
+function openStudentLink(type){
+  const url = studentLinks[type];
+  if(url) window.location.href = url;
+}
+</script>
+
+</body>
+
+</html>
