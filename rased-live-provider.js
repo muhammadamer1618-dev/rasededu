@@ -30,8 +30,9 @@
   function configStatus(cfg){
     const type=safe(cfg?.type||"none").toLowerCase();
     if(type==="jaas"){
-      if(!safe(cfg?.jaasAppId))return {ready:false,message:"أدخل JaaS App ID."};
-      if(!safe(cfg?.tokenEndpoint))return {ready:false,message:"أدخل رابط خدمة إصدار JaaS JWT."};
+      if(!safe(cfg?.jaasAppId)||!safe(cfg?.tokenEndpoint)){
+        return {ready:true,demo:true,message:"الوضع التجريبي جاهز الآن للاختبار داخل راصد (مدة القاعة التجريبية محدودة)."};
+      }
       return {ready:true,message:"JaaS جاهز للعمل داخل راصد."};
     }
     if(type==="iframe"){
@@ -40,7 +41,7 @@
       }
       return {ready:true,message:"مزود التضمين المخصص جاهز."};
     }
-    return {ready:false,message:"لم يتم إعداد مزود القاعات المباشرة بعد."};
+    return {ready:true,demo:true,message:"الوضع التجريبي جاهز الآن للاختبار داخل راصد (مدة القاعة التجريبية محدودة)."};
   }
   function loadExternalApi(){
     if(window.JitsiMeetExternalAPI)return Promise.resolve();
@@ -55,6 +56,22 @@
     });
     return externalApiPromise;
   }
+
+  let demoExternalApiPromise=null;
+  function loadDemoExternalApi(){
+    if(window.JitsiMeetExternalAPI)return Promise.resolve();
+    if(demoExternalApiPromise)return demoExternalApiPromise;
+    demoExternalApiPromise=new Promise((resolve,reject)=>{
+      const s=document.createElement("script");
+      s.src="https://meet.jit.si/external_api.js";
+      s.async=true;
+      s.onload=()=>window.JitsiMeetExternalAPI?resolve():reject(new Error("تعذر تشغيل وضع الاختبار."));
+      s.onerror=()=>reject(new Error("تعذر تحميل مكتبة القاعة التجريبية."));
+      document.head.appendChild(s);
+    });
+    return demoExternalApiPromise;
+  }
+
   async function requestJaasToken(cfg,payload){
     const res=await fetch(cfg.tokenEndpoint,{
       method:"POST",
@@ -81,6 +98,58 @@
     if(!status.ready)throw new Error(status.message);
     const key=roomKey("room",rk||Date.now());
     container.innerHTML="";
+
+
+    const cfgType=String(cfg?.type||"none").toLowerCase();
+    const useDemo =
+      cfgType==="none" ||
+      (cfgType==="jaas" && (!safe(cfg?.jaasAppId) || !safe(cfg?.tokenEndpoint)));
+
+    if(useDemo){
+      await loadDemoExternalApi();
+      const api=new window.JitsiMeetExternalAPI("meet.jit.si",{
+        roomName:key,
+        parentNode:container,
+        width:"100%",
+        height:"100%",
+        userInfo:{
+          displayName:user.name||user.email||"مستخدم راصد",
+          email:user.email||""
+        },
+        configOverwrite:{
+          prejoinPageEnabled:false,
+          disableDeepLinking:true,
+          startWithAudioMuted:role==="observer",
+          startWithVideoMuted:role==="observer"
+        },
+        interfaceConfigOverwrite:{MOBILE_APP_PROMO:false}
+      });
+      let joined=false;
+      api.addEventListener("videoConferenceJoined",e=>{
+        joined=true;
+        onJoined({mode:"demo",event:e});
+      });
+      api.addEventListener("videoConferenceLeft",e=>{
+        if(joined)onLeft({mode:"demo",event:e});
+        joined=false;
+      });
+      api.addEventListener("readyToClose",e=>{
+        if(joined)onLeft({mode:"demo",event:e});
+        joined=false;
+      });
+      return {
+        mode:"demo",
+        roomKey:key,
+        dispose(){
+          try{api.dispose()}catch{}
+          if(joined){
+            try{onLeft({mode:"demo",reason:"dispose"})}catch{}
+          }
+          joined=false;
+          container.innerHTML="";
+        }
+      };
+    }
 
     if(String(cfg.type).toLowerCase()==="jaas"){
       await loadExternalApi();
