@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - حالة الرصد</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --navy:#073b68;
+  --navy2:#0d558c;
+  --gold:#d6a821;
+  --green:#198754;
+  --red:#dc3545;
+  --orange:#f0ad4e;
+  --ink:#172b3f;
+  --muted:#64748b;
+  --line:#dbe5ef;
+  --bg:#f3f6f9;
+}
+body{
+  margin:0;
+  font-family:Tahoma,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+.header{
+  background:linear-gradient(135deg,#062f55,#0b5d96);
+  color:#fff;
+  text-align:center;
+  padding:20px 15px 18px;
+  border-bottom:4px solid var(--gold);
+}
+.header img{
+  width:78px;height:78px;object-fit:contain;
+  background:#fff;border-radius:50%;padding:4px;
+}
+.header h1{margin:7px 0 3px;font-size:25px}
+.header p{margin:0;color:#f5d96d;font-weight:bold}
+.container{
+  max-width:1320px;
+  margin:20px auto 40px;
+  padding:0 12px;
+}
+.card{
+  background:#fff;
+  border:1px solid #e0e7ee;
+  border-radius:15px;
+  box-shadow:0 3px 14px rgba(20,55,85,.07);
+  margin-bottom:16px;
+  overflow:hidden;
+}
+.card-title{
+  padding:14px 18px;
+  background:#eef4fa;
+  border-bottom:1px solid #dbe5ef;
+  color:#123c63;
+  font-size:18px;
+  font-weight:900;
+}
+.card-body{padding:17px}
+.note{
+  background:#f8fbfe;
+  border:1px solid #dbe5ef;
+  color:#526779;
+  border-radius:9px;
+  padding:10px 12px;
+  line-height:1.8;
+  font-size:12px;
+  margin-bottom:14px;
+}
+.filters{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(155px,1fr));
+  gap:11px;
+  align-items:end;
+}
+label{
+  display:block;
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:6px;
+  color:#294b65;
+}
+select{
+  width:100%;
+  height:44px;
+  border:1px solid #cbd6df;
+  border-radius:8px;
+  padding:8px 10px;
+  background:#fff;
+  font-family:inherit;
+  color:#172b3f;
+}
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:14px;
+}
+.btn{
+  border:0;
+  border-radius:8px;
+  padding:11px 15px;
+  cursor:pointer;
+  font-weight:bold;
+  font-family:inherit;
+}
+.primary{background:var(--navy2);color:#fff}
+.gold{background:var(--gold);color:#173b5d}
+.light{background:#e9eef4;color:#23384a}
+.green{background:var(--green);color:#fff}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:10px;
+}
+.stat{
+  border:1px solid #dde6ed;
+  background:#fff;
+  border-radius:12px;
+  padding:13px 9px;
+  text-align:center;
+}
+.stat .n{
+  font-size:24px;
+  font-weight:900;
+  color:var(--navy);
+}
+.stat .l{
+  margin-top:5px;
+  font-size:11px;
+  color:#68798a;
+  line-height:1.4;
+}
+.progress-wrap{
+  margin-top:14px;
+  background:#eef2f5;
+  height:18px;
+  border-radius:20px;
+  overflow:hidden;
+  border:1px solid #dde4ea;
+}
+.progress-bar{
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#0d6efd,#198754);
+  transition:width .25s ease;
+}
+.progress-label{
+  margin-top:7px;
+  text-align:center;
+  font-size:12px;
+  font-weight:bold;
+  color:#40576a;
+}
+.summary-head{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.info{
+  padding:10px;
+  border-radius:9px;
+  background:#f8fbfd;
+  border:1px solid #dfe7ee;
+  font-size:12px;
+  line-height:1.6;
+}
+.info b{color:var(--navy)}
+.status-pill{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:18px;
+  font-size:11px;
+  font-weight:900;
+}
+.complete{background:#d1e7dd;color:#0f6b3e}
+.partial{background:#fff3cd;color:#7a5d00}
+.not-started{background:#f8d7da;color:#842029}
+.saved{background:#d1e7dd;color:#0f6b3e}
+.unsaved{background:#eceff2;color:#59636c}
+.absent{background:#fff3cd;color:#7a5d00}
+.table-wrap{
+  overflow:auto;
+  border:1px solid #e0e7ed;
+  border-radius:10px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:920px;
+}
+th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#174f7c;
+  color:#fff;
+}
+th,td{
+  padding:9px 8px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:center;
+  font-size:12px;
+}
+tr:nth-child(even){background:#f8fafc}
+.student-name{text-align:right;font-weight:bold}
+.report-only{display:none}
+.footer{
+  text-align:center;
+  color:#788a98;
+  font-size:11px;
+  padding:13px 5px;
+}
+@media(max-width:1050px){
+  .filters{grid-template-columns:repeat(3,1fr)}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .summary-head{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:650px){
+  .filters{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .summary-head{grid-template-columns:1fr 1fr}
+  .header h1{font-size:21px}
+}
+@media print{
+  @page{size:A4 landscape;margin:7mm}
+  body{background:#fff}
+  .no-print,.filters-card{display:none!important}
+  .container{max-width:none;margin:0;padding:0}
+  .card{box-shadow:none;border:0;margin:0 0 4mm;border-radius:0}
+  .card-title{background:#fff;border-bottom:1px solid #777;color:#000;padding:2mm 0;font-size:13pt}
+  .card-body{padding:2mm 0}
+  .header{background:#fff;color:#000;border-bottom:1.5px solid #555;padding:0 0 3mm}
+  .header img{width:50px;height:50px;padding:0;border-radius:0}
+  .header h1{font-size:15pt;margin:1mm 0}
+  .header p{color:#000;font-size:9pt}
+  .report-only{display:block}
+  .stats{grid-template-columns:repeat(8,1fr);gap:2mm}
+  .stat{border:1px solid #777;border-radius:0;padding:2mm 1mm}
+  .stat .n{color:#000;font-size:13pt}
+  .stat .l{font-size:7pt;color:#000}
+  .summary-head{grid-template-columns:repeat(6,1fr);gap:2mm}
+  .info{border:1px solid #777;background:#fff;border-radius:0;font-size:7.5pt;padding:1.5mm}
+  .info b{color:#000}
+  .progress-wrap{height:4mm;border:1px solid #777;background:#fff}
+  .progress-bar{background:#777!important}
+  .progress-label{font-size:8pt;color:#000}
+  .table-wrap{border:1px solid #777;border-radius:0;overflow:visible}
+  table{min-width:0}
+  th{position:static;background:#fff!important;color:#000!important}
+  th,td{font-size:7.3pt;padding:1.4mm;border:1px solid #aaa}
+  tr:nth-child(even){background:#fff}
+  .status-pill{border:1px solid #777;background:#fff!important;color:#000!important;padding:1mm 2mm;border-radius:0}
+  .print-footer{
+    display:grid!important;
+    grid-template-columns:repeat(2,1fr);
+    gap:8mm;
+    margin:4mm auto 0;
+    max-width:150mm;
+    text-align:center;
+    font-size:8pt;
+  }
+  .footer{font-size:7.5pt;color:#000;border-top:1px solid #777;margin-top:3mm;padding-top:2mm}
+}
+
+/* ===== التقرير الشامل لحالة الرصد ===== */
+.overview-tools{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:10px
+}
+.overview-tools>div{min-width:190px;flex:1}
+.overview-stats{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:10px 0 14px
+}
+.overview-stat{
+  border:1px solid #dbe5ee;border-radius:10px;background:#f8fbfd;
+  padding:10px;text-align:center;color:#64748b;font-size:11px
+}
+.overview-stat b{display:block;color:#174f7c;font-size:20px;margin-top:4px}
+.overview-table{min-width:1250px}
+.overview-table td,.overview-table th{font-size:11px}
+.status-pill.no-test{background:#eef1f4;color:#5d6975}
+.overview-loading{padding:18px;text-align:center;color:#64748b}
+@media(max-width:1000px){.overview-stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.overview-stats{grid-template-columns:1fr 1fr}.overview-tools>div{min-width:100%}}
+
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <img src="logo.jpeg" alt="شعار مدارس الفلاح">
+  <h1>مدارس الفلاح الأهلية</h1>
+  <p>نظام راصد - تقرير حالة الرصد</p>
+</header>
+
+<div class="container">
+
+  <div class="actions no-print">
+    <button class="btn light" onclick="history.back()">↩ رجوع</button>
+    <button class="btn primary" onclick="refreshAll()">↻ تحديث البيانات</button>
+  </div>
+
+
+  <section class="card" id="overviewCard">
+    <div class="card-title">📊 التقرير الشامل لحالة الرصد</div>
+    <div class="card-body">
+      <div class="note">
+        يظهر هذا التقرير تلقائيًا جميع المعلمين والمواد والصفوف والاختبارات،
+        ويحدد من أكمل الرصد ومن رصد جزئيًا ومن لم يبدأ. ويمكنك بعد ذلك استخدام
+        التقرير التفصيلي بالأسفل لأي معلم أو مادة أو فصل أو اختبار.
+      </div>
+
+      <div class="overview-stats">
+        <div class="overview-stat">إجمالي المعلمين<b id="ovTeachers">0</b></div>
+        <div class="overview-stat">مكتملون<b id="ovTeachersComplete">0</b></div>
+        <div class="overview-stat">رصد جزئي<b id="ovTeachersPartial">0</b></div>
+        <div class="overview-stat">لم يبدأوا<b id="ovTeachersNotStarted">0</b></div>
+        <div class="overview-stat">تقارير الاختبارات<b id="ovReports">0</b></div>
+        <div class="overview-stat">تقارير مكتملة<b id="ovComplete">0</b></div>
+        <div class="overview-stat">غير مكتملة<b id="ovIncomplete">0</b></div>
+      </div>
+
+      <div class="overview-tools no-print">
+        <div>
+          <label>بحث في التقرير الشامل</label>
+          <input id="overviewSearch" placeholder="المعلم / المادة / الصف / الاختبار" oninput="renderComprehensiveRows()">
+        </div>
+        <div>
+          <label>حالة الرصد</label>
+          <select id="overviewStatus" onchange="renderComprehensiveRows()">
+            <option value="">كل الحالات</option>
+            <option value="complete">الرصد مكتمل</option>
+            <option value="partial">الرصد جزئي</option>
+            <option value="not-started">لم يبدأ الرصد</option>
+            <option value="no-test">لا يوجد اختبار</option>
+          </select>
+        </div>
+        <button class="btn primary" onclick="generateComprehensiveReport()">↻ تحديث التقرير الشامل</button>
+        <button class="btn gold" onclick="printComprehensive()">🖨️ طباعة التقرير الشامل</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="overview-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المعلم</th>
+              <th>المادة</th>
+              <th>الصف / الشعبة</th>
+              <th>الاختبار</th>
+              <th>الطلاب</th>
+              <th>تم الرصد</th>
+              <th>غير مرصود</th>
+              <th>النسبة</th>
+              <th>الحالة</th>
+              <th>آخر تحديث</th>
+              <th class="no-print">تفاصيل</th>
+            </tr>
+          </thead>
+          <tbody id="overviewBody">
+            <tr><td colspan="12" class="overview-loading">جاري إعداد التقرير الشامل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card filters-card">
+    <div class="card-title">🔎 التقرير التفصيلي — اختيار معلم / مادة / فصل / اختبار</div>
+    <div class="card-body">
+      <div class="note">
+        هذا القسم اختياري للتفاصيل. اختر المعلم ثم المادة والصف والشعبة والاختبار لعرض سجل الطلاب بالتفصيل.
+      </div>
+
+      <div class="filters">
+        <div>
+          <label>المعلم</label>
+          <select id="teacherFilter" onchange="teacherChanged()">
+            <option value="">-- اختر المعلم --</option>
+          </select>
+        </div>
+
+        <div>
+          <label>المادة</label>
+          <select id="subjectFilter" onchange="subjectChanged()" disabled>
+            <option value="">-- اختر المادة --</option>
+          </select>
+        </div>
+
+        <div>
+          <label>الصف</label>
+          <select id="gradeFilter" onchange="gradeChanged()" disabled>
+            <option value="">-- اختر الصف --</option>
+          </select>
+        </div>
+
+        <div>
+          <label>الشعبة</label>
+          <select id="sectionFilter" onchange="sectionChanged()" disabled>
+            <option value="">-- اختر الشعبة --</option>
+          </select>
+        </div>
+
+        <div>
+          <label>الاختبار</label>
+          <select id="testFilter" disabled>
+            <option value="">-- اختر الاختبار --</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn green" onclick="generateReport()">📊 عرض تقرير حالة الرصد</button>
+        <button class="btn light" onclick="clearFilters()">مسح الاختيارات</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="reportArea" style="display:none">
+
+    <section class="card">
+      <div class="card-title">📋 بيانات التقرير</div>
+      <div class="card-body">
+        <div class="summary-head">
+          <div class="info"><b>المعلم</b><br><span id="rTeacher">-</span></div>
+          <div class="info"><b>المادة</b><br><span id="rSubject">-</span></div>
+          <div class="info"><b>الاختبار</b><br><span id="rTest">-</span></div>
+          <div class="info"><b>الصف / الشعبة</b><br><span id="rClass">-</span></div>
+          <div class="info"><b>الدرجة النهائية</b><br><span id="rFullMark">-</span></div>
+          <div class="info"><b>تاريخ الاختبار</b><br><span id="rTestDate">-</span></div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="n" id="sTotal">0</div><div class="l">إجمالي الطلاب</div></div>
+          <div class="stat"><div class="n" id="sSaved">0</div><div class="l">تم حفظ رصدهم</div></div>
+          <div class="stat"><div class="n" id="sPresent">0</div><div class="l">الحاضرون المرصودون</div></div>
+          <div class="stat"><div class="n" id="sAbsent">0</div><div class="l">الغائبون</div></div>
+          <div class="stat"><div class="n" id="sMissing">0</div><div class="l">غير المرصودين</div></div>
+          <div class="stat"><div class="n" id="sAverage">-</div><div class="l">متوسط الدرجات</div></div>
+          <div class="stat"><div class="n" id="sHighest">-</div><div class="l">أعلى درجة</div></div>
+          <div class="stat"><div class="n" id="sLowest">-</div><div class="l">أقل درجة</div></div>
+        </div>
+
+        <div class="progress-wrap">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <div id="progressLabel" class="progress-label">نسبة اكتمال الرصد: 0%</div>
+
+        <div class="summary-head" style="margin-top:14px">
+          <div class="info"><b>حالة الرصد</b><br><span id="rStatus">-</span></div>
+          <div class="info"><b>آخر تحديث للرصد</b><br><span id="rLastUpdate">-</span></div>
+          <div class="info"><b>عدد الدرجات الفعلية</b><br><span id="rMarksCount">-</span></div>
+          <div class="info"><b>نسبة الحضور</b><br><span id="rAttendanceRate">-</span></div>
+          <div class="info"><b>نسبة الغياب</b><br><span id="rAbsenceRate">-</span></div>
+          <div class="info"><b>تاريخ إنشاء التقرير</b><br><span id="rGeneratedAt">-</span></div>
+        </div>
+
+        <div class="actions no-print">
+          <button class="btn gold" onclick="window.print()">🖨️ طباعة التقرير</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">👨‍🎓 تفاصيل رصد الطلاب</div>
+      <div class="card-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>كود الطالب</th>
+                <th>اسم الطالب</th>
+                <th>الحالة</th>
+                <th>الحضور</th>
+                <th>الدرجة</th>
+                <th>النسبة</th>
+                <th>آخر تحديث</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="report-only print-footer">
+      <div><b>المشرف العام</b><br>أحمد سمير</div>
+      <div><b>مدير المدرسة</b><br>عبد العزيز القحطاني</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    مدارس الفلاح الأهلية - نظام راصد - تصميم محمد عامر أحمد
+  </div>
+
+</div>
+
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd",
+  storageBucket:"results2026-7c0dd.firebasestorage.app",
+  messagingSenderId:"241421115694",
+  appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+const el=id=>document.getElementById(id);
+
+const esc=v=>String(v??"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+const GRADE_ORDER=[
+"1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي",
+"1 متوسط","2 متوسط","3 متوسط",
+"1 ثانوي","2 ثانوي","3 ثانوي"
+];
+const SECTION_ORDER=["أ","ب","ج","د"];
+
+let teachers=[];
+let tests=[];
+let students=[];
+let comprehensiveRows=[];
+let comprehensiveGeneratedAt=null;
+let currentSupervisorType="general_supervisor";
+let assignedTeacherEmails=[];
+
+function protect(){
+  const role=(localStorage.getItem("currentUserRole")||"").toLowerCase();
+
+  if(["admin","superadmin","manager"].includes(role))return true;
+
+  if(role==="supervisor"){
+    let p={};
+    try{p=JSON.parse(localStorage.getItem("currentUserPermissions")||"{}")}catch{}
+    if(p.monitoringView!==false)return true;
+  }
+
+  alert("ليس لديك صلاحية فتح تقرير حالة الرصد.");
+  location.href="index.html";
+  return false;
+}
+
+async function loadSupervisorScope(){
+  const role=(localStorage.getItem("currentUserRole")||"").toLowerCase();
+  if(role!=="supervisor"){currentSupervisorType="general_supervisor";assignedTeacherEmails=[];return}
+  const u=(localStorage.getItem("currentUserEmail")||localStorage.getItem("currentUser")||"").trim().toLowerCase();
+  if(!u)return;
+  const d=await db.collection("users").doc(u).get();
+  if(!d.exists)return;
+  const x=d.data()||{};
+  currentSupervisorType=String(x.supervisorType||"general_supervisor").toLowerCase();
+  assignedTeacherEmails=Array.isArray(x.assignedTeacherEmails)?x.assignedTeacherEmails.map(v=>String(v||"").trim().toLowerCase()).filter(Boolean):[];
+}
+
+function teacherAssignments(teacher){
+  return Array.isArray(teacher?.assignments)
+    ? teacher.assignments.filter(a=>a.subjectId&&a.grade&&a.section)
+    : [];
+}
+
+function selectedTeacher(){
+  return teachers.find(t=>String(t.email)===String(el("teacherFilter").value))||null;
+}
+
+function setSelect(id,items,placeholder,disabled=false){
+  const s=el(id);
+  s.innerHTML=`<option value="">${esc(placeholder)}</option>`+
+    items.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join("");
+  s.disabled=!!disabled;
+}
+
+async function loadBaseData(){
+  const [teacherSnap,testSnap,studentSnap]=await Promise.all([
+    db.collection("teachers").get(),
+    db.collection("tests").get(),
+    db.collection("students").get()
+  ]);
+
+  teachers=teacherSnap.docs.map(d=>({email:d.id,...d.data()}));
+  if(currentSupervisorType==="supervisor"){
+    const allowed=new Set(assignedTeacherEmails);
+    teachers=teachers.filter(t=>allowed.has(String(t.email||"").trim().toLowerCase()));
+  }
+  teachers=teachers.sort((a,b)=>String(a.name||a.email).localeCompare(String(b.name||b.email),"ar"));
+
+  tests=testSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+  students=studentSnap.docs.map(d=>{
+    const x=d.data()||{};
+    return {code:String(x.code||d.id),...x};
+  });
+
+  setSelect(
+    "teacherFilter",
+    teachers.map(t=>({value:t.email,label:t.name||t.email})),
+    "-- اختر المعلم --"
+  );
+
+  clearDependentFilters();
+}
+
+function clearDependentFilters(){
+  setSelect("subjectFilter",[],"-- اختر المادة --",true);
+  setSelect("gradeFilter",[],"-- اختر الصف --",true);
+  setSelect("sectionFilter",[],"-- اختر الشعبة --",true);
+  setSelect("testFilter",[],"-- اختر الاختبار --",true);
+  el("reportArea").style.display="none";
+}
+
+function teacherChanged(){
+  const t=selectedTeacher();
+  setSelect("gradeFilter",[],"-- اختر الصف --",true);
+  setSelect("sectionFilter",[],"-- اختر الشعبة --",true);
+  setSelect("testFilter",[],"-- اختر الاختبار --",true);
+  el("reportArea").style.display="none";
+
+  if(!t){
+    setSelect("subjectFilter",[],"-- اختر المادة --",true);
+    return;
+  }
+
+  const map=new Map();
+  teacherAssignments(t).forEach(a=>{
+    if(!map.has(String(a.subjectId))){
+      map.set(String(a.subjectId),a.subjectName||a.subject||"المادة");
+    }
+  });
+
+  const items=[...map.entries()]
+    .sort((a,b)=>String(a[1]).localeCompare(String(b[1]),"ar"))
+    .map(([value,label])=>({value,label}));
+
+  setSelect("subjectFilter",items,"-- اختر المادة --",false);
+}
+
+function subjectChanged(){
+  const t=selectedTeacher();
+  const subjectId=el("subjectFilter").value;
+
+  setSelect("sectionFilter",[],"-- اختر الشعبة --",true);
+  setSelect("testFilter",[],"-- اختر الاختبار --",true);
+  el("reportArea").style.display="none";
+
+  if(!t||!subjectId){
+    setSelect("gradeFilter",[],"-- اختر الصف --",true);
+    return;
+  }
+
+  const grades=[...new Set(
+    teacherAssignments(t)
+      .filter(a=>String(a.subjectId)===String(subjectId))
+      .map(a=>a.grade)
+      .filter(Boolean)
+  )].sort((a,b)=>GRADE_ORDER.indexOf(a)-GRADE_ORDER.indexOf(b));
+
+  setSelect(
+    "gradeFilter",
+    grades.map(g=>({value:g,label:g})),
+    "-- اختر الصف --",
+    false
+  );
+}
+
+function gradeChanged(){
+  const t=selectedTeacher();
+  const subjectId=el("subjectFilter").value;
+  const grade=el("gradeFilter").value;
+
+  setSelect("testFilter",[],"-- اختر الاختبار --",true);
+  el("reportArea").style.display="none";
+
+  if(!t||!subjectId||!grade){
+    setSelect("sectionFilter",[],"-- اختر الشعبة --",true);
+    return;
+  }
+
+  const sections=[...new Set(
+    teacherAssignments(t)
+      .filter(a=>String(a.subjectId)===String(subjectId)&&a.grade===grade)
+      .map(a=>a.section)
+      .filter(Boolean)
+  )].sort((a,b)=>SECTION_ORDER.indexOf(a)-SECTION_ORDER.indexOf(b));
+
+  setSelect(
+    "sectionFilter",
+    sections.map(s=>({value:s,label:s})),
+    "-- اختر الشعبة --",
+    false
+  );
+}
+
+function testMatchesClass(test,grade,section){
+  const classes=Array.isArray(test.classes)?test.classes:[];
+  if(!classes.length)return true;
+  return classes.some(c=>
+    String(c.grade||"").trim()===String(grade||"").trim() &&
+    String(c.section||"").trim()===String(section||"").trim()
+  );
+}
+
+function sectionChanged(){
+  const subjectId=el("subjectFilter").value;
+  const grade=el("gradeFilter").value;
+  const section=el("sectionFilter").value;
+  el("reportArea").style.display="none";
+
+  if(!subjectId||!grade||!section){
+    setSelect("testFilter",[],"-- اختر الاختبار --",true);
+    return;
+  }
+
+  const filtered=tests
+    .filter(t=>
+      String(t.subjectId||"")===String(subjectId) &&
+      testMatchesClass(t,grade,section)
+    )
+    .sort((a,b)=>{
+      const d=String(b.date||"").localeCompare(String(a.date||""));
+      if(d!==0)return d;
+      return String(a.name||"").localeCompare(String(b.name||""),"ar");
+    });
+
+  setSelect(
+    "testFilter",
+    filtered.map(t=>({
+      value:t.id,
+      label:(t.name||"اختبار")+" — "+(t.date||"بدون تاريخ")
+    })),
+    "-- اختر الاختبار --",
+    false
+  );
+}
+
+function formatDateTime(value){
+  if(!value)return "—";
+  try{
+    const d=typeof value.toDate==="function"?value.toDate():new Date(value);
+    if(Number.isNaN(d.getTime()))return "—";
+    return new Intl.DateTimeFormat("ar-SA",{
+      year:"numeric",month:"2-digit",day:"2-digit",
+      hour:"2-digit",minute:"2-digit"
+    }).format(d);
+  }catch{return "—"}
+}
+
+function timestampMs(value){
+  if(!value)return 0;
+  try{
+    const d=typeof value.toDate==="function"?value.toDate():new Date(value);
+    return Number.isNaN(d.getTime())?0:d.getTime();
+  }catch{return 0}
+}
+
+function reportStatus(saved,total){
+  if(!total)return {text:"لا يوجد طلاب",cls:"not-started"};
+  if(saved===0)return {text:"لم يبدأ الرصد",cls:"not-started"};
+  if(saved<total)return {text:"الرصد جزئي",cls:"partial"};
+  return {text:"الرصد مكتمل",cls:"complete"};
+}
+
+
+function classStudentsFor(grade,section){
+  return students.filter(s=>
+    String(s.grade||"")===String(grade||"") &&
+    String(s.section||"")===String(section||"")
+  );
+}
+
+function assignmentSubjectName(teacher,assignment){
+  return assignment?.subjectName ||
+    tests.find(t=>String(t.subjectId||"")===String(assignment?.subjectId||""))?.subjectName ||
+    "—";
+}
+
+function teacherMatchesGradeRow(teacher,row){
+  const email=String(row.teacherEmail||"").trim().toLowerCase();
+  const teacherEmail=String(teacher.email||"").trim().toLowerCase();
+  if(email)return email===teacherEmail;
+  const name=String(row.teacherName||"").trim();
+  return !!name && name===String(teacher.name||"").trim();
+}
+
+function latestStudentRows(rows,validCodes){
+  const byStudent=new Map();
+  rows.forEach(r=>{
+    const code=String(r.studentCode||"");
+    if(validCodes && !validCodes.has(code))return;
+    const prev=byStudent.get(code);
+    if(!prev || timestampMs(r.updatedAt)>=timestampMs(prev.updatedAt)){
+      byStudent.set(code,r);
+    }
+  });
+  return byStudent;
+}
+
+function overviewStatusLabel(code){
+  if(code==="complete")return "الرصد مكتمل";
+  if(code==="partial")return "الرصد جزئي";
+  if(code==="not-started")return "لم يبدأ الرصد";
+  return "لا يوجد اختبار";
+}
+
+async function generateComprehensiveReport(){
+  const body=el("overviewBody");
+  body.innerHTML='<tr><td colspan="12" class="overview-loading">جاري قراءة جميع سجلات الرصد وإعداد التقرير الشامل...</td></tr>';
+
+  try{
+    const gradeSnap=await db.collection("grades").get();
+    const allGrades=gradeSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    const rows=[];
+
+    teachers.forEach(teacher=>{
+      const assignments=teacherAssignments(teacher);
+
+      assignments.forEach(a=>{
+        const matchingTests=tests.filter(t=>
+          String(t.subjectId||"")===String(a.subjectId||"") &&
+          testMatchesClass(t,a.grade,a.section)
+        );
+
+        if(!matchingTests.length){
+          rows.push({
+            teacherEmail:teacher.email,
+            teacherName:teacher.name||teacher.email,
+            subjectId:a.subjectId,
+            subjectName:assignmentSubjectName(teacher,a),
+            grade:a.grade,
+            section:a.section,
+            testId:"",
+            testName:"—",
+            testDate:"",
+            total:classStudentsFor(a.grade,a.section).length,
+            saved:0,
+            missing:classStudentsFor(a.grade,a.section).length,
+            percent:0,
+            statusCode:"no-test",
+            lastUpdate:null
+          });
+          return;
+        }
+
+        matchingTests.forEach(test=>{
+          const classStudents=classStudentsFor(a.grade,a.section);
+          const codes=new Set(classStudents.map(s=>String(s.code)));
+
+          const related=allGrades.filter(r=>
+            String(r.testId||"")===String(test.id) &&
+            teacherMatchesGradeRow(teacher,r) &&
+            String(r.subjectId||"")===String(a.subjectId||"") &&
+            String(r.grade||"")===String(a.grade||"") &&
+            String(r.section||"")===String(a.section||"")
+          );
+
+          const byStudent=latestStudentRows(related,codes);
+          const total=classStudents.length;
+          const saved=[...codes].filter(code=>byStudent.has(code)).length;
+          const missing=Math.max(0,total-saved);
+          const percent=total?Math.round(saved/total*100):0;
+          const st=reportStatus(saved,total);
+
+          let lastUpdate=null;
+          byStudent.forEach(r=>{
+            if(timestampMs(r.updatedAt)>timestampMs(lastUpdate))lastUpdate=r.updatedAt;
+          });
+
+          rows.push({
+            teacherEmail:teacher.email,
+            teacherName:teacher.name||teacher.email,
+            subjectId:a.subjectId,
+            subjectName:test.subjectName||assignmentSubjectName(teacher,a),
+            grade:a.grade,
+            section:a.section,
+            testId:test.id,
+            testName:test.name||"اختبار",
+            testDate:test.date||"",
+            total,saved,missing,percent,
+            statusCode:st.cls,
+            lastUpdate
+          });
+        });
+      });
+    });
+
+    rows.sort((a,b)=>{
+      let c=String(a.teacherName).localeCompare(String(b.teacherName),"ar");
+      if(c)return c;
+      c=String(a.subjectName).localeCompare(String(b.subjectName),"ar");
+      if(c)return c;
+      c=GRADE_ORDER.indexOf(a.grade)-GRADE_ORDER.indexOf(b.grade);
+      if(c)return c;
+      c=SECTION_ORDER.indexOf(a.section)-SECTION_ORDER.indexOf(b.section);
+      if(c)return c;
+      return String(b.testDate||"").localeCompare(String(a.testDate||""));
+    });
+
+    comprehensiveRows=rows;
+    comprehensiveGeneratedAt=new Date();
+
+    const byTeacher=new Map();
+    teachers.forEach(t=>byTeacher.set(String(t.email),[]));
+    rows.filter(r=>r.statusCode!=="no-test").forEach(r=>{
+      if(!byTeacher.has(String(r.teacherEmail)))byTeacher.set(String(r.teacherEmail),[]);
+      byTeacher.get(String(r.teacherEmail)).push(r);
+    });
+
+    let tc=0,tp=0,tn=0;
+    teachers.forEach(t=>{
+      const rr=byTeacher.get(String(t.email))||[];
+      if(!rr.length){tn++;return}
+      if(rr.every(x=>x.statusCode==="complete"))tc++;
+      else if(rr.every(x=>x.statusCode==="not-started"))tn++;
+      else tp++;
+    });
+
+    const actual=rows.filter(r=>r.statusCode!=="no-test");
+    el("ovTeachers").textContent=teachers.length;
+    el("ovTeachersComplete").textContent=tc;
+    el("ovTeachersPartial").textContent=tp;
+    el("ovTeachersNotStarted").textContent=tn;
+    el("ovReports").textContent=actual.length;
+    el("ovComplete").textContent=actual.filter(r=>r.statusCode==="complete").length;
+    el("ovIncomplete").textContent=actual.filter(r=>r.statusCode!=="complete").length;
+
+    renderComprehensiveRows();
+
+  }catch(error){
+    console.error("COMPREHENSIVE MONITORING",error);
+    body.innerHTML='<tr><td colspan="12">تعذر إعداد التقرير الشامل: '+esc(error.message||error)+'</td></tr>';
+  }
+}
+
+function renderComprehensiveRows(){
+  const body=el("overviewBody");
+  if(!body)return;
+
+  const q=String(el("overviewSearch")?.value||"").trim().toLowerCase();
+  const status=String(el("overviewStatus")?.value||"");
+
+  const filtered=comprehensiveRows.filter(r=>{
+    if(status && r.statusCode!==status)return false;
+    if(!q)return true;
+    return [
+      r.teacherName,r.teacherEmail,r.subjectName,r.grade,r.section,r.testName,r.testDate
+    ].join(" ").toLowerCase().includes(q);
+  });
+
+  body.innerHTML=filtered.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${esc(r.teacherName)}</b><br><small>${esc(r.teacherEmail)}</small></td>
+      <td>${esc(r.subjectName)}</td>
+      <td>${esc(r.grade)} / ${esc(r.section)}</td>
+      <td>${r.testId?`<b>${esc(r.testName)}</b><br><small>${esc(r.testDate||"بدون تاريخ")}</small>`:"—"}</td>
+      <td>${r.total}</td>
+      <td>${r.saved}</td>
+      <td>${r.missing}</td>
+      <td><b>${r.statusCode==="no-test"?"—":r.percent+"%"}</b></td>
+      <td><span class="status-pill ${esc(r.statusCode)}">${esc(overviewStatusLabel(r.statusCode))}</span></td>
+      <td>${esc(formatDateTime(r.lastUpdate))}</td>
+      <td class="no-print">${r.testId?`<button class="btn light" style="padding:5px 8px" onclick='openComprehensiveDetail(${JSON.stringify(r.teacherEmail)},${JSON.stringify(r.subjectId)},${JSON.stringify(r.grade)},${JSON.stringify(r.section)},${JSON.stringify(r.testId)})'>فتح</button>`:"—"}</td>
+    </tr>
+  `).join("") || '<tr><td colspan="12">لا توجد نتائج مطابقة.</td></tr>';
+}
+
+function openComprehensiveDetail(teacherEmail,subjectId,grade,section,testId){
+  el("teacherFilter").value=teacherEmail;
+  teacherChanged();
+  el("subjectFilter").value=subjectId;
+  subjectChanged();
+  el("gradeFilter").value=grade;
+  gradeChanged();
+  el("sectionFilter").value=section;
+  sectionChanged();
+  el("testFilter").value=testId;
+  generateReport();
+  setTimeout(()=>el("reportArea")?.scrollIntoView({behavior:"smooth",block:"start"}),100);
+}
+
+function printComprehensive(){
+  const detail=el("reportArea");
+  const filters=document.querySelector(".filters-card");
+  const oldDetail=detail?.style.display;
+  if(detail)detail.style.display="none";
+  if(filters)filters.classList.add("no-print");
+  window.print();
+  if(detail)detail.style.display=oldDetail||"none";
+}
+
+async function generateReport(){
+  const teacher=selectedTeacher();
+  const subjectId=el("subjectFilter").value;
+  const grade=el("gradeFilter").value;
+  const section=el("sectionFilter").value;
+  const testId=el("testFilter").value;
+
+  if(!teacher||!subjectId||!grade||!section||!testId){
+    alert("اختر المعلم والمادة والصف والشعبة والاختبار أولًا.");
+    return;
+  }
+
+  const test=tests.find(t=>String(t.id)===String(testId));
+  if(!test){
+    alert("تعذر العثور على الاختبار.");
+    return;
+  }
+
+  const classStudents=students
+    .filter(s=>
+      String(s.grade||"")===String(grade) &&
+      String(s.section||"")===String(section)
+    )
+    .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));
+
+  const body=el("studentsBody");
+  body.innerHTML='<tr><td colspan="8">جاري تحميل بيانات الرصد...</td></tr>';
+  el("reportArea").style.display="block";
+
+  try{
+    const snap=await db.collection("grades")
+      .where("testId","==",String(testId))
+      .get();
+
+    const teacherEmail=String(teacher.email||"").trim().toLowerCase();
+    const teacherName=String(teacher.name||"").trim();
+
+    const gradeRows=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(r=>{
+        const email=String(r.teacherEmail||"").trim().toLowerCase();
+        const name=String(r.teacherName||"").trim();
+        const teacherMatch=email
+          ? email===teacherEmail
+          : (!!teacherName && name===teacherName);
+
+        return teacherMatch &&
+          String(r.subjectId||"")===String(subjectId) &&
+          String(r.grade||"")===String(grade) &&
+          String(r.section||"")===String(section);
+      });
+
+    const currentCodes=new Set(classStudents.map(s=>String(s.code)));
+    const byStudent=new Map();
+
+    gradeRows.forEach(r=>{
+      const code=String(r.studentCode||"");
+      if(!currentCodes.has(code))return;
+
+      const previous=byStudent.get(code);
+      if(!previous || timestampMs(r.updatedAt)>=timestampMs(previous.updatedAt)){
+        byStudent.set(code,r);
+      }
+    });
+
+    const total=classStudents.length;
+    const saved=classStudents.filter(s=>byStudent.has(String(s.code))).length;
+
+    let present=0;
+    let absent=0;
+    let marks=[];
+    let latest=null;
+
+    byStudent.forEach(r=>{
+      if(String(r.attendance||"").toLowerCase()==="absent"){
+        absent++;
+      }else{
+        present++;
+        if(r.mark!==null && r.mark!==undefined && r.mark!=="" && !Number.isNaN(Number(r.mark))){
+          marks.push(Number(r.mark));
+        }
+      }
+
+      if(timestampMs(r.updatedAt)>timestampMs(latest)){
+        latest=r.updatedAt;
+      }
+    });
+
+    const missing=Math.max(0,total-saved);
+    const percent=total?Math.round((saved/total)*100):0;
+    const avg=marks.length?(marks.reduce((a,b)=>a+b,0)/marks.length):null;
+    const highest=marks.length?Math.max(...marks):null;
+    const lowest=marks.length?Math.min(...marks):null;
+    const attendanceRate=saved?((present/saved)*100):0;
+    const absenceRate=saved?((absent/saved)*100):0;
+    const status=reportStatus(saved,total);
+
+    el("rTeacher").textContent=teacher.name||teacher.email;
+    el("rSubject").textContent=test.subjectName||teacherAssignments(teacher).find(a=>String(a.subjectId)===String(subjectId))?.subjectName||"-";
+    el("rTest").textContent=test.name||"-";
+    el("rClass").textContent=grade+" / "+section;
+    el("rFullMark").textContent=test.fullMark??"-";
+    el("rTestDate").textContent=test.date||"-";
+
+    el("sTotal").textContent=total;
+    el("sSaved").textContent=saved;
+    el("sPresent").textContent=present;
+    el("sAbsent").textContent=absent;
+    el("sMissing").textContent=missing;
+    el("sAverage").textContent=avg===null?"-":avg.toFixed(2);
+    el("sHighest").textContent=highest===null?"-":highest;
+    el("sLowest").textContent=lowest===null?"-":lowest;
+
+    el("progressBar").style.width=percent+"%";
+    el("progressLabel").textContent="نسبة اكتمال الرصد: "+percent+"% ("+saved+" من "+total+")";
+
+    el("rStatus").innerHTML=`<span class="status-pill ${status.cls}">${esc(status.text)}</span>`;
+    el("rLastUpdate").textContent=formatDateTime(latest);
+    el("rMarksCount").textContent=marks.length;
+    el("rAttendanceRate").textContent=saved?attendanceRate.toFixed(1)+"%":"-";
+    el("rAbsenceRate").textContent=saved?absenceRate.toFixed(1)+"%":"-";
+    el("rGeneratedAt").textContent=new Intl.DateTimeFormat("ar-SA",{
+      year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"
+    }).format(new Date());
+
+    if(!classStudents.length){
+      body.innerHTML='<tr><td colspan="8">لا يوجد طلاب مسجلون في هذا الفصل.</td></tr>';
+      return;
+    }
+
+    body.innerHTML=classStudents.map((s,i)=>{
+      const r=byStudent.get(String(s.code));
+      if(!r){
+        return `<tr>
+          <td>${i+1}</td>
+          <td>${esc(s.code)}</td>
+          <td class="student-name">${esc(s.name||"-")}</td>
+          <td><span class="status-pill unsaved">غير مرصود</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>`;
+      }
+
+      const isAbsent=String(r.attendance||"").toLowerCase()==="absent";
+      const hasMark=!isAbsent && r.mark!==null && r.mark!==undefined && r.mark!=="" && !Number.isNaN(Number(r.mark));
+      const full=Number(r.fullMark??test.fullMark);
+      const pct=hasMark && full>0 ? ((Number(r.mark)/full)*100) : null;
+
+      return `<tr>
+        <td>${i+1}</td>
+        <td>${esc(s.code)}</td>
+        <td class="student-name">${esc(s.name||r.studentName||"-")}</td>
+        <td><span class="status-pill saved">محفوظ</span></td>
+        <td>${isAbsent?'<span class="status-pill absent">غائب</span>':'حاضر'}</td>
+        <td>${isAbsent?'—':(hasMark?esc(r.mark+" / "+(r.fullMark??test.fullMark)):'غير مكتملة')}</td>
+        <td>${pct===null?'—':pct.toFixed(1)+"%"}</td>
+        <td>${esc(formatDateTime(r.updatedAt))}</td>
+      </tr>`;
+    }).join("");
+
+  }catch(error){
+    console.error(error);
+    body.innerHTML='<tr><td colspan="8">تعذر تحميل تقرير الرصد.</td></tr>';
+    alert("تعذر تحميل تقرير حالة الرصد:\n"+error.message);
+  }
+}
+
+function clearFilters(){
+  el("teacherFilter").value="";
+  clearDependentFilters();
+}
+
+async function refreshAll(){
+  el("reportArea").style.display="none";
+  await loadBaseData();
+  await generateComprehensiveReport();
+  alert("تم تحديث بيانات حالة الرصد ✅");
+}
+
+async function start(){
+  if(!protect())return;
+
+  try{
+    await loadSupervisorScope();
+    await loadBaseData();
+    await generateComprehensiveReport();
+  }catch(error){
+    console.error(error);
+    alert("تعذر تحميل بيانات حالة الرصد:\n"+error.message);
+  }
+}
+
+start();
+</script>
+
+</body>
+</html>
