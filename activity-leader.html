@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - رائد النشاط</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{--navy:#073b68;--navy2:#0d558c;--gold:#d6a821;--text:#172b3f;--muted:#64748b;--line:#dbe5ef}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:var(--text)}
+.header{background:linear-gradient(135deg,#06365f,#0a558b);color:#fff;padding:18px;text-align:center;border-bottom:4px solid var(--gold)}
+.logo{width:76px;height:76px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}
+.header h1{margin:8px 0 4px}
+.header .sub{color:#f4d77b;font-weight:bold}
+.leader-strip{margin-top:10px;font-size:13px}
+.container{width:min(1180px,96%);margin:20px auto 40px}
+.card{background:#fff;border:1px solid #dfe6ec;border-radius:14px;margin-bottom:18px;box-shadow:0 3px 14px rgba(0,0,0,.06);overflow:hidden}
+.title{padding:15px 18px;background:#eef4fa;color:#0a4779;font-weight:bold;font-size:18px}
+.body{padding:18px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.full{grid-column:1/-1}
+label{display:block;font-weight:bold;font-size:13px;margin-bottom:6px}
+input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-family:inherit;background:#fff}
+textarea{min-height:110px;resize:vertical}
+.classes{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;max-height:300px;overflow:auto;padding:3px}
+.class-item{border:1px solid #dbe5ef;border-radius:8px;padding:9px;background:#fafcff}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{border:0;border-radius:8px;padding:11px 16px;font-weight:bold;cursor:pointer}
+.primary{background:#174f7c;color:#fff}.gold{background:#d6a821;color:#173b5d}.green{background:#198754;color:#fff}.light{background:#e9eef4}.danger{background:#dc3545;color:#fff}
+.status{display:inline-block;padding:5px 10px;border-radius:18px;background:#eef4fa;font-weight:bold}
+.activity{border:1px solid #dfe6ec;border-radius:10px;padding:14px;margin-bottom:10px}
+.muted{color:#6b7280;font-size:12px}
+.note{background:#fff8db;border:1px solid #efd77f;color:#715d00;padding:10px 12px;border-radius:9px;line-height:1.8;font-size:12px;margin-bottom:14px}
+.teacher-box{background:#eef7ff;border:1px solid #c9def0;padding:10px 12px;border-radius:9px;color:#174f7c;font-size:12px;line-height:1.8}
+.footer{text-align:center;color:#758596;font-size:11px;padding:15px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.classes{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<img src="logo.jpeg" class="logo" alt="شعار مدارس الفلاح">
+<h1>مدارس الفلاح الأهلية</h1>
+<div class="sub">نظام راصد - رائد النشاط</div>
+<div class="leader-strip">رائد النشاط: <strong id="leaderHeaderName">جاري التحميل...</strong></div>
+</header>
+
+<div class="container">
+
+<div class="actions">
+<button class="btn light" onclick="logout()">تسجيل الخروج</button>
+</div>
+
+<div class="card">
+<div class="title">🎯 توثيق نشاط جديد</div>
+<div class="body">
+
+<div class="note">
+اختر أولًا <strong>منفذ النشاط</strong>:
+إما معلم من المعلمين المسجلين في راصد، أو <strong>رائد النشاط نفسه</strong> إذا كان النشاط عامًا وينفذه رائد النشاط مباشرة.
+اسم رائد النشاط يؤخذ تلقائيًا من حسابه ويظهر في التقرير والطباعة.
+</div>
+
+<input type="hidden" id="editId">
+
+<div class="grid">
+
+<div>
+<label>منفذ النشاط</label>
+<select id="executorType" onchange="executorTypeChanged()">
+<option value="teacher">👨‍🏫 معلم</option>
+<option value="activity_leader">🎯 رائد النشاط نفسه</option>
+</select>
+</div>
+
+<div id="teacherExecutorBlock">
+<label>المعلم منفذ النشاط</label>
+<select id="teacherSelect" onchange="teacherChanged()">
+<option value="">-- اختر المعلم --</option>
+</select>
+<div id="teacherInfo" class="teacher-box" style="display:none;margin-top:8px"></div>
+</div>
+
+<div id="selfExecutorBlock" class="full" style="display:none">
+<div class="teacher-box">
+<b>منفذ النشاط:</b>
+<span id="selfExecutorName">رائد النشاط</span>
+<br>
+سيتم تسجيل هذا النشاط كنشاط عام ينفذه ويوثقه رائد النشاط بنفسه.
+</div>
+</div>
+
+<div>
+<label>اسم النشاط</label>
+<input id="activityTitle">
+</div>
+
+<div>
+<label>نوع النشاط</label>
+<select id="activityType">
+<option>صفي</option>
+<option>لا صفي</option>
+<option>مسابقة</option>
+<option>برنامج</option>
+<option>زيارة</option>
+<option>فعالية</option>
+<option>أخرى</option>
+</select>
+</div>
+
+<div>
+<label>اليوم</label>
+<input id="activityDay" placeholder="مثال: الأحد">
+</div>
+
+<div>
+<label>التاريخ</label>
+<input type="date" id="activityDate">
+</div>
+
+<div>
+<label>المكان</label>
+<input id="activityLocation">
+</div>
+
+<div>
+<label>وقت التنفيذ (اختياري)</label>
+<input type="time" id="activityTime">
+</div>
+
+<div>
+<label>المادة (اختياري)</label>
+<select id="activitySubject">
+<option value="">بدون مادة محددة</option>
+</select>
+</div>
+
+<div>
+<label>عدد الطلاب المشاركين (اختياري)</label>
+<input type="number" min="0" id="participants">
+</div>
+
+<div class="full">
+<label>رابط فيديو النشاط من Google Drive (اختياري)</label>
+<input type="url" id="videoUrl" inputmode="url" dir="ltr" placeholder="https://drive.google.com/file/d/...../view">
+<div class="muted" style="margin-top:6px;line-height:1.7">
+بعد رفع الفيديو على Google Drive اجعل المشاركة <b>أي شخص لديه الرابط</b>. المشرف يقرر لاحقًا هل يسمح بنشر الفيديو لولي الأمر أم لا.
+</div>
+</div>
+
+<div class="full">
+<label>الفصول المستهدفة</label>
+<div class="actions" style="margin-top:0;margin-bottom:8px">
+<button type="button" class="btn green" onclick="setAllClasses(true)">✓ تحديد الكل</button>
+<button type="button" class="btn light" onclick="setAllClasses(false)">إلغاء التحديد</button>
+</div>
+<div id="classes" class="classes"></div>
+</div>
+
+<div class="full">
+<label>وصف النشاط / نبذة التنفيذ</label>
+<textarea id="description"></textarea>
+</div>
+
+<div class="full">
+<label>أهداف النشاط</label>
+<textarea id="objectives"></textarea>
+</div>
+
+<div class="full">
+<label>ملاحظات (اختياري)</label>
+<textarea id="notes"></textarea>
+</div>
+
+<div class="full">
+<label>صور النشاط (من 1 إلى 12 صورة)</label>
+<input type="file" id="images" accept="image/*" multiple>
+<div class="muted">الحد الأقصى 12 صورة. يتم ضغط الصور تلقائيًا وحفظها داخل تقرير النشاط. يجب إرفاق صورة واحدة على الأقل.</div>
+</div>
+
+</div>
+
+<div class="actions">
+<button class="btn primary" onclick="saveActivity(false)">💾 حفظ مسودة</button>
+<button class="btn green" onclick="saveActivity(true)">📤 حفظ وإرسال للمشرف</button>
+<button class="btn light" onclick="resetForm()">جديد</button>
+</div>
+
+<div id="msg" class="muted" style="margin-top:10px"></div>
+
+</div>
+</div>
+
+<div class="card">
+<div class="title">📋 تقارير رائد النشاط</div>
+<div class="body">
+<div id="list">جاري التحميل...</div>
+</div>
+</div>
+
+<div class="footer">مدارس الفلاح الأهلية - تصميم محمد عامر أحمد</div>
+
+</div>
+
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+authDomain:"results2026-7c0dd.firebaseapp.com",
+projectId:"results2026-7c0dd",
+storageBucket:"results2026-7c0dd.firebasestorage.app",
+messagingSenderId:"241421115694",
+appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+const GRADES=[
+"1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي",
+"1 متوسط","2 متوسط","3 متوسط",
+"1 ثانوي","2 ثانوي","3 ثانوي"
+];
+
+const SECTIONS=["أ","ب","ج","د"];
+
+let username="";
+let leaderName="";
+let teachers=[];
+let subjects=[];
+let activities=[];
+
+const el=id=>document.getElementById(id);
+
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[m]));
+
+function protect(){
+const role=(localStorage.getItem("currentUserRole")||"").toLowerCase();
+if(role!=="activity_leader"){
+alert("هذه الصفحة مخصصة لرائد النشاط.");
+location.href="index.html";
+return false;
+}
+return true;
+}
+
+function logout(){
+[
+"currentUserRole",
+"currentUser",
+"currentUserName",
+"currentUserEmail",
+"currentUserType",
+"currentUserPermissions"
+].forEach(k=>localStorage.removeItem(k));
+location.href="index.html";
+}
+
+async function loadAccount(){
+username=(localStorage.getItem("currentUserEmail")||localStorage.getItem("currentUser")||"").trim().toLowerCase();
+if(!username)throw new Error("لم يتم العثور على حساب رائد النشاط.");
+
+const d=await db.collection("users").doc(username).get();
+if(!d.exists || String(d.data()?.role||"").toLowerCase()!=="activity_leader"){
+throw new Error("حساب رائد النشاط غير صالح.");
+}
+
+leaderName=String(d.data()?.name||localStorage.getItem("currentUserName")||username).trim();
+localStorage.setItem("currentUserName",leaderName);
+el("leaderHeaderName").textContent=leaderName;
+if(el("selfExecutorName"))el("selfExecutorName").textContent=leaderName;
+}
+
+async function loadTeachers(){
+const snap=await db.collection("teachers").get();
+teachers=snap.docs.map(d=>({
+email:d.id,
+...d.data()
+})).sort((a,b)=>String(a.name||a.email).localeCompare(String(b.name||b.email),"ar"));
+
+el("teacherSelect").innerHTML=
+'<option value="">-- اختر المعلم --</option>'+
+teachers.map(t=>`<option value="${esc(t.email)}">${esc(t.name||t.email)}</option>`).join("");
+}
+
+async function loadSubjects(){
+const snap=await db.collection("subjects").get();
+subjects=snap.docs.map(d=>({id:d.id,...d.data()}))
+.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));
+}
+
+function buildClasses(){
+el("classes").innerHTML=GRADES.flatMap(grade=>
+SECTIONS.map(section=>`
+<label class="class-item">
+<input type="checkbox" class="cls" data-grade="${esc(grade)}" data-section="${esc(section)}">
+${esc(grade)} / ${esc(section)}
+</label>`)
+).join("");
+}
+
+function setAllClasses(value){
+document.querySelectorAll(".cls").forEach(x=>x.checked=!!value);
+}
+
+function selectedTeacher(){
+const email=el("teacherSelect").value;
+return teachers.find(t=>String(t.email)===String(email))||null;
+}
+
+function isSelfExecutorSelected(){
+return el("executorType").value==="activity_leader";
+}
+
+function fillAllSubjects(selectedSubjectId=""){
+const subjectSelect=el("activitySubject");
+subjectSelect.innerHTML=
+'<option value="">بدون مادة محددة</option>'+
+subjects.map(s=>`<option value="${esc(s.id)}">${esc(s.name||"المادة")}</option>`).join("");
+
+if(selectedSubjectId && subjects.some(s=>String(s.id)===String(selectedSubjectId))){
+subjectSelect.value=String(selectedSubjectId);
+}
+}
+
+function executorTypeChanged(selectedSubjectId=""){
+const self=isSelfExecutorSelected();
+const teacherBlock=el("teacherExecutorBlock");
+const selfBlock=el("selfExecutorBlock");
+
+teacherBlock.style.display=self?"none":"block";
+selfBlock.style.display=self?"block":"none";
+
+if(self){
+el("teacherSelect").value="";
+el("teacherInfo").style.display="none";
+el("teacherInfo").innerHTML="";
+el("selfExecutorName").textContent=leaderName||"رائد النشاط";
+fillAllSubjects(selectedSubjectId);
+}else{
+el("activitySubject").innerHTML='<option value="">بدون مادة محددة</option>';
+teacherChanged(selectedSubjectId);
+}
+}
+
+function teacherChanged(selectedSubjectId=""){
+if(isSelfExecutorSelected()){
+fillAllSubjects(selectedSubjectId);
+return;
+}
+
+const teacher=selectedTeacher();
+const info=el("teacherInfo");
+const subjectSelect=el("activitySubject");
+
+if(!teacher){
+info.style.display="none";
+info.innerHTML="";
+subjectSelect.innerHTML='<option value="">بدون مادة محددة</option>';
+return;
+}
+
+const assignments=Array.isArray(teacher.assignments)?teacher.assignments:[];
+const subjectMap=new Map();
+
+assignments.forEach(a=>{
+if(a.subjectId){
+subjectMap.set(String(a.subjectId),a.subjectName||subjects.find(s=>String(s.id)===String(a.subjectId))?.name||"المادة");
+}
+});
+
+if(!subjectMap.size){
+subjects.forEach(s=>subjectMap.set(String(s.id),s.name||"المادة"));
+}
+
+subjectSelect.innerHTML=
+'<option value="">بدون مادة محددة</option>'+
+[...subjectMap.entries()].map(([id,name])=>`<option value="${esc(id)}">${esc(name)}</option>`).join("");
+
+if(selectedSubjectId && subjectMap.has(String(selectedSubjectId))){
+subjectSelect.value=String(selectedSubjectId);
+}
+
+const classCount=new Set(
+assignments
+.filter(a=>a.grade&&a.section)
+.map(a=>String(a.grade)+"|||"+String(a.section))
+).size;
+
+info.style.display="block";
+info.innerHTML=
+"<b>المعلم المحدد:</b> "+esc(teacher.name||teacher.email)+
+(assignments.length?"<br>عدد الإسنادات المسجلة: "+assignments.length:"<br>لا توجد إسنادات مسجلة لهذا المعلم.")+
+(classCount?" • الفصول المسندة: "+classCount:"");
+}
+
+function activityExecutorDisplay(a){
+const self=
+String(a?.executorType||"").toLowerCase()==="activity_leader" ||
+(
+String(a?.createdByRole||"").toLowerCase()==="activity_leader" &&
+!String(a?.teacherName||a?.teacherEmail||"").trim()
+);
+
+if(self){
+const name=String(a?.executorName||a?.activityLeaderName||a?.createdByName||"رائد النشاط").trim();
+return "🎯 رائد النشاط: "+name;
+}
+
+return "👨‍🏫 المعلم: "+String(a?.executorName||a?.teacherName||a?.teacherEmail||"-");
+}
+
+function blobToDataUrl(blob){
+return new Promise((resolve,reject)=>{
+const reader=new FileReader();
+reader.onload=()=>resolve(reader.result);
+reader.onerror=()=>reject(reader.error||new Error("تعذر قراءة الصورة"));
+reader.readAsDataURL(blob);
+});
+}
+
+async function compressActivityImageToDataUrl(file){
+if(!file || !String(file.type||"").startsWith("image/"))throw new Error("الملف المحدد ليس صورة.");
+
+const image=await new Promise((resolve,reject)=>{
+const img=new Image();
+const u=URL.createObjectURL(file);
+img.onload=()=>{URL.revokeObjectURL(u);resolve(img)};
+img.onerror=()=>{URL.revokeObjectURL(u);reject(new Error("تعذر فتح الصورة: "+file.name))};
+img.src=u;
+});
+
+let maxSide=1100;
+let quality=.68;
+let blob=null;
+
+for(let attempt=0;attempt<10;attempt++){
+let w=image.naturalWidth||image.width;
+let h=image.naturalHeight||image.height;
+const scale=Math.min(1,maxSide/Math.max(w,h));
+w=Math.max(1,Math.round(w*scale));
+h=Math.max(1,Math.round(h*scale));
+
+const canvas=document.createElement("canvas");
+canvas.width=w;
+canvas.height=h;
+
+const ctx=canvas.getContext("2d",{alpha:false});
+ctx.fillStyle="#fff";
+ctx.fillRect(0,0,w,h);
+ctx.drawImage(image,0,0,w,h);
+
+blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",quality));
+
+if(!blob)throw new Error("تعذر ضغط الصورة: "+file.name);
+if(blob.size<=42*1024)break;
+
+if(quality>.38)quality-=.08;
+else maxSide=Math.max(520,Math.round(maxSide*.82));
+}
+
+if(!blob || blob.size>50*1024){
+throw new Error("الصورة كبيرة جدًا بعد الضغط. جرّب صورة أصغر.");
+}
+
+return {
+url:await blobToDataUrl(blob),
+name:file.name,
+storage:"firestore",
+size:blob.size
+};
+}
+
+async function uploadImages(files){
+const out=[];
+for(let i=0;i<files.length;i++){
+el("msg").textContent="جاري ضغط وتجهيز الصورة "+(i+1)+" من "+files.length+"...";
+out.push(await compressActivityImageToDataUrl(files[i]));
+}
+return out;
+}
+
+function getClasses(){
+return [...document.querySelectorAll(".cls:checked")]
+.map(x=>({grade:x.dataset.grade,section:x.dataset.section}));
+}
+
+function normalizeVideoUrl(value){
+const v=String(value||"").trim();
+if(!v)return "";
+try{
+const u=new URL(v);
+if(!["http:","https:"].includes(u.protocol))return null;
+return u.href;
+}catch{
+return null;
+}
+}
+
+function statusLabel(s){
+return {
+draft:"مسودة",
+submitted:"مرسل للمشرف",
+reviewed:"تمت المراجعة",
+revision_requested:"معاد للتعديل",
+published:"منشور لولي الأمر"
+}[s]||s;
+}
+
+async function saveActivity(submit){
+
+const id=el("editId").value;
+const old=id?activities.find(x=>x.id===id):null;
+
+if(old && ["submitted","reviewed","published"].includes(old.status)){
+alert("التقرير المرسل للمشرف لا يمكن تعديله إلا بعد إعادته للتعديل.");
+return;
+}
+
+const executorType=el("executorType").value;
+const selfExecuted=executorType==="activity_leader";
+const teacher=selfExecuted?null:selectedTeacher();
+
+const title=el("activityTitle").value.trim();
+const date=el("activityDate").value;
+const location=el("activityLocation").value.trim();
+const classes=getClasses();
+const videoUrl=normalizeVideoUrl(el("videoUrl").value);
+
+if(videoUrl===null){
+alert("رابط الفيديو غير صحيح. استخدم رابطًا يبدأ بـ https:// أو http://");
+el("videoUrl").focus();
+return;
+}
+
+if(!selfExecuted && !teacher){
+alert("اختر المعلم منفذ النشاط.");
+return;
+}
+
+if(!title || !date || !location || !classes.length){
+alert("أدخل اسم النشاط والتاريخ والمكان واختر فصلًا واحدًا على الأقل.");
+return;
+}
+
+const files=[...el("images").files];
+
+if(files.length>12){
+alert("الحد الأقصى 12 صورة.");
+return;
+}
+
+el("msg").textContent="جاري الحفظ...";
+
+try{
+
+let imgs=old?.images||[];
+
+if(files.length){
+imgs=await uploadImages(files);
+}
+
+const imagesPayloadSize=imgs.reduce((sum,img)=>sum+String(img?.url||"").length,0);
+if(imagesPayloadSize>820000){
+alert("إجمالي حجم الصور ما زال كبيرًا جدًا للحفظ. اختر صورًا أقل أو أصغر.");
+el("msg").textContent="";
+return;
+}
+
+if(!imgs.length){
+alert("ارفع صورة واحدة على الأقل للنشاط.");
+el("msg").textContent="";
+return;
+}
+
+const subjectId=el("activitySubject").value;
+let subjectName="";
+
+if(subjectId){
+
+if(!selfExecuted && teacher){
+const assignment=(Array.isArray(teacher.assignments)?teacher.assignments:[])
+.find(a=>String(a.subjectId)===String(subjectId));
+
+subjectName=
+assignment?.subjectName ||
+subjects.find(s=>String(s.id)===String(subjectId))?.name ||
+"";
+}else{
+subjectName=
+subjects.find(s=>String(s.id)===String(subjectId))?.name ||
+"";
+}
+
+}
+
+const executorName=
+selfExecuted
+? leaderName
+: (teacher.name||teacher.email);
+
+const executorEmail=
+selfExecuted
+? username
+: teacher.email;
+
+const now=firebase.firestore.FieldValue.serverTimestamp();
+
+const data={
+title,
+type:el("activityType").value,
+day:el("activityDay").value.trim(),
+date,
+location,
+time:el("activityTime").value,
+subjectId,
+subjectName,
+classes,
+description:el("description").value.trim(),
+objectives:el("objectives").value.trim(),
+notes:el("notes").value.trim(),
+participantsCount:Number(el("participants").value||0)||null,
+videoUrl:videoUrl||"",
+images:imgs,
+
+/* منفذ النشاط: معلم أو رائد النشاط نفسه */
+executorType:selfExecuted?"activity_leader":"teacher",
+executorName,
+executorEmail,
+
+/* للتوافق مع تقارير المعلمين والتصنيف القديم */
+teacherEmail:selfExecuted?"":teacher.email,
+teacherName:selfExecuted?"":(teacher.name||teacher.email),
+
+/* رائد النشاط الذي أنشأ ووثق التقرير */
+createdByEmail:username,
+createdByName:leaderName,
+createdByRole:"activity_leader",
+activityLeaderEmail:username,
+activityLeaderName:leaderName,
+
+status:submit?"submitted":"draft",
+updatedAt:now
+};
+
+const historyItem={
+status:submit?"submitted":"draft",
+label:submit
+? (selfExecuted?"تم الإرسال للمشرف - نشاط منفذ بواسطة رائد النشاط":"تم الإرسال للمشرف بواسطة رائد النشاط")
+: (selfExecuted?"تم حفظ مسودة - نشاط منفذ بواسطة رائد النشاط":"تم حفظ مسودة بواسطة رائد النشاط"),
+at:new Date().toISOString(),
+by:leaderName||username,
+role:"activity_leader"
+};
+
+if(!id){
+data.createdAt=now;
+data.history=[historyItem];
+}else{
+data.history=[...(old?.history||[]),historyItem];
+}
+
+if(submit)data.submittedAt=now;
+
+if(id){
+await db.collection("activities").doc(id).set(data,{merge:true});
+}else{
+await db.collection("activities").add(data);
+}
+
+resetForm();
+await loadActivities();
+el("msg").textContent="تم الحفظ بنجاح ✅";
+
+}catch(e){
+
+console.error("ACTIVITY LEADER SAVE ERROR",e);
+
+const msg=(e&&e.message)?e.message:String(e||"");
+
+if(/resource-exhausted|maximum|too large|larger than|exceeds/i.test(msg)){
+alert("تعذر الحفظ لأن حجم الصور أكبر من الحد المسموح. جرّب صورًا أصغر.");
+}else{
+alert("تعذر الحفظ: "+msg);
+}
+
+el("msg").textContent="";
+
+}
+
+}
+
+async function loadActivities(){
+
+const snap=await db.collection("activities")
+.where("createdByEmail","==",username)
+.get();
+
+activities=snap.docs
+.map(d=>({id:d.id,...d.data()}))
+.filter(a=>String(a.createdByRole||"").toLowerCase()==="activity_leader" || String(a.activityLeaderEmail||"").toLowerCase()===username)
+.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+
+renderList();
+
+}
+
+function renderList(){
+
+el("list").innerHTML=activities.map(a=>`
+<div class="activity">
+<div>
+<strong>${esc(a.title||"نشاط بدون عنوان")}</strong>
+<span class="status">${esc(statusLabel(a.status))}</span>
+</div>
+
+<div class="muted" style="margin-top:6px">
+${esc(activityExecutorDisplay(a))} •
+📅 ${esc(a.date||"-")} •
+📍 ${esc(a.location||"-")}
+</div>
+
+<div class="muted" style="margin-top:5px">
+${(a.classes||[]).map(c=>esc(c.grade+" / "+c.section)).join("، ")}
+</div>
+
+${a.videoUrl?'<div class="muted" style="margin-top:5px">🎥 يوجد فيديو مرفق</div>':""}
+
+<div class="actions">
+<button class="btn primary" onclick="location.href='activity-report.html?id=${a.id}'">📄 عرض التقرير</button>
+${a.videoUrl?`<button class="btn light" onclick="window.open('${esc(a.videoUrl)}','_blank','noopener')">🎥 فتح الفيديو</button>`:""}
+${["draft","revision_requested"].includes(a.status)?`<button class="btn gold" onclick="editActivity('${a.id}')">✏️ تعديل</button>`:""}
+${["draft","revision_requested"].includes(a.status)?`<button class="btn danger" onclick="deleteActivity('${a.id}')">🗑️ حذف التقرير</button>`:""}
+</div>
+</div>
+`).join("") || "لا توجد تقارير حتى الآن.";
+
+}
+
+function editActivity(id){
+
+const a=activities.find(x=>x.id===id);
+if(!a)return;
+
+el("editId").value=id;
+
+const savedExecutorType=
+String(a.executorType||"").toLowerCase()==="activity_leader"
+? "activity_leader"
+: (
+String(a.executorType||"").toLowerCase()==="teacher"
+? "teacher"
+: (
+String(a.teacherName||a.teacherEmail||"").trim()
+? "teacher"
+: "activity_leader"
+)
+);
+
+el("executorType").value=savedExecutorType;
+
+if(savedExecutorType==="teacher"){
+el("teacherSelect").value=a.teacherEmail||"";
+}else{
+el("teacherSelect").value="";
+}
+
+executorTypeChanged(a.subjectId||"");
+
+el("activityTitle").value=a.title||"";
+el("activityType").value=a.type||"صفي";
+el("activityDay").value=a.day||"";
+el("activityDate").value=a.date||"";
+el("activityLocation").value=a.location||"";
+el("activityTime").value=a.time||"";
+el("participants").value=a.participantsCount||"";
+el("videoUrl").value=a.videoUrl||"";
+el("description").value=a.description||"";
+el("objectives").value=a.objectives||"";
+el("notes").value=a.notes||"";
+
+document.querySelectorAll(".cls").forEach(x=>{
+x.checked=(a.classes||[]).some(c=>
+String(c.grade)===String(x.dataset.grade) &&
+String(c.section)===String(x.dataset.section)
+);
+});
+
+scrollTo({top:0,behavior:"smooth"});
+
+}
+
+async function deleteActivity(id){
+
+const a=activities.find(x=>x.id===id);
+if(!a)return;
+
+if(!["draft","revision_requested"].includes(a.status)){
+alert("بعد إرسال التقرير للمشرف لا يمكن لرائد النشاط حذفه. تواصل مع المشرف إذا كان يلزم حذف التقرير.");
+return;
+}
+
+if(!confirm("⚠️ حذف تقرير النشاط نهائيًا؟\n\n"+(a.title||"")+"\nالمعلم: "+(a.teacherName||"-")+"\n\nلن يمكن التراجع عن الحذف.")){
+return;
+}
+
+await db.collection("activities").doc(id).delete();
+await loadActivities();
+
+alert("تم حذف تقرير النشاط ✅");
+
+}
+
+function resetForm(){
+
+el("editId").value="";
+el("executorType").value="teacher";
+el("teacherSelect").value="";
+el("teacherInfo").style.display="none";
+el("teacherInfo").innerHTML="";
+
+[
+"activityTitle",
+"activityDay",
+"activityDate",
+"activityLocation",
+"activityTime",
+"participants",
+"videoUrl",
+"description",
+"objectives",
+"notes"
+].forEach(id=>el(id).value="");
+
+el("activityType").selectedIndex=0;
+el("activitySubject").innerHTML='<option value="">بدون مادة محددة</option>';
+el("images").value="";
+setAllClasses(false);
+executorTypeChanged();
+
+}
+
+async function start(){
+
+if(!protect())return;
+
+try{
+
+await loadAccount();
+await Promise.all([
+loadSubjects(),
+loadTeachers()
+]);
+
+buildClasses();
+await loadActivities();
+
+}catch(e){
+
+console.error(e);
+alert("تعذر تحميل صفحة رائد النشاط:\n"+e.message);
+location.href="index.html";
+
+}
+
+}
+
+start();
+</script>
+
+</body>
+</html>
