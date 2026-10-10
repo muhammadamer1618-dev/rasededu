@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>إدارة منصة الاختبارات</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*{box-sizing:border-box}:root{--navy:#0c2745;--blue:#174f7c;--gold:#c69a2b;--green:#198754;--red:#dc3545;--bg:#f4f7fb;--line:#d7e0e8}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:#1f2937}
+header{position:relative;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;text-align:center;padding:18px;box-shadow:0 3px 12px #0002}
+.logo{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:50%;padding:4px}h1{margin:5px 0 2px;font-size:25px}header p{margin:0;color:#f4d77b;font-weight:bold}
+.head-actions{position:absolute;left:14px;top:18px;display:flex;gap:7px}
+.container{max-width:1250px;margin:18px auto;padding:0 12px 35px}.card{background:#fff;border:1px solid var(--line);border-radius:13px;margin-bottom:14px;box-shadow:0 2px 10px #0000000c;overflow:hidden}
+.card-title{padding:12px 15px;background:#eef4fa;color:#123c63;font-weight:bold;font-size:17px;border-bottom:1px solid var(--line)}.card-body{padding:15px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}input,select,textarea{width:100%;border:1px solid #bdc9d4;border-radius:8px;background:#fff;padding:9px;font:inherit}textarea{min-height:78px;resize:vertical}
+button{border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:bold;cursor:pointer}.primary{background:var(--blue);color:#fff}.gold{background:var(--gold);color:#fff}.green{background:var(--green);color:#fff}.red{background:var(--red);color:#fff}.light{background:#eaf0f5;color:var(--navy)}.dark{background:var(--navy);color:#fff}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.classes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chip{display:flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #ccd6df;border-radius:18px;background:#fafcff;font-size:12px}.chip input{width:auto}
+table{width:100%;border-collapse:collapse;min-width:850px}th,td{border:1px solid #d4dde5;padding:8px;text-align:center;font-size:12px}th{background:var(--blue);color:#fff}.table-wrap{overflow:auto}
+.qbox{border:1px solid #d7e0e8;border-radius:10px;padding:12px;margin:10px 0;background:#fbfdff}.qhead{display:flex;justify-content:space-between;gap:8px;align-items:center}.qhead b{color:var(--navy)}
+.option-row{display:grid;grid-template-columns:42px 1fr 72px;gap:7px;align-items:center;margin:7px 0}.option-row input[type=radio]{width:20px;height:20px}.option-row.truefalse{grid-template-columns:42px 1fr}.q-image-preview{display:block;max-width:320px;max-height:220px;object-fit:contain;border:1px solid #d7e0e8;border-radius:10px;margin-top:8px;background:#fff}.image-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.image-tools input[type=file]{max-width:420px}.small-note{font-size:10px;color:#687786;margin-top:4px}.type-panel{margin-top:12px;padding:12px;border:1px solid #d7e0e8;border-radius:10px;background:#fafcff}.pair-row{display:grid;grid-template-columns:1fr 1fr 80px;gap:7px;align-items:end;margin:7px 0}.type-badge{display:inline-block;padding:4px 8px;border-radius:15px;background:#e7f1ff;color:#174f7c;font-size:11px;font-weight:bold;margin-inline-start:6px}
+.note{background:#fff8db;color:#715d00;padding:10px;border-radius:8px;font-size:12px;line-height:1.7}.hidden{display:none!important}.empty{text-align:center;color:#788794;padding:25px}.stat{font-weight:bold;color:var(--blue)}
+
+.pdf-import{margin:14px 0;border:1px solid #c9d9e6;border-radius:12px;background:linear-gradient(180deg,#f8fbfe,#fff);overflow:hidden}
+.pdf-import-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:11px 13px;background:#edf5fb;border-bottom:1px solid #d8e5ef;color:#123c63;font-weight:900}
+.pdf-import-body{padding:13px}
+.pdf-import-grid{display:grid;grid-template-columns:2fr 1fr;gap:9px;align-items:end}
+.pdf-status{margin-top:9px;padding:9px 11px;border-radius:8px;background:#f6f8fa;color:#516170;font-size:11px;line-height:1.7}
+.pdf-status.ok{background:#edf8f1;color:#247647;border:1px solid #c7e6d2}
+.pdf-status.warn{background:#fff7e6;color:#8a5a00;border:1px solid #edd59a}
+.pdf-status.err{background:#fff0f0;color:#a52b2b;border:1px solid #efcaca}
+.pdf-preview{margin-top:12px;display:grid;gap:10px}
+.pdf-question{border:1px solid #d9e3ea;border-radius:10px;padding:11px;background:#fff}
+.pdf-q-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.pdf-q-head input[type=checkbox]{width:19px;height:19px}
+.pdf-q-head strong{color:#123c63}
+.pdf-q-tools{display:grid;grid-template-columns:160px 120px;gap:8px;margin:8px 0}
+.pdf-option-row{display:grid;grid-template-columns:34px 1fr;gap:6px;align-items:center;margin:6px 0}
+.pdf-option-row input[type=radio]{width:18px;height:18px}
+.pdf-option-row input[type=text]{min-height:38px}
+.pdf-import-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.pdf-mini{font-size:10px;color:#667786;line-height:1.7}
+.publish-students{max-height:320px;overflow:auto;border:1px solid #d7e0e8;border-radius:10px;padding:9px;background:#fafcff}
+.publish-student-row{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #e7edf2}
+.publish-student-row:last-child{border-bottom:0}
+.publish-student-row input{width:19px;height:19px;flex:0 0 auto}
+.publish-summary{font-size:11px;color:#516170;margin-top:7px;line-height:1.7}
+
+@media(max-width:760px){.pdf-import-grid,.pdf-q-tools{grid-template-columns:1fr}}
+.footer{text-align:center;color:#687786;font-size:10px;padding:12px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.head-actions{position:static;justify-content:center;margin-top:8px}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
+
+<style id="rased-mobile-friendly">
+*{box-sizing:border-box;}
+html{width:100%;overflow-x:hidden;}
+body{width:100%;max-width:100%;overflow-x:hidden;}
+img{max-width:100%;height:auto;}
+button,input,select,textarea{max-width:100%;}
+.table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{max-width:100%;}
+@media (max-width:768px){
+  body{font-size:15px;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper,.card,.panel{max-width:100%;}
+  header,.header,.topbar,.navbar,.nav{height:auto;min-height:0;}
+  header,.header,.topbar,.navbar,.nav,.toolbar,.actions,.filters,.filter-row,.form-row,.button-row,.stats,.cards,.grid,.controls{flex-wrap:wrap;}
+  header,.header,.topbar,.navbar,.nav{padding-left:12px!important;padding-right:12px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{width:100%!important;padding-left:12px!important;padding-right:12px!important;}
+  .card,.panel,.box,.section{margin-left:0!important;margin-right:0!important;}
+  .grid,.cards{grid-template-columns:1fr!important;}
+  .filters,.filter-row,.form-row,.button-row,.toolbar,.actions{gap:8px!important;}
+  .filters>* ,.filter-row>* ,.form-row>*{min-width:0!important;width:100%!important;max-width:100%!important;}
+  input,select,textarea{width:100%;min-height:44px;font-size:16px;}
+  button{min-height:44px;font-size:15px;}
+  .button-row button,.actions button,.toolbar button{width:100%;}
+  .table-wrap,.table-container,.table-responsive,.results-container,.results-content,.data-table-wrap{overflow-x:auto!important;}
+  table{min-width:600px;}
+  th,td{white-space:nowrap;}
+  .modal,.dialog,.popup{max-width:calc(100vw - 24px)!important;width:auto!important;}
+  .modal-content,.dialog-content{max-width:100%;}
+  .logo{max-width:110px!important;height:auto!important;}
+  h1{font-size:clamp(22px,6vw,32px)!important;}
+  h2{font-size:clamp(19px,5vw,27px)!important;}
+  h3{font-size:clamp(17px,4.5vw,23px)!important;}
+  .parent-progress-box,.parent-subject-picker{max-width:100%;}
+}
+@media (max-width:420px){
+  body{font-size:14px;}
+  header,.header,.topbar,.navbar,.nav{padding:8px!important;}
+  .container,.main-container,.page-container,.content,.content-container,.wrap,.wrapper{padding-left:8px!important;padding-right:8px!important;}
+  table{min-width:560px;}
+  th,td{padding:7px 6px!important;}
+}
+</style>
+</head>
+<body>
+<header>
+<img src="logo.jpeg" class="logo" onerror="this.style.display='none'">
+<h1>منصة الاختبارات</h1><p>إدارة الاختبارات الإلكترونية</p>
+<div class="head-actions"><button class="light" onclick="goBack()">↩ رجوع</button><button class="gold" onclick="location.href='exams.html'">🎓 بوابة الطالب</button></div>
+</header>
+
+<div class="container">
+<div class="card">
+<div class="card-title">➕ إنشاء / تعديل اختبار</div>
+<div class="card-body">
+<input type="hidden" id="editingId">
+<div class="grid">
+<div><label>اسم الاختبار</label><input id="examName" placeholder="مثال: Unit 1 Quiz"></div>
+<div><label>المادة</label><select id="subject"><option value="">اختر المادة</option></select></div>
+<div><label>الدرجة النهائية</label><input id="fullMark" type="number" min="1" value="10"></div>
+<div><label>مدة الاختبار بالدقائق</label><input id="duration" type="number" min="1" value="15"></div>
+<div><label>عدد محاولات الطالب</label><select id="maxAttempts">
+<option value="1">محاولة واحدة</option><option value="2">محاولتان</option>
+<option value="3">3 محاولات</option><option value="5">5 محاولات</option>
+<option value="0">غير محدود</option></select></div>
+<div><label>موعد نشر الاختبار</label><input id="publishAt" type="datetime-local"><div style="font-size:10px;color:#687786;margin-top:4px">اتركه فارغًا ليظهر الاختبار فور تفعيله. إذا حددت موعدًا فلن يظهر للطالب قبل هذا التاريخ والوقت.</div></div>
+<div><label>آخر موعد لأداء الاختبار</label><input id="deadline" type="datetime-local"><div style="font-size:10px;color:#687786;margin-top:4px">اتركه فارغًا إذا كان الاختبار بدون موعد نهائي.</div></div>
+</div>
+<div class="note" style="margin-top:12px">
+احفظ بيانات الاختبار أولًا وأضف الأسئلة، ثم استخدم زر <b>النشر</b> من جدول الاختبارات لتحديد الفصول أو الطلاب المستهدفين.
+</div>
+<div class="actions">
+<button class="primary" onclick="saveExam()">💾 حفظ بيانات الاختبار</button>
+<button class="light" onclick="clearExamForm()">اختبار جديد</button>
+</div>
+</div></div>
+
+<div id="questionCard" class="card hidden">
+<div class="card-title">❓ أسئلة الاختبار: <span id="currentExamLabel"></span></div>
+<div class="card-body">
+
+<div class="pdf-import">
+  <div class="pdf-import-head">
+    <span>📄 استيراد أسئلة من ملف PDF</span>
+    <span class="pdf-mini">يدعم ملفات PDF النصية بالعربية والإنجليزية</span>
+  </div>
+  <div class="pdf-import-body">
+    <div class="pdf-import-grid">
+      <div>
+        <label>ملف الأسئلة PDF</label>
+        <input id="pdfQuestionsFile" type="file" accept="application/pdf,.pdf">
+      </div>
+      <div>
+        <label>الدرجة الافتراضية لكل سؤال</label>
+        <input id="pdfDefaultPoints" type="number" min="0.25" step="0.25" value="1">
+      </div>
+    </div>
+
+    <div class="pdf-import-actions">
+      <button type="button" class="primary" onclick="extractQuestionsFromPdf()">🔍 استخراج الأسئلة من PDF</button>
+      <button type="button" class="light" onclick="clearPdfImport()">مسح الاستيراد</button>
+    </div>
+
+    <div id="pdfImportStatus" class="pdf-status">
+      ارفع ملف PDF ثم اضغط استخراج الأسئلة. سيعرض النظام الأسئلة قبل الحفظ لتراجعها وتحدد الإجابات الصحيحة عند الحاجة.
+    </div>
+
+    <div id="pdfImportPreview" class="pdf-preview hidden"></div>
+
+    <div id="pdfImportFinalActions" class="pdf-import-actions hidden">
+      <button type="button" class="green" onclick="selectAllPdfQuestions(true)">✅ تحديد الكل</button>
+      <button type="button" class="light" onclick="selectAllPdfQuestions(false)">⬜ إلغاء التحديد</button>
+      <button type="button" class="gold" onclick="importSelectedPdfQuestions()">⬇️ إضافة المحدد للاختبار</button>
+    </div>
+
+    <div class="pdf-mini" style="margin-top:9px">
+      يعمل الاستخراج مع ملفات PDF النصية، ويعرض الأسئلة في شاشة مراجعة قبل إضافتها إلى الاختبار.
+      إذا كان الملف ممسوحًا ضوئيًا كصور فلن يتم استخراج النص تلقائيًا.
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+<div>
+<label>نوع السؤال</label>
+<select id="qType" onchange="renderQuestionEditor()">
+<option value="mcq">اختيار من متعدد</option>
+<option value="truefalse">صح / خطأ</option>
+<option value="fill">أكمل الفراغ</option>
+<option value="short">إجابة قصيرة</option>
+<option value="order">ترتيب الكلمات</option>
+<option value="matching">توصيل Matching</option>
+<option value="reading">قطعة Reading + سؤال</option>
+</select>
+</div>
+<div><label>درجة السؤال</label><input id="qPoints" type="number" min="0.25" step="0.25" value="1"></div>
+<div>
+<label>اتجاه النص</label>
+<select id="qDirection">
+<option value="auto">تلقائي Auto</option>
+<option value="rtl">العربية — RTL</option>
+<option value="ltr">English — LTR</option>
+</select>
+</div>
+<div><label>ترتيب السؤال</label><input id="qOrder" type="number" min="1" placeholder="تلقائي"></div>
+</div>
+
+<div id="readingBox" class="type-panel hidden">
+<label>قطعة القراءة</label>
+<textarea id="qPassage" placeholder="اكتب قطعة القراءة هنا..."></textarea>
+</div>
+
+<div style="margin-top:12px"><label>نص السؤال</label><textarea id="qText" placeholder="اكتب السؤال هنا..."></textarea></div>
+<div class="type-panel"><label>صورة السؤال (اختيارية)</label><div class="image-tools"><input id="qImageFile" type="file" accept="image/*" onchange="previewQuestionImage()"><button type="button" class="red hidden" id="removeImageBtn" onclick="removeQuestionImage()">حذف الصورة</button></div><div class="small-note">مناسبة للمسائل الرياضية، الأشكال الهندسية والرسوم البيانية. يتم ضغط الصورة وحفظها تلقائيًا مع السؤال.</div><img id="qImagePreview" class="q-image-preview hidden" alt="صورة السؤال"><input type="hidden" id="existingImageUrl"><input type="hidden" id="existingImagePath"></div>
+<div id="answerBox" class="type-panel"></div>
+<div class="actions">
+<button class="green" onclick="saveQuestion()">➕ حفظ السؤال</button>
+<button class="light" onclick="clearQuestionForm()">تفريغ السؤال</button>
+</div>
+<input type="hidden" id="editingQuestionId">
+<hr style="border:0;border-top:1px solid #e1e7ec;margin:18px 0">
+<div id="questionsList"></div>
+</div></div>
+
+<div id="publishCard" class="card hidden">
+<div class="card-title">📢 نشر الاختبار: <span id="publishExamLabel"></span></div>
+<div class="card-body">
+<input type="hidden" id="publishingExamId">
+
+<div class="grid2">
+<div>
+<label>طريقة النشر</label>
+<select id="publishTargetType" onchange="renderPublishMode()">
+<option value="classes">فصل أو أكثر</option>
+<option value="students">طالب أو طلاب محددون</option>
+</select>
+</div>
+<div>
+<label>حالة النشر</label>
+<div id="publishCurrentState" class="note">اختر طريقة النشر وحدد المستهدفين.</div>
+</div>
+</div>
+
+<div id="publishClassesBox" style="margin-top:13px">
+<label>اختر الفصل أو الفصول</label>
+<div id="publishClassChoices" class="classes"></div>
+</div>
+
+<div id="publishStudentsBox" class="hidden" style="margin-top:13px">
+<div class="grid2">
+<div>
+<label>اختر الفصل أولًا</label>
+<select id="publishStudentClass" onchange="loadPublishStudents()">
+<option value="">اختر الفصل</option>
+</select>
+</div>
+<div>
+<label>الطلاب</label>
+<div class="actions" style="margin-top:0">
+<button type="button" class="light" onclick="selectPublishStudents(true)">تحديد الكل</button>
+<button type="button" class="light" onclick="selectPublishStudents(false)">إلغاء التحديد</button>
+</div>
+</div>
+</div>
+<div id="publishStudentsList" class="publish-students" style="margin-top:9px">
+<div class="empty">اختر الفصل أولًا لعرض الطلاب المسجلين به.</div>
+</div>
+<div id="publishStudentsSummary" class="publish-summary"></div>
+</div>
+
+<div class="actions">
+<button class="green" onclick="savePublication()">📢 حفظ ونشر الاختبار</button>
+<button class="light" onclick="closePublishCard()">إغلاق</button>
+<button class="red" onclick="unpublishExam()">إيقاف نشر الاختبار</button>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">⚙️ إدارة الاختبارات والنتائج</div>
+<div class="note" style="margin:8px 0 12px">الاختبارات القديمة محفوظة كما هي في قاعدة البيانات، وهذه الصفحة تقرأ الصيغ القديمة والجديدة دون ترحيل أو حذف.</div>
+<div class="card-body">
+<div class="note">هذه العمليات تخص الاختبارات الإلكترونية فقط ولا تمس درجات راصد الرسمية.</div>
+<div class="actions">
+<button class="green" onclick="setAllExamsActive(true)">▶ تفعيل جميع اختباراتي</button>
+<button class="light" onclick="setAllExamsActive(false)">⏸ إيقاف جميع اختباراتي</button>
+<button class="gold" onclick="deleteAllMyResults()">🧹 حذف جميع النتائج</button>
+<button class="red" onclick="deleteAllMyExams()">🗑️ حذف جميع الاختبارات</button>
+</div></div></div>
+
+<div class="card">
+<div class="card-title">📋 الاختبارات الموجودة</div>
+<div class="card-body">
+<div class="table-wrap"><table><thead><tr><th>م</th><th>الاختبار</th><th>المادة</th><th>المستهدفون</th><th>الدرجة</th><th>المدة</th><th>موعد النشر</th><th>آخر موعد</th><th>الحالة</th><th>الأسئلة</th><th>الإجراءات</th></tr></thead><tbody id="examRows"></tbody></table></div>
+</div></div>
+
+<div id="resultsCard" class="card hidden">
+<div class="card-title">📊 نتائج: <span id="resultsTitle"></span></div>
+<div class="card-body">
+<div id="resultsSummary" class="note"></div>
+<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>م</th><th>الطالب</th><th>الصف</th><th>الفصل</th><th>عدد المحاولات</th><th>أفضل محاولة</th><th>الدرجة</th><th>الدرجة النهائية</th><th>النسبة</th><th>وقت أفضل تسليم</th><th>إجراء</th></tr></thead><tbody id="resultRows"></tbody></table></div>
+</div></div>
+
+<div class="footer">تصميم محمد عامر أحمد - نظام راصد 2026</div>
+</div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();const storage=firebase.storage();
+// امنح رفع الصور وقتًا كافيًا على الاتصالات البطيئة دون تغيير صلاحيات التخزين.
+storage.setMaxUploadRetryTime(120000);
+storage.setMaxOperationRetryTime(120000);
+const gradesOrder=["1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي","1 متوسط","2 متوسط","3 متوسط","1 ثانوي","2 ثانوي","3 ثانوي"];
+const sections=["أ","ب","ج","د"];
+let role="",currentUser="",currentTeacher=null,currentSupervisorType="",assignedTeacherEmails=[],subjects=[],teachers=[],students=[],examsData=[],assignments=[],selectedExamId="",publishingExamId="",publishStudentsCache=[];
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function protect(){
+ role=String(localStorage.getItem("currentUserRole")||"").toLowerCase();
+ currentUser=localStorage.getItem("currentUserEmail")||localStorage.getItem("currentUser")||"";
+ if(!["admin","superadmin","teacher","supervisor"].includes(role)){
+   alert("يجب تسجيل الدخول كمعلم أو إدارة أو مشرف مخوّل.");
+   location.href="index.html";
+   return false;
+ }
+ return true;
+}
+function goBack(){
+ if(role==="teacher")location.href="teacher.html";
+ else if(role==="supervisor")location.href="supervisor-dashboard.html";
+ else location.href="admin.html";
+}
+function ownerAliases(){
+ const set=new Set();
+
+ const add=v=>{
+   const x=String(v||"").trim().toLowerCase();
+   if(x)set.add(x);
+ };
+
+ add(currentUser);
+
+ if(currentTeacher){
+   add(currentTeacher.id);
+   add(currentTeacher.email);
+   add(currentTeacher.username);
+   add(currentTeacher.user);
+ }
+
+ return set;
+}
+
+function examBelongsToCurrentUser(e){
+ if(!["teacher","supervisor"].includes(role))return true;
+
+ const aliases=ownerAliases();
+ const ownerCandidates=[
+   e?.teacherEmail,
+   e?.teacherId,
+   e?.teacherUsername,
+   e?.createdBy,
+   e?.username
+ ];
+
+ for(const v of ownerCandidates){
+   const x=String(v||"").trim().toLowerCase();
+   if(x && aliases.has(x))return true;
+ }
+
+ // توافق مع الاختبارات الأقدم التي كان يُحفظ فيها اسم المعلم فقط.
+ if(role==="teacher" && currentTeacher){
+   const savedName=String(e?.teacherName||"").trim();
+   const myName=String(currentTeacher?.name||"").trim();
+   if(savedName && myName && savedName===myName)return true;
+ }
+
+ return false;
+}
+
+function canManageExam(e){
+ return examBelongsToCurrentUser(e);
+}
+async function requireOwnedExam(id){
+ const d=await db.collection("onlineExams").doc(id).get();
+ if(!d.exists) throw new Error("الاختبار غير موجود.");
+ const e={id:d.id,...d.data()};
+ if(!canManageExam(e)) throw new Error("لا يمكنك إدارة اختبار يخص معلماً آخر.");
+ return e;
+}
+async function loadBase(){
+ const [ss,ts]=await Promise.all([db.collection("subjects").get(),db.collection("teachers").get()]);
+ subjects=ss.docs.map(d=>({id:d.id,...d.data()}));
+ teachers=ts.docs.map(d=>({id:d.id,...d.data()}));
+
+ if(role==="teacher"){
+   currentTeacher=teachers.find(x=>x.id===currentUser||x.email===currentUser)||null;
+   if(!currentTeacher) throw new Error("لم يتم العثور على بيانات المعلم.");
+   assignments=Array.isArray(currentTeacher.assignments)?currentTeacher.assignments:[];
+ }
+
+ if(role==="supervisor"){
+   const username=String(currentUser||"").trim().toLowerCase();
+   const userDoc=await db.collection("users").doc(username).get();
+
+   if(!userDoc.exists || String(userDoc.data()?.role||"").toLowerCase()!=="supervisor"){
+     throw new Error("حساب المشرف غير موجود.");
+   }
+
+   const userData=userDoc.data()||{};
+   const permissions=userData.permissions&&typeof userData.permissions==="object"?userData.permissions:{};
+
+   if(permissions.onlineExamsManage!==true){
+     alert("لا توجد لديك صلاحية إنشاء وإدارة الاختبارات الإلكترونية.");
+     location.href="supervisor-dashboard.html";
+     throw new Error("NO_ONLINE_EXAMS_PERMISSION");
+   }
+
+   currentSupervisorType=String(userData.supervisorType||"general_supervisor").toLowerCase();
+   assignedTeacherEmails=Array.isArray(userData.assignedTeacherEmails)
+     ?userData.assignedTeacherEmails.map(v=>String(v||"").trim().toLowerCase()).filter(Boolean)
+     :[];
+
+   if(currentSupervisorType==="supervisor"){
+     const allowed=new Set(assignedTeacherEmails);
+     const scopedTeachers=teachers.filter(t=>
+       allowed.has(String(t.id||t.email||"").trim().toLowerCase())
+     );
+     assignments=scopedTeachers.flatMap(t=>Array.isArray(t.assignments)?t.assignments:[]);
+   }
+ }
+
+ renderSubjects();
+ await loadExams();
+}
+function renderSubjects(){
+ subject.innerHTML='<option value="">اختر المادة</option>';
+ let list=subjects;
+ const scopedUser=
+   role==="teacher" ||
+   (role==="supervisor" && currentSupervisorType==="supervisor");
+
+ if(scopedUser){
+   const ids=new Set(assignments.map(a=>a.subjectId).filter(Boolean));
+   list=subjects.filter(s=>ids.has(s.id));
+ }
+
+ list.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"))
+ .forEach(s=>subject.insertAdjacentHTML("beforeend",`<option value="${esc(s.id)}">${esc(s.name)}</option>`));
+}
+function availableClassesForSubject(subjectId){
+ const scopedUser=
+   role==="teacher" ||
+   (role==="supervisor" && currentSupervisorType==="supervisor");
+
+ let arr;
+ if(!scopedUser){
+   arr=gradesOrder.flatMap(g=>sections.map(s=>({grade:g,section:s})));
+ }else{
+   arr=assignments
+     .filter(a=>String(a.subjectId||"")===String(subjectId||""))
+     .map(a=>({grade:a.grade,section:a.section}));
+ }
+
+ const seen=new Set();
+ arr=arr.filter(c=>{
+   const k=String(c.grade||"")+"|"+String(c.section||"");
+   if(!c.grade||!c.section||seen.has(k))return false;
+   seen.add(k);
+   return true;
+ });
+
+ arr.sort((a,b)=>
+   gradesOrder.indexOf(a.grade)-gradesOrder.indexOf(b.grade) ||
+   sections.indexOf(a.section)-sections.indexOf(b.section)
+ );
+
+ return arr;
+}
+
+function examHasPublication(e){
+ const mode=String(e?.targetType||"").toLowerCase();
+
+ if(mode==="classes"){
+   return Array.isArray(e?.classes)&&e.classes.length>0;
+ }
+
+ if(mode==="students"){
+   return (
+     (Array.isArray(e?.targetStudentCodes)&&e.targetStudentCodes.length>0) ||
+     (Array.isArray(e?.targetStudents)&&e.targetStudents.length>0)
+   );
+ }
+
+ // دعم الاختبارات التي حُفظت بالنسخة السابقة لطالب واحد.
+ if(mode==="student"){
+   return !!String(e?.targetStudentCode||"").trim();
+ }
+
+ // دعم الاختبارات القديمة التي لم يكن بها targetType.
+ if(!mode && Array.isArray(e?.classes)&&e.classes.length>0){
+   return true;
+ }
+
+ return false;
+}
+
+function examTargetText(e){
+ const mode=String(e?.targetType||"").toLowerCase();
+
+ if(mode==="students"){
+   const list=Array.isArray(e?.targetStudents)?e.targetStudents:[];
+   const codes=Array.isArray(e?.targetStudentCodes)?e.targetStudentCodes:[];
+   const count=Math.max(list.length,codes.length);
+
+   if(count===1){
+     const s=list[0]||{};
+     const name=s.name||codes[0]||"طالب";
+     const cls=[s.grade,s.section].filter(Boolean).join(" / ");
+     return `طالب محدد: ${name}${cls?` — ${cls}`:""}`;
+   }
+
+   if(count>1){
+     const first=list[0]||{};
+     const cls=[first.grade,first.section].filter(Boolean).join(" / ");
+     return `طلاب محددون (${count})${cls?` — ${cls}`:""}`;
+   }
+
+   return "غير منشور";
+ }
+
+ if(mode==="student"){
+   const who=e.targetStudentName||e.targetStudentCode||"-";
+   const cls=[e.targetStudentGrade,e.targetStudentSection].filter(Boolean).join(" / ");
+   return `طالب محدد: ${who}${cls?` — ${cls}`:""}`;
+ }
+
+ const classes=Array.isArray(e?.classes)?e.classes:[];
+ if(mode==="classes" || (!mode&&classes.length)){
+   return classes.map(c=>c.grade+" "+c.section).join("، ")||"غير منشور";
+ }
+
+ return "غير منشور";
+}
+
+function publicationStateText(e){
+ if(!examHasPublication(e))return "لم يتم نشر الاختبار بعد.";
+ if(e.active===false)return "تم تحديد المستهدفين لكن النشر موقوف حاليًا.";
+ return "الاختبار منشور/مجدول حسب موعد النشر المحدد.";
+}
+
+function classOptionValue(grade,section){
+ return encodeURIComponent(JSON.stringify({grade:String(grade||""),section:String(section||"")}));
+}
+
+function parseClassOptionValue(value){
+ try{
+   const x=JSON.parse(decodeURIComponent(String(value||"")));
+   return {grade:String(x?.grade||""),section:String(x?.section||"")};
+ }catch{
+   return {grade:"",section:""};
+ }
+}
+
+function populatePublishStudentClassOptions(exam,selectedGrade="",selectedSection=""){
+ const select=document.getElementById("publishStudentClass");
+ if(!select)return;
+
+ const arr=availableClassesForSubject(exam?.subjectId||"");
+ select.innerHTML='<option value="">اختر الفصل</option>';
+
+ arr.forEach(c=>{
+   const value=classOptionValue(c.grade,c.section);
+   const selected=
+     String(c.grade)===String(selectedGrade) &&
+     String(c.section)===String(selectedSection)
+       ?" selected":"";
+
+   select.insertAdjacentHTML(
+     "beforeend",
+     `<option value="${esc(value)}"${selected}>${esc(c.grade)} / ${esc(c.section)}</option>`
+   );
+ });
+}
+
+function renderPublishClasses(selected=[]){
+ const box=document.getElementById("publishClassChoices");
+ if(!box)return;
+
+ const exam=examsData.find(x=>x.id===publishingExamId);
+ if(!exam){
+   box.innerHTML='<span class="note">الاختبار غير موجود.</span>';
+   return;
+ }
+
+ const selectedKeys=new Set(
+   (selected||[]).map(c=>String(c.grade||"")+"|"+String(c.section||""))
+ );
+
+ const arr=availableClassesForSubject(exam.subjectId||"");
+ box.innerHTML="";
+
+ if(!arr.length){
+   box.innerHTML='<span class="note">لا توجد فصول متاحة لك لهذه المادة.</span>';
+   return;
+ }
+
+ arr.forEach(c=>{
+   const key=String(c.grade||"")+"|"+String(c.section||"");
+   const checked=selectedKeys.has(key)?"checked":"";
+   box.insertAdjacentHTML(
+     "beforeend",
+     `<label class="chip"><input type="checkbox" class="publishClassCheck" data-grade="${esc(c.grade)}" data-section="${esc(c.section)}" ${checked}>${esc(c.grade)} / ${esc(c.section)}</label>`
+   );
+ });
+}
+
+async function loadPublishStudents(selectedCodes=null){
+ const select=document.getElementById("publishStudentClass");
+ const listBox=document.getElementById("publishStudentsList");
+ const summary=document.getElementById("publishStudentsSummary");
+ if(!select||!listBox)return;
+
+ const cls=parseClassOptionValue(select.value);
+ listBox.innerHTML="";
+ if(summary)summary.textContent="";
+
+ if(!cls.grade||!cls.section){
+   publishStudentsCache=[];
+   listBox.innerHTML='<div class="empty">اختر الفصل أولًا لعرض الطلاب المسجلين به.</div>';
+   return;
+ }
+
+ listBox.innerHTML='<div class="empty">جاري تحميل طلاب الفصل...</div>';
+
+ try{
+   // تحميل حي من Firestore حتى تظهر أي أسماء مضافة حديثًا.
+   const snap=await db.collection("students").where("grade","==",cls.grade).get();
+   let list=[];
+   snap.forEach(d=>{
+     const data=d.data()||{};
+     if(String(data.section||"")===String(cls.section)){
+       list.push({
+         id:d.id,
+         ...data,
+         code:String(data.code||d.id)
+       });
+     }
+   });
+
+   list.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"ar"));
+   publishStudentsCache=list;
+
+   const selectedSet=new Set(
+     Array.isArray(selectedCodes)
+       ?selectedCodes.map(v=>String(v))
+       :[]
+   );
+
+   if(!list.length){
+     listBox.innerHTML=`<div class="empty">لا يوجد طلاب مسجلون في ${esc(cls.grade)} / ${esc(cls.section)} داخل بيانات الطلاب.</div>`;
+     return;
+   }
+
+   listBox.innerHTML=list.map(s=>{
+     const code=String(s.code||s.id||"");
+     const checked=selectedSet.has(code)?"checked":"";
+     return `<label class="publish-student-row">
+       <input type="checkbox" class="publishStudentCheck" value="${esc(code)}" ${checked} onchange="updatePublishStudentsSummary()">
+       <span><b>${esc(s.name||"طالب")}</b> — ${esc(code)}</span>
+     </label>`;
+   }).join("");
+
+   updatePublishStudentsSummary();
+ }catch(e){
+   console.error(e);
+   publishStudentsCache=[];
+   listBox.innerHTML=`<div class="empty">تعذر تحميل طلاب الفصل: ${esc(e.message||e)}</div>`;
+ }
+}
+
+function updatePublishStudentsSummary(){
+ const n=document.querySelectorAll(".publishStudentCheck:checked").length;
+ const el=document.getElementById("publishStudentsSummary");
+ if(el)el.textContent=n?`تم اختيار ${n} طالب/طلاب.`:"لم يتم اختيار أي طالب.";
+}
+
+function selectPublishStudents(flag){
+ document.querySelectorAll(".publishStudentCheck").forEach(x=>x.checked=!!flag);
+ updatePublishStudentsSummary();
+}
+
+function renderPublishMode(){
+ const mode=document.getElementById("publishTargetType")?.value||"classes";
+ document.getElementById("publishClassesBox")?.classList.toggle("hidden",mode!=="classes");
+ document.getElementById("publishStudentsBox")?.classList.toggle("hidden",mode!=="students");
+}
+
+async function openPublish(id){
+ const e=examsData.find(x=>x.id===id);
+ if(!e||!canManageExam(e)){
+   alert("لا يمكنك إدارة نشر هذا الاختبار.");
+   return;
+ }
+
+ publishingExamId=id;
+ document.getElementById("publishingExamId").value=id;
+ document.getElementById("publishExamLabel").textContent=e.name||"";
+ document.getElementById("publishCurrentState").textContent=publicationStateText(e);
+
+ const oldMode=String(e.targetType||"").toLowerCase();
+ const mode=(oldMode==="students"||oldMode==="student")?"students":"classes";
+ document.getElementById("publishTargetType").value=mode;
+
+ renderPublishClasses(e.classes||[]);
+
+ let selectedStudents=[];
+ let selectedGrade="";
+ let selectedSection="";
+
+ if(oldMode==="students"){
+   selectedStudents=Array.isArray(e.targetStudentCodes)
+     ?e.targetStudentCodes.map(String)
+     :(Array.isArray(e.targetStudents)?e.targetStudents.map(s=>String(s.code||"")):[]);
+   const first=Array.isArray(e.targetStudents)?e.targetStudents[0]:null;
+   selectedGrade=String(first?.grade||"");
+   selectedSection=String(first?.section||"");
+ }else if(oldMode==="student"){
+   selectedStudents=[String(e.targetStudentCode||"")].filter(Boolean);
+   selectedGrade=String(e.targetStudentGrade||"");
+   selectedSection=String(e.targetStudentSection||"");
+ }
+
+ populatePublishStudentClassOptions(e,selectedGrade,selectedSection);
+ renderPublishMode();
+
+ if(mode==="students" && selectedGrade && selectedSection){
+   await loadPublishStudents(selectedStudents);
+ }else{
+   publishStudentsCache=[];
+   document.getElementById("publishStudentsList").innerHTML='<div class="empty">اختر الفصل أولًا لعرض الطلاب المسجلين به.</div>';
+   document.getElementById("publishStudentsSummary").textContent="";
+ }
+
+ document.getElementById("publishCard").classList.remove("hidden");
+ document.getElementById("publishCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closePublishCard(){
+ publishingExamId="";
+ publishStudentsCache=[];
+ document.getElementById("publishingExamId").value="";
+ document.getElementById("publishCard").classList.add("hidden");
+}
+
+async function savePublication(){
+ const id=publishingExamId||document.getElementById("publishingExamId")?.value||"";
+ if(!id)return alert("اختر اختبارًا أولًا.");
+
+ try{
+   await requireOwnedExam(id);
+
+   const mode=document.getElementById("publishTargetType")?.value||"classes";
+   const update={
+     active:true,
+     publicationUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+   };
+
+   if(mode==="classes"){
+     const classes=[...document.querySelectorAll(".publishClassCheck:checked")]
+       .map(x=>({grade:x.dataset.grade,section:x.dataset.section}));
+
+     if(!classes.length)return alert("اختر فصلًا واحدًا على الأقل للنشر.");
+
+     Object.assign(update,{
+       targetType:"classes",
+       classes,
+       targetStudents:[],
+       targetStudentCodes:[],
+       targetStudentCode:"",
+       targetStudentName:"",
+       targetStudentGrade:"",
+       targetStudentSection:""
+     });
+
+   }else{
+     const cls=parseClassOptionValue(document.getElementById("publishStudentClass")?.value||"");
+     if(!cls.grade||!cls.section)return alert("اختر الفصل أولًا.");
+
+     const codes=[...document.querySelectorAll(".publishStudentCheck:checked")]
+       .map(x=>String(x.value||""))
+       .filter(Boolean);
+
+     if(!codes.length)return alert("اختر طالبًا واحدًا على الأقل.");
+
+     const selected=publishStudentsCache
+       .filter(s=>codes.includes(String(s.code||s.id||"")))
+       .map(s=>({
+         code:String(s.code||s.id||""),
+         name:String(s.name||""),
+         grade:String(s.grade||cls.grade),
+         section:String(s.section||cls.section)
+       }));
+
+     if(!selected.length)return alert("تعذر قراءة بيانات الطلاب المحددين. أعد اختيار الفصل والطلاب.");
+
+     Object.assign(update,{
+       targetType:"students",
+       classes:[],
+       targetStudents:selected,
+       targetStudentCodes:selected.map(s=>s.code),
+       targetStudentCode:"",
+       targetStudentName:"",
+       targetStudentGrade:"",
+       targetStudentSection:""
+     });
+   }
+
+   await db.collection("onlineExams").doc(id).set(update,{merge:true});
+   alert("تم حفظ إعدادات النشر وتفعيل الاختبار.");
+   await loadExams();
+
+   const refreshed=examsData.find(x=>x.id===id);
+   if(refreshed){
+     document.getElementById("publishCurrentState").textContent=publicationStateText(refreshed);
+   }
+ }catch(e){
+   console.error(e);
+   alert("تعذر حفظ النشر: "+(e.message||e));
+ }
+}
+
+async function unpublishExam(){
+ const id=publishingExamId||document.getElementById("publishingExamId")?.value||"";
+ if(!id)return;
+ if(!confirm("إيقاف نشر هذا الاختبار الآن؟ ستظل إعدادات المستهدفين محفوظة."))return;
+
+ try{
+   await requireOwnedExam(id);
+   await db.collection("onlineExams").doc(id).update({
+     active:false,
+     publicationUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+   });
+   await loadExams();
+   document.getElementById("publishCurrentState").textContent="تم إيقاف نشر الاختبار.";
+ }catch(e){
+   alert("تعذر إيقاف النشر: "+(e.message||e));
+ }
+}
+async function saveExam(){
+ let name=examName.value.trim(),sid=subject.value,fm=Number(fullMark.value),dur=Number(duration.value),maxAtt=Number(maxAttempts.value),publishAtValue=publishAt.value.trim(),deadlineValue=deadline.value.trim();
+
+ if(!name||!sid||!fm||!dur)return alert("أكمل اسم الاختبار والمادة والدرجة والمدة.");
+
+ if(publishAtValue && deadlineValue){
+   const publishTime=new Date(publishAtValue).getTime();
+   const deadlineTime=new Date(deadlineValue).getTime();
+   if(Number.isFinite(publishTime)&&Number.isFinite(deadlineTime)&&publishTime>=deadlineTime){
+     return alert("موعد نشر الاختبار يجب أن يكون قبل آخر موعد لأداء الاختبار.");
+   }
+ }
+
+ let subj=subjects.find(s=>s.id===sid);
+ let data={
+   name,
+   subjectId:sid,
+   subjectName:subj?.name||"",
+   fullMark:fm,
+   durationMinutes:dur,
+   maxAttempts:maxAtt,
+   publishAt:publishAtValue||"",
+   deadline:deadlineValue||"",
+   updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+ };
+
+ if(["teacher","supervisor"].includes(role) && !editingId.value){
+   data.teacherEmail=currentUser;
+   data.teacherName=
+     role==="teacher"
+     ?(currentTeacher?.name||localStorage.getItem("currentUserName")||currentUser)
+     :(localStorage.getItem("currentUserName")||currentUser);
+   data.createdByRole=role;
+ }else if(!["teacher","supervisor"].includes(role) && !editingId.value){
+   data.teacherEmail=currentUser||"";
+   data.teacherName=localStorage.getItem("currentUserName")||"الإدارة";
+   data.createdByRole=role||"admin";
+ }
+
+ try{
+   let id=editingId.value;
+
+   if(id){
+     await requireOwnedExam(id);
+     // تعديل بيانات الاختبار لا يغيّر إعدادات النشر الحالية.
+     await db.collection("onlineExams").doc(id).set(data,{merge:true});
+     selectedExamId=id;
+   }else{
+     Object.assign(data,{
+       createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+       active:false,
+       targetType:"none",
+       classes:[],
+       targetStudents:[],
+       targetStudentCodes:[]
+     });
+     let d=await db.collection("onlineExams").add(data);
+     selectedExamId=d.id;
+     editingId.value=d.id;
+   }
+
+   alert("تم حفظ بيانات الاختبار. أضف الأسئلة ثم استخدم زر النشر لتحديد الفصول أو الطلاب.");
+   await loadExams();
+   openQuestions(selectedExamId);
+ }catch(e){
+   console.error(e);
+   alert("تعذر الحفظ: "+e.message);
+ }
+}
+function publishTimeText(e){
+ if(!e?.publishAt)return "فوري";
+ const d=new Date(e.publishAt);
+ if(Number.isNaN(d.getTime()))return "فوري";
+ return d.toLocaleString("ar-SA");
+}
+function examAdminStatus(e){
+ if(!examHasPublication(e))return "غير منشور";
+ if(e.active===false)return "موقوف";
+ if(e.publishAt){
+   const t=new Date(e.publishAt).getTime();
+   if(Number.isFinite(t)&&Date.now()<t)return "مجدول للنشر";
+ }
+ if(e.deadline){
+   const t=new Date(e.deadline).getTime();
+   if(Number.isFinite(t)&&Date.now()>t)return "انتهى";
+ }
+ return "منشور";
+}
+
+async function loadExams(){
+ let s=await db.collection("onlineExams").get();examsData=s.docs.map(d=>({id:d.id,...d.data()}));
+ if(["teacher","supervisor"].includes(role)){
+   // لا نحذف أو نغيّر أي اختبار قديم؛ هذه فلترة عرض فقط مع توافق كامل مع الحقول القديمة.
+   examsData=examsData.filter(e=>examBelongsToCurrentUser(e));
+ }
+ examRows.innerHTML="";
+ if(!examsData.length){examRows.innerHTML='<tr><td colspan="11">لا توجد اختبارات حتى الآن.</td></tr>';return}
+ for(let i=0;i<examsData.length;i++){
+   let e=examsData[i],qc=await db.collection("onlineExams").doc(e.id).collection("questions").get();
+   let cls=examTargetText(e);
+   const toggleBtn=examHasPublication(e)?` <button class="light" onclick="toggleExam('${e.id}',${e.active!==false})">${e.active!==false?"إيقاف":"تفعيل"}</button>`:"";
+   examRows.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.subjectName)}</td><td>${esc(cls)}</td><td>${esc(e.fullMark)}</td><td>${esc(e.durationMinutes)} د</td><td>${esc(publishTimeText(e))}</td><td>${e.deadline?esc(new Date(e.deadline).toLocaleString("ar-SA")):"بدون موعد"}</td><td>${esc(examAdminStatus(e))}</td><td>${qc.size}</td><td><button class="primary" onclick="editExam('${e.id}')">تعديل</button> <button class="green" onclick="openQuestions('${e.id}')">الأسئلة</button> <button class="gold" onclick="openPublish('${e.id}')">📢 النشر</button> <button class="gold" onclick="showResults('${e.id}')">النتائج</button>${toggleBtn} <button class="gold" onclick="deleteExamResults('${e.id}')">حذف النتائج</button> <button class="red" onclick="deleteExam('${e.id}')">حذف</button></td></tr>`);
+ }
+}
+function editExam(id){
+ let e=examsData.find(x=>x.id===id);
+ if(!e||!canManageExam(e)){alert("لا يمكنك تعديل اختبار يخص معلماً آخر.");return;}
+ editingId.value=id;
+ examName.value=e.name||"";
+ subject.value=e.subjectId||"";
+ fullMark.value=e.fullMark||10;
+ duration.value=e.durationMinutes||15;
+ maxAttempts.value=(e.maxAttempts===undefined?1:Number(e.maxAttempts));
+ publishAt.value=e.publishAt||"";
+ deadline.value=e.deadline||"";
+ openQuestions(id);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function clearExamForm(){
+ editingId.value="";
+ examName.value="";
+ subject.value="";
+ fullMark.value=10;
+ duration.value=15;
+ maxAttempts.value=1;
+ publishAt.value="";
+ deadline.value="";
+ questionCard.classList.add("hidden");
+ selectedExamId="";
+}
+async function toggleExam(id,current){try{await requireOwnedExam(id);await db.collection("onlineExams").doc(id).update({active:!current});await loadExams()}catch(e){alert(e.message)}}
+async function deleteExam(id){
+ try{await requireOwnedExam(id)}catch(e){alert(e.message);return}
+ if(!confirm("سيتم حذف الاختبار وأسئلته ونتائجه المرتبطة به. هل أنت متأكد؟"))return;
+ try{
+  let qs=await db.collection("onlineExams").doc(id).collection("questions").get();let batch=db.batch(),n=0;
+  for(let d of qs.docs){batch.delete(d.ref);n++;if(n>=400){await batch.commit();batch=db.batch();n=0}}if(n)await batch.commit();
+  let at=await db.collection("examAttempts").where("examId","==",id).get();batch=db.batch();n=0;
+  for(let d of at.docs){batch.delete(d.ref);n++;if(n>=400){await batch.commit();batch=db.batch();n=0}}if(n)await batch.commit();
+  await db.collection("onlineExams").doc(id).delete();if(selectedExamId===id){questionCard.classList.add("hidden");resultsCard.classList.add("hidden")}if(publishingExamId===id)closePublishCard();await loadExams();
+ }catch(e){alert("تعذر الحذف: "+e.message)}
+}
+
+async function commitDeletes(docs){
+ let batch=db.batch(),n=0;
+ for(const d of docs){batch.delete(d.ref);n++;if(n>=400){await batch.commit();batch=db.batch();n=0}}
+ if(n)await batch.commit();
+}
+function myExamIds(){return new Set(examsData.filter(e=>canManageExam(e)).map(e=>e.id))}
+async function deleteExamResults(id){
+ try{await requireOwnedExam(id)}catch(e){alert(e.message);return}
+ const e=examsData.find(x=>x.id===id);
+ if(!confirm(`حذف جميع نتائج ومحاولات اختبار "${e?.name||""}"؟\nسيبقى الاختبار والأسئلة كما هي.`))return;
+ try{const s=await db.collection("examAttempts").where("examId","==",id).get();await commitDeletes(s.docs);resultsCard.classList.add("hidden");alert(`تم حذف ${s.size} محاولة/نتيجة.`)}
+ catch(e){alert("تعذر حذف النتائج: "+e.message)}
+}
+async function deleteAllMyResults(){
+ const ids=myExamIds();if(!ids.size)return alert("لا توجد اختبارات.");
+ if(!confirm("سيتم حذف جميع نتائج اختباراتك مع بقاء الاختبارات والأسئلة. هل أنت متأكد؟"))return;
+ if(prompt("للتأكيد اكتب: حذف النتائج")!=="حذف النتائج")return alert("تم إلغاء العملية.");
+ try{let total=0;for(const id of ids){const s=await db.collection("examAttempts").where("examId","==",id).get();total+=s.size;await commitDeletes(s.docs)}resultsCard.classList.add("hidden");alert(`تم حذف ${total} نتيجة/محاولة.`)}
+ catch(e){alert("تعذر حذف النتائج: "+e.message)}
+}
+async function setAllExamsActive(active){
+ const list=examsData.filter(e=>canManageExam(e));if(!list.length)return alert("لا توجد اختبارات.");
+ if(!confirm(`${active?"تفعيل":"إيقاف"} جميع اختباراتك؟`))return;
+ try{let batch=db.batch(),n=0;for(const e of list){batch.update(db.collection("onlineExams").doc(e.id),{active,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});n++;if(n>=400){await batch.commit();batch=db.batch();n=0}}if(n)await batch.commit();await loadExams()}
+ catch(e){alert("تعذر تنفيذ العملية: "+e.message)}
+}
+async function deleteAllMyExams(){
+ const list=examsData.filter(e=>canManageExam(e));if(!list.length)return alert("لا توجد اختبارات للحذف.");
+ if(!confirm(`سيتم حذف ${list.length} اختبارًا مع الأسئلة والنتائج التابعة لها نهائيًا.`))return;
+ if(prompt("للتأكيد اكتب: حذف جميع الاختبارات")!=="حذف جميع الاختبارات")return alert("تم إلغاء العملية.");
+ try{for(const e of list){const qs=await db.collection("onlineExams").doc(e.id).collection("questions").get();await commitDeletes(qs.docs);const at=await db.collection("examAttempts").where("examId","==",e.id).get();await commitDeletes(at.docs);await db.collection("onlineExams").doc(e.id).delete()}selectedExamId="";questionCard.classList.add("hidden");resultsCard.classList.add("hidden");clearExamForm();await loadExams();alert("تم حذف جميع الاختبارات والنتائج التابعة لها.")}
+ catch(e){alert("تعذر حذف جميع الاختبارات: "+e.message)}
+}
+async function deleteAttempt(examId,attemptId){
+ try{await requireOwnedExam(examId)}catch(e){alert(e.message);return}
+ if(!confirm("حذف هذه المحاولة فقط؟"))return;
+ try{await db.collection("examAttempts").doc(attemptId).delete();await showResults(examId)}catch(e){alert("تعذر حذف المحاولة: "+e.message)}
+}
+async function deleteStudentAttempts(examId,studentCode,studentName){
+ try{await requireOwnedExam(examId)}catch(e){alert(e.message);return}
+ if(!confirm(`حذف جميع محاولات الطالب ${studentName||studentCode} في هذا الاختبار؟`))return;
+ try{const s=await db.collection("examAttempts").where("examId","==",examId).where("studentCode","==",String(studentCode)).get();await commitDeletes(s.docs);await showResults(examId)}
+ catch(e){alert("تعذر حذف محاولات الطالب: "+e.message)}
+}
+
+
+
+let pdfImportQuestions=[];
+
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc=
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+function pdfSetStatus(message,type=""){
+  const node=document.getElementById("pdfImportStatus");
+  if(!node)return;
+  node.className="pdf-status"+(type?" "+type:"");
+  node.textContent=message||"";
+}
+
+function normalizePdfLine(v){
+  return String(v||"")
+    .replace(/\u00a0/g," ")
+    .replace(/[ \t]+/g," ")
+    .trim();
+}
+
+function isAnswerKeyHeading(line){
+  return /^(answer\s*key|answers?|correct\s*answers?|الإجابات|الاجابات|نموذج\s*الإجابة|نموذج\s*الاجابة)\b/i
+    .test(normalizePdfLine(line));
+}
+
+function answerTokenToIndex(token){
+  const t=String(token||"").trim().replace(/[.)\-:]/g,"").toLowerCase();
+  const english={a:0,b:1,c:2,d:3,e:4,f:5};
+  if(Object.prototype.hasOwnProperty.call(english,t))return english[t];
+  const arabic={"أ":0,"ا":0,"ب":1,"ج":2,"د":3,"هـ":4,"ه":4};
+  if(Object.prototype.hasOwnProperty.call(arabic,t))return arabic[t];
+  if(["true","صح","صحيح"].includes(t))return 0;
+  if(["false","خطأ","خطا"].includes(t))return 1;
+  const n=Number(t);
+  if(Number.isFinite(n)&&n>=1&&n<=9)return n-1;
+  return null;
+}
+
+function parseAnswerKey(lines){
+  const map={};
+  let inKey=false;
+
+  lines.forEach(raw=>{
+    const line=normalizePdfLine(raw);
+    if(!line)return;
+
+    if(isAnswerKeyHeading(line)){
+      inKey=true;
+      const rest=line.replace(/^(answer\s*key|answers?|correct\s*answers?|الإجابات|الاجابات|نموذج\s*الإجابة|نموذج\s*الاجابة)\s*[:\-–—]?\s*/i,"");
+      if(rest)parseAnswerPairs(rest,map);
+      return;
+    }
+
+    if(inKey){
+      // stop when a clearly new long question-like paragraph starts
+      if(/^\s*(?:س\s*)?\d+\s*[.)]\s+.{45,}$/.test(line))inKey=false;
+      else parseAnswerPairs(line,map);
+    }
+  });
+
+  return map;
+}
+
+function parseAnswerPairs(text,map){
+  const source=String(text||"");
+  const rx=/(?:^|[\s,،;؛|])(?:س\s*)?(\d{1,3})\s*[:.)\-–—]\s*(A|B|C|D|E|F|[أابجددهـ]|True|False|صح|خطأ|خطا|\d)/gi;
+  let m;
+  while((m=rx.exec(source))){
+    const idx=answerTokenToIndex(m[2]);
+    if(idx!==null)map[String(Number(m[1]))]=idx;
+  }
+}
+
+function splitInlineOptions(line){
+  const s=normalizePdfLine(line);
+  const pattern=/(?:^|\s)([A-Da-d]|[أابجد])\s*[.)\-:]\s*/g;
+  const hits=[];
+  let m;
+  while((m=pattern.exec(s)))hits.push({index:m.index,label:m[1],end:pattern.lastIndex});
+  if(hits.length<2)return null;
+
+  const options=[];
+  for(let i=0;i<hits.length;i++){
+    const start=hits[i].end;
+    const end=i+1<hits.length?hits[i+1].index:s.length;
+    const value=s.slice(start,end).trim();
+    if(value)options.push(value);
+  }
+  return options.length>=2?options:null;
+}
+
+function parseQuestionNumber(line){
+  const s=normalizePdfLine(line);
+  let m=s.match(/^(?:س(?:ؤال)?\s*)?(\d{1,3})\s*[.)\-:]\s*(.+)$/i);
+  if(!m)m=s.match(/^(\d{1,3})\s+[-–—]\s+(.+)$/);
+  return m?{number:Number(m[1]),text:m[2].trim()}:null;
+}
+
+function parsePdfQuestionBlock(block,answerKey){
+  if(!block||!block.lines?.length)return null;
+
+  const number=block.number;
+  const lines=block.lines.map(normalizePdfLine).filter(Boolean);
+  if(!lines.length)return null;
+
+  let questionText=lines[0];
+  const optionRows=[];
+  const extraQuestionLines=[];
+  let explicitAnswer=null;
+
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i];
+
+    const answerMatch=line.match(/^(?:الإجابة\s*الصحيحة|الاجابة\s*الصحيحة|الإجابة|الاجابة|answer|correct\s*answer)\s*[:\-]\s*(.+)$/i);
+    if(answerMatch){
+      explicitAnswer=answerMatch[1].trim();
+      continue;
+    }
+
+    const inline=splitInlineOptions(line);
+    if(inline){
+      inline.forEach(x=>optionRows.push(x));
+      continue;
+    }
+
+    const opt=line.match(/^\s*(?:\(?\s*)?([A-Fa-f]|[أابجددهـ])\s*[.)\-:]\s*(.+)$/);
+    if(opt){
+      optionRows.push(opt[2].trim());
+      continue;
+    }
+
+    if(/^[✓✔*]\s*/.test(line) && optionRows.length){
+      optionRows[optionRows.length-1]=line.replace(/^[✓✔*]\s*/,"").trim();
+      explicitAnswer=String(optionRows.length);
+      continue;
+    }
+
+    extraQuestionLines.push(line);
+  }
+
+  if(extraQuestionLines.length){
+    questionText=[questionText,...extraQuestionLines].join(" ").replace(/\s+/g," ").trim();
+  }
+
+  let type="short";
+  let options=[];
+  let correctIndex=null;
+  let correctText="";
+
+  const tfHint=/\b(true|false)\b|صح\s*(?:أم|او|أو)\s*خطأ|صح\s*\/\s*خطأ|ضع\s+علامة\s+صح/i.test(questionText);
+  if(optionRows.length>=2){
+    type="mcq";
+    options=optionRows;
+  }else if(tfHint){
+    type="truefalse";
+    options=["صح","خطأ"];
+  }
+
+  if(Object.prototype.hasOwnProperty.call(answerKey,String(number))){
+    correctIndex=answerKey[String(number)];
+  }
+
+  if(explicitAnswer){
+    if(type==="mcq"||type==="truefalse"){
+      const asIndex=answerTokenToIndex(explicitAnswer);
+      if(asIndex!==null)correctIndex=asIndex;
+      else{
+        const found=options.findIndex(x=>
+          normalizePdfLine(x).toLowerCase()===normalizePdfLine(explicitAnswer).toLowerCase()
+        );
+        if(found>=0)correctIndex=found;
+      }
+    }else{
+      correctText=explicitAnswer;
+    }
+  }
+
+  if(type==="truefalse" && correctIndex!==null && correctIndex>1)correctIndex=null;
+  if(type==="mcq" && correctIndex!==null && correctIndex>=options.length)correctIndex=null;
+
+  return {
+    number,
+    type,
+    text:questionText,
+    options,
+    correctIndex,
+    correctText,
+    points:Number(document.getElementById("pdfDefaultPoints")?.value||1)||1,
+    include:true
+  };
+}
+
+function cleanPdfQuestionText(text){
+  return String(text||"")
+    // إزالة الترويسات المتكررة الشائعة في أوراق الأسئلة
+    .replace(/Prepared\s+by\s*:[^\n]{0,180}?English\s+teacher/gi," ")
+    .replace(/Prepared\s+by\s*:[^\n]{0,180}/gi," ")
+    // أرقام الصفحات العربية/الإنجليزية إذا جاءت كسطر مستقل
+    .replace(/^\s*[٠-٩0-9]{1,3}\s*$/gm," ")
+    .replace(/\u00a0/g," ")
+    .replace(/[ \t]+/g," ")
+    .replace(/\n+/g,"\n")
+    .trim();
+}
+
+function buildContinuousQuestionBlocks(text){
+  const cleaned=cleanPdfQuestionText(text);
+  const answerKeyLines=cleaned
+    .split(/\r?\n/)
+    .map(normalizePdfLine)
+    .filter(Boolean);
+
+  const answerKey=parseAnswerKey(answerKeyLines);
+
+  // كثير من ملفات Word→PDF تحفظ الصفحة كسطر واحد كامل.
+  // لذلك لا نعتمد على فواصل الأسطر، بل نبحث عن أرقام الأسئلة داخل النص كله.
+  let body=cleaned
+    .replace(/\r?\n/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+  // إذا كان هناك Answer Key في نهاية الملف، لا ندخله ضمن جسم آخر سؤال.
+  const keyMatch=body.match(/\b(?:Answer\s*Key|Answers?|Correct\s*Answers?)\b|(?:الإجابات|الاجابات|نموذج\s*الإجابة|نموذج\s*الاجابة)/i);
+  if(keyMatch && Number.isFinite(keyMatch.index)){
+    body=body.slice(0,keyMatch.index).trim();
+  }
+
+  const starts=[];
+  const rx=/(?:^|\s)(?:س(?:ؤال)?\s*)?(\d{1,3})\s*[.)]\s*/gi;
+  let m;
+
+  while((m=rx.exec(body))){
+    const leadingSpace=/^\s/.test(m[0])?1:0;
+    starts.push({
+      number:Number(m[1]),
+      start:m.index+leadingSpace,
+      bodyStart:m.index+m[0].length
+    });
+  }
+
+  if(!starts.length){
+    return {blocks:[],answerKey};
+  }
+
+  const blocks=[];
+
+  for(let i=0;i<starts.length;i++){
+    const cur=starts[i];
+    const end=i+1<starts.length?starts[i+1].start:body.length;
+    const rawBody=body.slice(cur.bodyStart,end).trim();
+
+    if(!rawBody)continue;
+
+    // فصل الاختيارات حتى لو كانت كلها في نفس السطر:
+    // a) ... b) ... c) ... d) ...
+    const optionRx=/(?:^|\s)([A-Fa-f]|[أابجددهـ])\s*[.)\-:]\s*/g;
+    const optionHits=[];
+    let om;
+
+    while((om=optionRx.exec(rawBody))){
+      optionHits.push({
+        label:om[1],
+        start:om.index,
+        valueStart:optionRx.lastIndex
+      });
+    }
+
+    const lines=[];
+
+    if(optionHits.length>=2){
+      const questionText=rawBody.slice(0,optionHits[0].start).trim();
+      if(questionText)lines.push(questionText);
+
+      optionHits.forEach((hit,index)=>{
+        const valueEnd=index+1<optionHits.length
+          ?optionHits[index+1].start
+          :rawBody.length;
+
+        let value=rawBody.slice(hit.valueStart,valueEnd).trim();
+
+        // لو ظهر مفتاح إجابة صريح بعد آخر اختيار، نفصله كسطر مستقل.
+        const answerPos=value.search(/\s+(?:الإجابة\s*الصحيحة|الاجابة\s*الصحيحة|الإجابة|الاجابة|answer|correct\s*answer)\s*[:\-]/i);
+        if(answerPos>=0){
+          const answerPart=value.slice(answerPos).trim();
+          value=value.slice(0,answerPos).trim();
+          if(value)lines.push(`${hit.label}) ${value}`);
+          if(answerPart)lines.push(answerPart);
+        }else if(value){
+          lines.push(`${hit.label}) ${value}`);
+        }
+      });
+
+    }else{
+      lines.push(rawBody);
+    }
+
+    blocks.push({
+      number:cur.number,
+      lines
+    });
+  }
+
+  return {blocks,answerKey};
+}
+
+function parseQuestionsFromPdfText(text){
+  const lines=String(text||"")
+    .split(/\r?\n/)
+    .map(normalizePdfLine)
+    .filter(Boolean);
+
+  // المحاولة الأولى: المحلل الجديد الذي يدعم الملفات التي تكون الصفحة فيها سطرًا واحدًا.
+  const continuous=buildContinuousQuestionBlocks(text);
+
+  let parsed=continuous.blocks
+    .map(b=>parsePdfQuestionBlock(b,continuous.answerKey))
+    .filter(q=>q&&q.text);
+
+  // المحاولة الثانية: الطريقة القديمة المبنية على الأسطر، مفيدة لبعض ملفات PDF المنظمة.
+  if(!parsed.length){
+    const answerKey=parseAnswerKey(lines);
+    const blocks=[];
+    let current=null;
+    let stopAtAnswerKey=false;
+
+    for(const line of lines){
+      if(isAnswerKeyHeading(line)){
+        stopAtAnswerKey=true;
+        continue;
+      }
+      if(stopAtAnswerKey)continue;
+
+      const q=parseQuestionNumber(line);
+      if(q){
+        if(current)blocks.push(current);
+        current={number:q.number,lines:[q.text]};
+      }else if(current){
+        current.lines.push(line);
+      }
+    }
+    if(current)blocks.push(current);
+
+    parsed=blocks
+      .map(b=>parsePdfQuestionBlock(b,answerKey))
+      .filter(q=>q&&q.text);
+  }
+
+  // fallback: إذا لم توجد أرقام، كل فقرة تنتهي بعلامة سؤال تُعامل كسؤال قصير.
+  if(!parsed.length){
+    const candidates=lines
+      .filter(x=>/[؟?]\s*$/.test(x) && x.length>=8 && !isAnswerKeyHeading(x))
+      .slice(0,200);
+
+    parsed=candidates.map((x,i)=>({
+      number:i+1,
+      type:"short",
+      text:x,
+      options:[],
+      correctIndex:null,
+      correctText:"",
+      points:Number(document.getElementById("pdfDefaultPoints")?.value||1)||1,
+      include:true
+    }));
+  }
+
+  return parsed.slice(0,200);
+}
+
+async function extractPdfText(file){
+  if(!window.pdfjsLib)throw new Error("تعذر تحميل قارئ PDF. تحقق من الاتصال بالإنترنت ثم أعد فتح الصفحة.");
+
+  const buffer=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+  const pages=[];
+
+  for(let pageNumber=1;pageNumber<=pdf.numPages;pageNumber++){
+    pdfSetStatus(`جاري قراءة الصفحة ${pageNumber} من ${pdf.numPages}...`,"");
+    const page=await pdf.getPage(pageNumber);
+    const content=await page.getTextContent();
+
+    let pageText="";
+    for(const item of content.items){
+      const s=normalizePdfLine(item.str);
+      if(!s)continue;
+      pageText+=s;
+      pageText+=item.hasEOL?"\n":" ";
+    }
+    pages.push(pageText.trim());
+  }
+
+  return {text:pages.join("\n"),pages:pdf.numPages};
+}
+
+async function extractQuestionsFromPdf(){
+  if(!selectedExamId){
+    alert("احفظ بيانات الاختبار وافتح أسئلته أولًا.");
+    return;
+  }
+
+  try{
+    await requireOwnedExam(selectedExamId);
+  }catch(e){
+    alert(e.message);
+    return;
+  }
+
+  const file=document.getElementById("pdfQuestionsFile")?.files?.[0];
+  if(!file){
+    alert("اختر ملف PDF أولًا.");
+    return;
+  }
+
+  if(!/\.pdf$/i.test(file.name||"") && file.type!=="application/pdf"){
+    alert("الملف المختار ليس PDF.");
+    return;
+  }
+
+  if(file.size>20*1024*1024){
+    alert("حجم ملف PDF كبير جدًا. الحد الحالي 20MB.");
+    return;
+  }
+
+  const preview=document.getElementById("pdfImportPreview");
+  const actions=document.getElementById("pdfImportFinalActions");
+  preview.classList.add("hidden");
+  actions.classList.add("hidden");
+  preview.innerHTML="";
+  pdfImportQuestions=[];
+
+  try{
+    pdfSetStatus("جاري فتح ملف PDF وقراءة النص...","");
+    const result=await extractPdfText(file);
+    const clean=String(result.text||"").replace(/\s+/g," ").trim();
+
+    if(clean.length<30){
+      pdfSetStatus(
+        "لم أجد نصًا قابلًا للقراءة داخل الملف. غالبًا هذا PDF ممسوح ضوئيًا كصور. هذه النسخة لا تستخدم OCR حتى لا تُدخل أسئلة غير دقيقة.",
+        "warn"
+      );
+      return;
+    }
+
+    pdfImportQuestions=parseQuestionsFromPdfText(result.text);
+
+    if(!pdfImportQuestions.length){
+      pdfSetStatus(
+        "تمت قراءة الملف، لكن لم أستطع التعرف تلقائيًا على صيغة الأسئلة. الأفضل أن تكون الأسئلة مرقمة مثل 1) أو 1. والاختيارات A/B/C/D أو أ/ب/ج/د.",
+        "warn"
+      );
+      return;
+    }
+
+    renderPdfImportPreview();
+    preview.classList.remove("hidden");
+    actions.classList.remove("hidden");
+
+    const mcq=pdfImportQuestions.filter(q=>q.type==="mcq").length;
+    const tf=pdfImportQuestions.filter(q=>q.type==="truefalse").length;
+    const short=pdfImportQuestions.filter(q=>q.type==="short").length;
+    const withAnswer=pdfImportQuestions.filter(q=>
+      (["mcq","truefalse"].includes(q.type)&&q.correctIndex!==null) ||
+      (!["mcq","truefalse"].includes(q.type)&&q.correctText)
+    ).length;
+
+    pdfSetStatus(
+      `تمت قراءة ${result.pages} صفحة واستخراج ${pdfImportQuestions.length} سؤالًا: ${mcq} اختيار من متعدد، ${tf} صح/خطأ، ${short} إجابة قصيرة. تم التعرف على إجابة ${withAnswer} سؤال تلقائيًا. راجع الأسئلة قبل الإضافة.`,
+      "ok"
+    );
+
+  }catch(e){
+    console.error("PDF IMPORT ERROR:",e);
+    pdfSetStatus("تعذر قراءة ملف PDF: "+(e.message||e),"err");
+  }
+}
+
+function pdfQuestionTypeLabel(type){
+  return {
+    mcq:"اختيار من متعدد",
+    truefalse:"صح / خطأ",
+    fill:"أكمل الفراغ",
+    short:"إجابة قصيرة",
+    order:"ترتيب الكلمات",
+    matching:"توصيل",
+    reading:"Reading Comprehension"
+  }[type]||type;
+}
+
+function renderPdfImportPreview(){
+  const box=document.getElementById("pdfImportPreview");
+  if(!box)return;
+
+  box.innerHTML=pdfImportQuestions.map((q,i)=>{
+    let answerHtml="";
+
+    if(["mcq","truefalse","reading"].includes(q.type)){
+      if(q.type==="truefalse" && (!Array.isArray(q.options)||q.options.length<2)){
+        q.options=["صح","خطأ"];
+      }
+      if(!Array.isArray(q.options))q.options=[];
+
+      answerHtml=`
+        <div style="margin-top:8px">
+          <label>الاختيارات — حدد الإجابة الصحيحة</label>
+          ${(q.options||[]).map((opt,j)=>`
+            <div class="pdf-option-row">
+              <input type="radio" name="pdfCorrect_${i}" value="${j}" ${Number(q.correctIndex)===j?"checked":""} onchange="updatePdfCorrectIndex(${i},${j})">
+              <input type="text" value="${esc(opt)}" ${q.type==="truefalse"?"readonly":""} oninput="updatePdfOption(${i},${j},this.value)">
+            </div>
+          `).join("")}
+          ${q.type!=="truefalse"?`<button type="button" class="light" onclick="addPdfOption(${i})">➕ إضافة اختيار</button>`:""}
+        </div>`;
+    }else if(q.type==="matching"){
+      answerHtml=`
+        <div style="display:grid;gap:6px;margin-top:8px">
+          <label>أزواج التوصيل</label>
+          ${(q.pairs||[]).map((p,j)=>`
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <input type="text" value="${esc(p.left||"")}" placeholder="الطرف الأول" oninput="updatePdfPair(${i},${j},'left',this.value)">
+              <input type="text" value="${esc(p.right||"")}" placeholder="الطرف المقابل" oninput="updatePdfPair(${i},${j},'right',this.value)">
+            </div>
+          `).join("")}
+          <button type="button" class="light" onclick="addPdfPair(${i})">➕ إضافة زوج</button>
+        </div>`;
+    }else{
+      answerHtml=`
+        <div style="margin-top:8px">
+          <label>${q.type==="order"?"الترتيب / الجملة الصحيحة":"الإجابة الصحيحة"}</label>
+          <input type="text" value="${esc(q.correctText||"")}" placeholder="اكتب الإجابة الصحيحة" oninput="updatePdfCorrectText(${i},this.value)">
+        </div>`;
+    }
+
+    const passageHtml=q.type==="reading"
+      ?`<div style="margin:8px 0;padding:9px;border:1px solid #cfe0ec;border-radius:8px;background:#f8fbfd">
+          <label>عنوان القطعة <span style="color:#64748b;font-weight:normal">(اختياري)</span></label>
+          <input type="text" value="${esc(q.passageTitle||"")}" oninput="pdfImportQuestions[${i}].passageTitle=this.value">
+          <label style="margin-top:8px">قطعة القراءة</label>
+          <textarea oninput="pdfImportQuestions[${i}].passage=this.value">${esc(q.passage||"")}</textarea>
+        </div>`
+      :"";
+
+    return `
+      <div class="pdf-question">
+        <div class="pdf-q-head">
+          <input type="checkbox" ${q.include!==false?"checked":""} onchange="pdfImportQuestions[${i}].include=this.checked">
+          <strong>سؤال ${esc(q.number||i+1)}</strong>
+          <span class="type-badge">${esc(pdfQuestionTypeLabel(q.type))}</span>
+        </div>
+
+        ${passageHtml}
+
+        <label>نص السؤال</label>
+        <textarea oninput="pdfImportQuestions[${i}].text=this.value">${esc(q.text||"")}</textarea>
+
+        <div class="pdf-q-tools">
+          <div>
+            <label>نوع السؤال</label>
+            <select onchange="changePdfQuestionType(${i},this.value)">
+              <option value="mcq" ${q.type==="mcq"?"selected":""}>اختيار من متعدد</option>
+              <option value="truefalse" ${q.type==="truefalse"?"selected":""}>صح / خطأ</option>
+              <option value="fill" ${q.type==="fill"?"selected":""}>أكمل الفراغ</option>
+              <option value="short" ${q.type==="short"?"selected":""}>إجابة قصيرة</option>
+              <option value="order" ${q.type==="order"?"selected":""}>ترتيب الكلمات</option>
+              <option value="matching" ${q.type==="matching"?"selected":""}>توصيل Matching</option>
+              <option value="reading" ${q.type==="reading"?"selected":""}>Reading + سؤال</option>
+            </select>
+          </div>
+          <div>
+            <label>الدرجة</label>
+            <input type="number" min="0.25" step="0.25" value="${esc(q.points||1)}" onchange="pdfImportQuestions[${i}].points=Number(this.value||1)">
+          </div>
+        </div>
+
+        ${answerHtml}
+
+      </div>
+    `;
+  }).join("");
+}
+
+function updatePdfOption(i,j,value){
+  if(!pdfImportQuestions[i])return;
+  pdfImportQuestions[i].options??=[];
+  pdfImportQuestions[i].options[j]=value;
+}
+
+function addPdfOption(i){
+  const q=pdfImportQuestions[i];
+  if(!q)return;
+  q.options=Array.isArray(q.options)?q.options:[];
+  q.options.push("");
+  renderPdfImportPreview();
+}
+
+function updatePdfPair(i,j,key,value){
+  const q=pdfImportQuestions[i];
+  if(!q)return;
+  q.pairs=Array.isArray(q.pairs)?q.pairs:[];
+  q.pairs[j]=q.pairs[j]||{left:"",right:""};
+  q.pairs[j][key]=value;
+}
+
+function addPdfPair(i){
+  const q=pdfImportQuestions[i];
+  if(!q)return;
+  q.pairs=Array.isArray(q.pairs)?q.pairs:[];
+  q.pairs.push({left:"",right:""});
+  renderPdfImportPreview();
+}
+
+function updatePdfCorrectIndex(i,j){
+  if(pdfImportQuestions[i])pdfImportQuestions[i].correctIndex=Number(j);
+}
+
+function updatePdfCorrectText(i,value){
+  if(pdfImportQuestions[i])pdfImportQuestions[i].correctText=value;
+}
+
+function changePdfQuestionType(i,type){
+  const q=pdfImportQuestions[i];
+  if(!q)return;
+
+  q.type=type;
+
+  if(type==="truefalse"){
+    q.options=["صح","خطأ"];
+    if(q.correctIndex!==0&&q.correctIndex!==1)q.correctIndex=null;
+    q.correctText="";
+    q.pairs=[];
+  }else if(type==="mcq"||type==="reading"){
+    if(!Array.isArray(q.options)||q.options.length<2)q.options=["",""];
+    q.correctText="";
+    q.pairs=[];
+    if(q.correctIndex!==null && q.correctIndex>=q.options.length)q.correctIndex=null;
+  }else if(type==="matching"){
+    q.options=[];
+    q.correctIndex=null;
+    q.correctText="";
+    if(!Array.isArray(q.pairs)||q.pairs.length<2)q.pairs=[{left:"",right:""},{left:"",right:""}];
+  }else{
+    q.options=[];
+    q.correctIndex=null;
+    q.pairs=[];
+  }
+
+  renderPdfImportPreview();
+}
+
+function selectAllPdfQuestions(checked){
+  pdfImportQuestions.forEach(q=>q.include=!!checked);
+  renderPdfImportPreview();
+}
+
+function clearPdfImport(){
+  pdfImportQuestions=[];
+  const f=document.getElementById("pdfQuestionsFile");
+  if(f)f.value="";
+  const p=document.getElementById("pdfImportPreview");
+  const a=document.getElementById("pdfImportFinalActions");
+  if(p){p.innerHTML="";p.classList.add("hidden")}
+  if(a)a.classList.add("hidden");
+  pdfSetStatus("تم مسح الاستيراد. اختر ملف PDF جديدًا عند الحاجة.","");
+}
+
+async function importSelectedPdfQuestions(){
+  if(!selectedExamId)return alert("اختر اختبارًا أولًا.");
+
+  try{
+    await requireOwnedExam(selectedExamId);
+  }catch(e){
+    alert(e.message);
+    return;
+  }
+
+  const selected=pdfImportQuestions.filter(q=>q.include!==false);
+  if(!selected.length){
+    alert("حدد سؤالًا واحدًا على الأقل.");
+    return;
+  }
+
+  const invalid=[];
+  selected.forEach((q,i)=>{
+    const label=q.number||i+1;
+
+    if(!String(q.text||"").trim()){
+      invalid.push(`السؤال ${label}: بدون نص`);
+      return;
+    }
+
+    if(!Number(q.points)||Number(q.points)<=0){
+      invalid.push(`السؤال ${label}: درجة غير صحيحة`);
+      return;
+    }
+
+    if(["mcq","reading"].includes(q.type)){
+      const opts=(q.options||[]).map(x=>String(x||"").trim());
+      if(opts.length<2||opts.some(x=>!x))invalid.push(`السؤال ${label}: أكمل الاختيارات`);
+      if(q.correctIndex===null||q.correctIndex===undefined||q.correctIndex<0||q.correctIndex>=opts.length){
+        invalid.push(`السؤال ${label}: حدد الإجابة الصحيحة`);
+      }
+      if(q.type==="reading"&&!String(q.passage||"").trim()){
+        invalid.push(`السؤال ${label}: قطعة القراءة غير موجودة`);
+      }
+    }else if(q.type==="truefalse"){
+      if(q.correctIndex!==0&&q.correctIndex!==1)invalid.push(`السؤال ${label}: حدد صح أو خطأ`);
+    }else if(["fill","short","order"].includes(q.type)){
+      if(!String(q.correctText||"").trim())invalid.push(`السؤال ${label}: اكتب الإجابة الصحيحة`);
+    }else if(q.type==="matching"){
+      const pairs=(q.pairs||[]).map(p=>({
+        left:String(p?.left||"").trim(),
+        right:String(p?.right||"").trim()
+      })).filter(p=>p.left||p.right);
+      if(pairs.length<2||pairs.some(p=>!p.left||!p.right)){
+        invalid.push(`السؤال ${label}: أكمل زوجين على الأقل في التوصيل`);
+      }
+    }
+  });
+
+  if(invalid.length){
+    alert(
+      "راجع الأسئلة التالية قبل الاستيراد:\n\n"+
+      invalid.slice(0,15).join("\n")+
+      (invalid.length>15?`\n... وعدد ${invalid.length-15} ملاحظة أخرى`:"")
+    );
+    return;
+  }
+
+  if(!confirm(`إضافة ${selected.length} سؤالًا إلى الاختبار الحالي؟`))return;
+
+  try{
+    pdfSetStatus("جاري حفظ الأسئلة داخل الاختبار...","");
+
+    const existing=await db.collection("onlineExams").doc(selectedExamId).collection("questions").get();
+    let nextOrder=existing.size+1;
+
+    for(let start=0;start<selected.length;start+=400){
+      const batch=db.batch();
+      const chunk=selected.slice(start,start+400);
+
+      chunk.forEach(q=>{
+        const ref=db.collection("onlineExams").doc(selectedExamId).collection("questions").doc();
+        const data={
+          type:q.type,
+          text:String(q.text||"").trim(),
+          points:Number(q.points||1),
+          textDirection:/[\u0600-\u06FF]/.test(String(q.text||""))?"rtl":"ltr",
+          order:nextOrder++,
+          importedFrom:"pdf",
+          createdBy:currentUser||"",
+          createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if(["mcq","reading"].includes(q.type)){
+          data.options=(q.options||[]).map(x=>String(x||"").trim());
+          data.correctIndex=Number(q.correctIndex);
+
+          if(q.type==="reading"){
+            data.passage=String(q.passage||"").trim();
+            data.passageTitle=String(q.passageTitle||"").trim();
+            data.passageGroupId=String(q.passageGroupId||"").trim()||("reading_"+Date.now()+"_"+Math.random().toString(36).slice(2,8));
+          }
+
+        }else if(q.type==="truefalse"){
+          data.options=["صح","خطأ"];
+          data.correctIndex=Number(q.correctIndex);
+
+        }else if(["fill","short","order"].includes(q.type)){
+          data.correctText=String(q.correctText||"").trim();
+
+        }else if(q.type==="matching"){
+          data.pairs=(q.pairs||[]).map(p=>({
+            left:String(p?.left||"").trim(),
+            right:String(p?.right||"").trim()
+          }));
+        }
+
+        batch.set(ref,data);
+      });
+
+      await batch.commit();
+    }
+
+    pdfSetStatus(`تمت إضافة ${selected.length} سؤالًا إلى الاختبار بنجاح ✅`,"ok");
+    await loadQuestions();
+    await loadExams();
+
+  }catch(e){
+    console.error("PDF QUESTIONS SAVE ERROR:",e);
+    pdfSetStatus("تعذر حفظ الأسئلة: "+(e.message||e),"err");
+  }
+}
+
+function questionDir(q){
+ let d=q?.textDirection||"auto";
+ if(d==="rtl"||d==="ltr")return d;
+ return /[\u0600-\u06FF]/.test(String(q?.text||""))?"rtl":"ltr";
+}
+const questionTypeNames={
+mcq:"اختيار من متعدد",
+truefalse:"صح / خطأ",
+fill:"أكمل الفراغ",
+short:"إجابة قصيرة",
+order:"ترتيب الكلمات",
+matching:"توصيل",
+reading:"Reading"
+};
+
+function refreshChoiceIndexes(){[...answerBox.querySelectorAll(".option-row")].forEach((row,i)=>{let r=row.querySelector('input[type="radio"]'),x=row.querySelector(".optText");if(r)r.value=i;if(x&&!x.readOnly)x.placeholder=`الاختيار ${i+1}`})}
+function addChoiceRow(text="",checked=false){let row=document.createElement("div");row.className="option-row";row.innerHTML=`<input type="radio" name="correct" value="0" ${checked?"checked":""}><input class="optText" value="${esc(text)}" placeholder="اكتب الاختيار"><button type="button" class="red" onclick="removeChoiceRow(this)">حذف</button>`;answerBox.appendChild(row);refreshChoiceIndexes()}
+function removeChoiceRow(btn){let rows=answerBox.querySelectorAll(".option-row");if(rows.length<=2)return alert("يجب وجود اختيارين على الأقل.");btn.closest(".option-row").remove();refreshChoiceIndexes()}
+function buildChoiceEditor(q=null,isTrueFalse=false){answerBox.innerHTML="";if(isTrueFalse){["صح","خطأ"].forEach((o,i)=>answerBox.insertAdjacentHTML("beforeend",`<div class="option-row truefalse"><input type="radio" name="correct" value="${i}" ${Number(q?.correctIndex)===i?"checked":""}><input class="optText" value="${o}" readonly></div>`));return}let opts=Array.isArray(q?.options)&&q.options.length?q.options:["",""];opts.forEach((o,i)=>addChoiceRow(o,Number(q?.correctIndex)===i));answerBox.insertAdjacentHTML("beforeend",`<button type="button" class="light" onclick="addChoiceRow()">➕ إضافة اختيار</button><div class="note" style="margin-top:8px">اختياران على الأقل، ويمكن إضافة أي عدد من الاختيارات.</div>`)}
+function previewQuestionImage(){let f=qImageFile.files?.[0];if(!f)return;if(!f.type.startsWith("image/")){qImageFile.value="";return alert("اختر صورة فقط.")}if(f.size>8*1024*1024){qImageFile.value="";return alert("حجم الصورة يجب ألا يتجاوز 8MB.")}qImagePreview.src=URL.createObjectURL(f);qImagePreview.classList.remove("hidden");removeImageBtn.classList.remove("hidden")}
+function removeQuestionImage(){qImageFile.value="";existingImageUrl.value="";existingImagePath.value="";qImagePreview.removeAttribute("src");qImagePreview.classList.add("hidden");removeImageBtn.classList.add("hidden")}
+async function questionImageToDataUrl(file){
+ if(!file)throw new Error("لم يتم اختيار صورة.");
+ if(!file.type.startsWith("image/"))throw new Error("الملف المختار ليس صورة.");
+ if(file.size>8*1024*1024)throw new Error("حجم الصورة كبير جدًا. اختر صورة أقل من 8MB.");
+
+ const bitmap=await createImageBitmap(file);
+ try{
+   let maxDimension=1400;
+   let scale=Math.min(1,maxDimension/Math.max(bitmap.width,bitmap.height));
+   let width=Math.max(1,Math.round(bitmap.width*scale));
+   let height=Math.max(1,Math.round(bitmap.height*scale));
+
+   // نستهدف حجمًا صغيرًا وآمنًا داخل مستند Firestore.
+   const maxDataUrlChars=430000;
+   const qualities=[0.86,0.78,0.70,0.62,0.54];
+
+   for(let resizeRound=0;resizeRound<4;resizeRound++){
+     const canvas=document.createElement("canvas");
+     canvas.width=width;
+     canvas.height=height;
+
+     const ctx=canvas.getContext("2d");
+     if(!ctx)throw new Error("تعذر تجهيز الصورة في المتصفح.");
+
+     // خلفية بيضاء حتى لا تتحول شفافية PNG إلى لون أسود عند JPEG.
+     ctx.fillStyle="#ffffff";
+     ctx.fillRect(0,0,width,height);
+     ctx.drawImage(bitmap,0,0,width,height);
+
+     for(const quality of qualities){
+       const dataUrl=canvas.toDataURL("image/jpeg",quality);
+       if(dataUrl.length<=maxDataUrlChars){
+         return dataUrl;
+       }
+     }
+
+     width=Math.max(1,Math.round(width*0.78));
+     height=Math.max(1,Math.round(height*0.78));
+   }
+
+   throw new Error("تعذر ضغط الصورة للحجم المناسب. جرّب صورة أصغر.");
+ }finally{
+   bitmap.close?.();
+ }
+}
+
+async function uploadQuestionImage(examId){
+ // لم نعد نعتمد على Firebase Storage لصور الأسئلة.
+ // نحفظ نسخة مضغوطة داخل مستند السؤال نفسه لتعمل مع تسجيل الدخول الحالي بلا صلاحيات Storage.
+ const f=qImageFile.files?.[0];
+
+ if(!f){
+   return {
+     url:existingImageUrl.value||"",
+     path:existingImagePath.value||""
+   };
+ }
+
+ const dataUrl=await questionImageToDataUrl(f);
+
+ return {
+   url:dataUrl,
+   path:""
+ };
+}
+
+function addPair(left="",right=""){
+ const row=document.createElement("div");
+ row.className="pair-row";
+ row.innerHTML=`<div><label>الطرف الأول</label><input class="pairLeft" value="${esc(left)}"></div><div><label>المطابقة الصحيحة</label><input class="pairRight" value="${esc(right)}"></div><button type="button" class="red" onclick="this.parentElement.remove()">حذف</button>`;
+ document.getElementById("pairsBox").appendChild(row);
+}
+
+function renderQuestionEditor(q=null){
+ const t=q?.type||qType.value||"mcq";
+ qType.value=t;
+ readingBox.classList.toggle("hidden",t!=="reading");
+ if(t==="reading") qPassage.value=q?.passage||"";
+ else qPassage.value="";
+
+ if(t==="mcq"||t==="reading"){
+   buildChoiceEditor(q,false);
+ }else if(t==="truefalse"){
+   buildChoiceEditor(q,true);
+ }else if(t==="fill"||t==="short"){
+   answerBox.innerHTML=`<label>الإجابة الصحيحة</label><input id="correctText" value="${esc(q?.correctText||"")}" placeholder="يمكن كتابة أكثر من إجابة صحيحة والفصل بينها بعلامة |"><div class="note" style="margin-top:8px">مثال: colour | color</div>`;
+ }else if(t==="order"){
+   answerBox.innerHTML=`<label>الجملة بالترتيب الصحيح</label><input id="correctText" value="${esc(q?.correctText||"")}" placeholder="اكتب الجملة الصحيحة كاملة">`;
+ }else if(t==="matching"){
+   answerBox.innerHTML=`<div id="pairsBox"></div><button type="button" class="light" onclick="addPair()">➕ إضافة زوج</button><div class="note" style="margin-top:8px">أدخل عنصر الطرف الأول وما يقابله في الطرف الثاني.</div>`;
+   const pairs=Array.isArray(q?.pairs)&&q.pairs.length?q.pairs:[{left:"",right:""},{left:"",right:""}];
+   pairs.forEach(p=>addPair(p.left||"",p.right||""));
+ }
+}
+
+async function openQuestions(id){
+ let e=examsData.find(x=>x.id===id);
+ if(!e||!canManageExam(e)){alert("لا يمكنك فتح أسئلة اختبار يخص معلماً آخر.");return;}
+ selectedExamId=id;currentExamLabel.textContent=e?.name||"";questionCard.classList.remove("hidden");clearQuestionForm();clearPdfImport();await loadQuestions();questionCard.scrollIntoView({behavior:"smooth"});
+}
+
+function clearQuestionForm(){
+ editingQuestionId.value="";
+ qText.value="";
+ qPoints.value=1;
+ qDirection.value="auto";
+ qOrder.value="";
+ qType.value="mcq";
+ qPassage.value="";
+ qImageFile.value="";existingImageUrl.value="";existingImagePath.value="";qImagePreview.removeAttribute("src");qImagePreview.classList.add("hidden");removeImageBtn.classList.add("hidden");
+ renderQuestionEditor();
+}
+
+async function saveQuestion(){
+ if(!selectedExamId)return alert("اختر اختبارًا أولًا.");
+ try{await requireOwnedExam(selectedExamId)}catch(e){alert(e.message);return}
+
+ const type=qType.value||"mcq";
+ const text=qText.value.trim();
+ const points=Number(qPoints.value||1);
+ if(!text)return alert("اكتب نص السؤال.");
+ if(!points||points<=0)return alert("أدخل درجة صحيحة للسؤال.");
+
+ let data={type,text,points,textDirection:qDirection.value||"auto",updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+ try{let img=await uploadQuestionImage(selectedExamId);data.imageUrl=img.url||"";data.imagePath=img.path||""}catch(e){console.error("تعذر رفع صورة السؤال:",e);return alert("تعذر رفع صورة السؤال: "+e.message)}
+
+ if(type==="mcq"||type==="reading"||type==="truefalse"){
+   const opts=[...answerBox.querySelectorAll(".optText")].map(x=>x.value.trim());
+   const r=answerBox.querySelector('input[name="correct"]:checked');
+   if(type!=="truefalse"&&opts.length<2)return alert("أضف اختيارين على الأقل.");
+   if(opts.some(x=>!x)||!r)return alert("أكمل الاختيارات وحدد الإجابة الصحيحة.");
+   data.options=opts;
+   data.correctIndex=Number(r.value);
+   if(type==="reading"){
+     data.passage=qPassage.value.trim();
+     if(!data.passage)return alert("اكتب قطعة القراءة.");
+   }
+ }else if(type==="fill"||type==="short"||type==="order"){
+   const correct=document.getElementById("correctText")?.value.trim()||"";
+   if(!correct)return alert("اكتب الإجابة الصحيحة.");
+   data.correctText=correct;
+ }else if(type==="matching"){
+   const lefts=[...document.querySelectorAll(".pairLeft")];
+   const rights=[...document.querySelectorAll(".pairRight")];
+   const pairs=lefts.map((x,i)=>({left:x.value.trim(),right:rights[i]?.value.trim()||""})).filter(p=>p.left||p.right);
+   if(pairs.length<2||pairs.some(p=>!p.left||!p.right))return alert("أدخل زوجين صحيحين على الأقل في سؤال التوصيل.");
+   data.pairs=pairs;
+ }
+
+ const id=editingQuestionId.value;
+ if(id){
+   if(qOrder.value) data.order=Number(qOrder.value);
+   await db.collection("onlineExams").doc(selectedExamId).collection("questions").doc(id).set(data,{merge:true});
+ }else{
+   const s=await db.collection("onlineExams").doc(selectedExamId).collection("questions").get();
+   data.order=qOrder.value?Number(qOrder.value):s.size+1;
+   data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+   await db.collection("onlineExams").doc(selectedExamId).collection("questions").add(data);
+ }
+ clearQuestionForm();await loadQuestions();await loadExams();
+}
+
+function questionAnswerPreview(q){
+ const t=q.type||"mcq";
+ if(["mcq","truefalse","reading"].includes(t)){
+   return `<ol>${(q.options||[]).map((o,j)=>`<li ${j===Number(q.correctIndex)?'style="font-weight:bold;color:#198754"':""}>${esc(o)} ${j===Number(q.correctIndex)?"✓":""}</li>`).join("")}</ol>`;
+ }
+ if(t==="matching")return `<div>${(q.pairs||[]).map(p=>`${esc(p.left)} ↔ <b>${esc(p.right)}</b>`).join("<br>")}</div>`;
+ return `<div style="margin-top:8px">الإجابة الصحيحة: <b>${esc(q.correctText||"")}</b></div>`;
+}
+
+async function loadQuestions(){
+ let s=await db.collection("onlineExams").doc(selectedExamId).collection("questions").get();
+ let arr=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
+ if(!arr.length){questionsList.innerHTML='<div class="empty">لم تتم إضافة أسئلة بعد.</div>';return}
+ questionsList.innerHTML=arr.map((q,i)=>{
+   const t=q.type||"mcq",d=questionDir(q);
+   return `<div class="qbox" dir="${d}" style="text-align:${d==="ltr"?"left":"right"}"><div class="qhead"><b>${i+1}) ${esc(q.text)} <span class="type-badge">${esc(questionTypeNames[t]||t)}</span></b><span>${esc(q.points||1)} درجة</span></div>${q.imageUrl?`<img class="q-image-preview" src="${esc(q.imageUrl)}" alt="صورة السؤال">`:""}${t==="reading"&&q.passage?`<div class="note" style="margin-top:8px">${esc(q.passage)}</div>`:""}${questionAnswerPreview(q)}<div class="actions"><button class="primary" onclick="editQuestion('${q.id}')">تعديل</button><button class="red" onclick="deleteQuestion('${q.id}')">حذف</button></div></div>`;
+ }).join("");
+}
+
+async function editQuestion(id){
+ let d=await db.collection("onlineExams").doc(selectedExamId).collection("questions").doc(id).get();
+ if(!d.exists)return;
+ let q=d.data();
+ editingQuestionId.value=id;
+ qText.value=q.text||"";
+ qPoints.value=q.points||1;
+ qDirection.value=q.textDirection||"auto";
+ qOrder.value=q.order||"";
+ qType.value=q.type||"mcq";
+ qImageFile.value="";existingImageUrl.value=q.imageUrl||"";existingImagePath.value=q.imagePath||"";
+ if(q.imageUrl){qImagePreview.src=q.imageUrl;qImagePreview.classList.remove("hidden");removeImageBtn.classList.remove("hidden")}else{qImagePreview.removeAttribute("src");qImagePreview.classList.add("hidden");removeImageBtn.classList.add("hidden")}
+ renderQuestionEditor(q);
+ questionCard.scrollIntoView({behavior:"smooth"});
+}
+
+async function deleteQuestion(id){
+ try{await requireOwnedExam(selectedExamId)}catch(e){alert(e.message);return}
+ if(!confirm("حذف هذا السؤال؟"))return;
+ await db.collection("onlineExams").doc(selectedExamId).collection("questions").doc(id).delete();
+ await loadQuestions();await loadExams();
+}
+
+async function showResults(id){
+ let exm=examsData.find(x=>x.id===id);if(!exm||!canManageExam(exm)){alert("لا يمكنك عرض نتائج اختبار يخص معلماً آخر.");return;}
+ let s=await db.collection("examAttempts").where("examId","==",id).get(),arr=s.docs.map(d=>({id:d.id,...d.data()}));
+ const groups={};arr.forEach(r=>{const key=String(r.studentCode||r.studentName||r.id);(groups[key]??=[]).push(r)});
+ const students=Object.values(groups);
+ students.forEach(list=>list.sort((a,b)=>(Number(b.mark)||0)/(Number(b.fullMark)||1)-(Number(a.mark)||0)/(Number(a.fullMark)||1)||Number(b.attemptNumber||1)-Number(a.attemptNumber||1)));
+ students.sort((a,b)=>String(a[0].studentName||"").localeCompare(String(b[0].studentName||""),"ar"));
+ const bestAttempts=students.map(list=>list[0]);
+ const avg=arr.length?arr.reduce((a,x)=>a+(Number(x.mark)||0)/(Number(x.fullMark)||1)*100,0)/arr.length:0;
+ const bestAvg=bestAttempts.length?bestAttempts.reduce((sum,x)=>sum+(Number(x.fullMark)?Number(x.mark)/Number(x.fullMark)*100:0),0)/bestAttempts.length:0;
+ resultsTitle.textContent=exm?.name||"";resultsCard.classList.remove("hidden");
+ resultsSummary.innerHTML=`عدد الطلاب: <span class="stat">${students.length}</span> — إجمالي المحاولات: <span class="stat">${arr.length}</span> — متوسط المحاولات: <span class="stat">${avg.toFixed(1)}%</span> — متوسط أفضل نتيجة: <span class="stat">${bestAvg.toFixed(1)}%</span> <button class="red" onclick="deleteExamResults('${id}')">حذف نتائج الاختبار</button>`;
+ resultRows.innerHTML=bestAttempts.length?bestAttempts.map((r,i)=>{let list=students[i],p=Number(r.fullMark)?Number(r.mark)/Number(r.fullMark)*100:0,dt=r.submittedAt?.toDate?r.submittedAt.toDate().toLocaleString("ar-SA"):"-",code=String(r.studentCode||"").replace(/'/g,"\\'"),name=String(r.studentName||"").replace(/'/g,"\\'");return `<tr><td>${i+1}</td><td>${esc(r.studentName)}</td><td>${esc(r.grade)}</td><td>${esc(r.section)}</td><td>${list.length}</td><td>${esc(r.attemptNumber||1)}</td><td>${esc(r.mark)}</td><td>${esc(r.fullMark)}</td><td>${p.toFixed(1)}%</td><td>${esc(dt)}</td><td><button class="light" onclick="deleteStudentAttempts('${id}','${code}','${name}')">حذف محاولات الطالب</button></td></tr>`}).join(""):"<tr><td colspan=\"11\">لا توجد نتائج بعد.</td></tr>";
+ resultsCard.scrollIntoView({behavior:"smooth"});
+}
+async function start(){
+ if(!protect())return;
+ try{
+   renderQuestionEditor();
+   await loadBase();
+ }catch(e){
+   console.error("EXAM ADMIN START ERROR:",e);
+   alert("حدث خطأ أثناء تحميل المنصة: "+(e?.message||e));
+ }
+}
+start();
+</script>
+</body>
+</html>
