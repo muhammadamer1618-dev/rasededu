@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - جودة البيانات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--navy:#0b2f4f;--blue:#155d91;--bg:#f4f7fa;--line:#dfe7ed;--ink:#18364d;--muted:#70818e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#155d910d,transparent 25%),var(--bg);font-family:"Tajawal",Tahoma,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#082942,#0c3d63 60%,#166291);color:#fff}.head{width:min(1380px,96%);margin:auto;padding:18px 4px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:62px;height:62px;object-fit:contain;background:#fff;border-radius:16px;padding:5px}.brand h1{margin:0;font-size:22px}.brand p{margin:3px 0 0;color:#dbe7ef;font-size:11px;font-weight:700}.center{text-align:center}.center small{color:#f0d68d;font-weight:900}.center h2{margin:3px 0 0;font-size:23px}.actions{display:flex;gap:8px;justify-content:flex-start}.hbtn{border:1px solid #ffffff33;background:#ffffff12;color:#fff;border-radius:10px;padding:9px 11px;font-weight:900;cursor:pointer}
+.wrap{width:min(1380px,96%);margin:18px auto 35px}.score{background:linear-gradient(135deg,#fff,#fbfcfd);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;box-shadow:0 8px 25px #143a5a0b;margin-bottom:14px}.ring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#1c8b58 var(--deg,0deg),#e7edf2 0);position:relative}.ring:after{content:"";position:absolute;width:72px;height:72px;border-radius:50%;background:#fff}.ring b{position:relative;z-index:2;font-size:20px;color:#173f61}.score h3{margin:0;color:#173f61;font-size:20px}.score p{margin:4px 0 0;color:var(--muted);font-weight:700;font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px}.stat small{display:block;color:var(--muted);font-size:10px;font-weight:800}.stat b{display:block;color:#173f61;font-size:22px;margin-top:2px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 9px 26px #143a5a0b;overflow:hidden;margin-bottom:14px}.phead{padding:14px 16px;border-bottom:1px solid #e8edf1;display:flex;justify-content:space-between;gap:10px;align-items:center}.ptitle{font-size:17px;font-weight:900;color:#173f61}.psub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}.pbody{padding:15px}.issues{display:flex;flex-direction:column;gap:8px}.issue{display:grid;grid-template-columns:105px 1fr auto;gap:10px;align-items:center;border:1px solid #e1e8ee;border-radius:13px;padding:10px;background:#fbfcfd}.sev{border-radius:999px;padding:5px 8px;text-align:center;font-size:9.5px;font-weight:900}.sev.high{background:#ffebe9;color:#a4322c}.sev.medium{background:#fff2ce;color:#866000}.sev.low{background:#eaf4fb;color:#165b87}.ititle{font-size:12px;font-weight:900;color:#24455d}.idesc{font-size:10.5px;color:#72828f;font-weight:700;margin-top:2px;line-height:1.55}.go{border:0;background:#eaf2f7;color:#1f506f;border-radius:9px;padding:7px 10px;font-weight:900;font-size:10px;cursor:pointer}.empty{text-align:center;padding:28px;color:#7b8b97;font-weight:800}
+@media(max-width:900px){.head{grid-template-columns:1fr}.center{text-align:right}.stats{grid-template-columns:1fr 1fr}}@media(max-width:540px){.stats{grid-template-columns:1fr}.score{grid-template-columns:1fr}.issue{grid-template-columns:1fr}.sev{justify-self:start}}
+</style></head><body>
+<header><div class="head"><div class="brand"><img src="logo.jpeg"><div><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد</p></div></div><div class="center"><small>سلامة النظام</small><h2>جودة البيانات</h2></div><div class="actions"><button class="hbtn" onclick="location.href='control-center.html'">🎛️ مركز التحكم</button><button class="hbtn" onclick="loadAll()">⟳ إعادة الفحص</button></div></div></header>
+<main class="wrap">
+<section class="score"><div class="ring" id="ring"><b id="quality">100%</b></div><div><h3>مؤشر جودة البيانات</h3><p>يفحص راصد البيانات الأساسية ويكشف القيم الناقصة والتعارضات والمراجع المفقودة قبل أن تؤثر في التقارير أو النتائج.</p></div></section>
+<section class="stats"><div class="stat"><small>مشكلات عالية الأهمية</small><b id="sHigh">0</b></div><div class="stat"><small>مشكلات متوسطة</small><b id="sMedium">0</b></div><div class="stat"><small>ملاحظات منخفضة</small><b id="sLow">0</b></div><div class="stat"><small>إجمالي المشكلات</small><b id="sTotal">0</b></div></section>
+<section class="panel"><div class="phead"><div><div class="ptitle">نتيجة الفحص</div><div class="psub">لا يتم تعديل أي بيانات تلقائيًا؛ الصفحة للتشخيص فقط.</div></div></div><div class="pbody"><div id="issues" class="issues"></div></div></section>
+</main>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+let students=[],teachers=[],tests=[],grades=[],subjects=[],problems=[];
+const el=id=>document.getElementById(id);
+function authGet(k){const s=sessionStorage.getItem(k);return s!==null?s:localStorage.getItem(k)}
+function protect(){const r=String(authGet("currentUserRole")||"").toLowerCase();if(!["admin","superadmin"].includes(r)){alert("جودة البيانات متاحة للإدارة فقط.");location.href="index.html";return false}return true}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function add(sev,title,desc,href="admin.html"){problems.push({sev,title,desc,href})}
+function analyze(){
+  problems=[];
+  const studentCodes=new Set(students.map(s=>String(s.code||s.id||"")));
+  const testIds=new Set(tests.map(t=>String(t.id)));
+  const subjectIds=new Set(subjects.map(s=>String(s.id)));
+
+  students.forEach(s=>{
+    const id=s.code||s.id||"بدون كود";
+    if(!String(s.name||"").trim())add("high","طالب بدون اسم",`يوجد سجل طالب بالكود ${id} بدون اسم.`,"admin.html#studentsSection");
+    if(!String(s.grade||"").trim()||!String(s.section||"").trim())add("high","طالب بدون صف أو فصل",`${s.name||id} لا يحتوي على صف وفصل مكتملين.`,"admin.html#studentsSection");
+    if(!String(s.guardianPhone||s.phone||"").trim())add("low","جوال ولي الأمر غير مسجل",`${s.name||id} لا يحتوي على رقم جوال لولي الأمر.`,"admin.html#studentsSection");
+  });
+
+  teachers.forEach(t=>{
+    const assignments=Array.isArray(t.assignments)?t.assignments:[];
+    if(!assignments.length)add("medium","معلم بلا إسناد",`${t.name||t.email||t.id} لا يوجد له أي إسناد حاليًا.`,"admin.html#teachersSection");
+    assignments.forEach((a,i)=>{
+      if(!a.subjectId&&!a.subjectName)add("high","إسناد بدون مادة",`${t.name||t.email||t.id}: الإسناد رقم ${i+1} لا يحتوي على مادة.`,"admin.html#teachersSection");
+      if(!a.grade||!a.section)add("high","إسناد بدون صف أو فصل",`${t.name||t.email||t.id}: يوجد إسناد غير مكتمل الصف/الفصل.`,"admin.html#teachersSection");
+      if(a.subjectId&&!subjectIds.has(String(a.subjectId)))add("medium","إسناد يشير لمادة غير موجودة",`${t.name||t.email||t.id}: المادة ${a.subjectId} غير موجودة في قائمة المواد.`,"admin.html#teachersSection");
+    });
+  });
+
+  tests.forEach(t=>{
+    const full=Number(t.fullMark);
+    if(!Number.isFinite(full)||full<=0)add("high","اختبار بدون درجة كلية صحيحة",`${t.name||t.id} درجته الكلية غير صحيحة.`,"admin.html#testsSection");
+    const classes=Array.isArray(t.classes)?t.classes:[];
+    if(!classes.length)add("medium","اختبار غير مرتبط بفصل",`${t.name||t.id} لا توجد له فصول مستهدفة.`,"admin.html#testsSection");
+    if(!String(t.subjectId||t.subjectName||"").trim())add("high","اختبار بدون مادة",`${t.name||t.id} غير مرتبط بمادة.`,"admin.html#testsSection");
+  });
+
+  const gradeKeys=new Map();
+  grades.forEach(g=>{
+    const student=String(g.studentCode||"");
+    const test=String(g.testId||"");
+    if(student&&!studentCodes.has(student))add("high","درجة لطالب غير موجود",`سجل درجة يشير إلى الطالب ${student} لكنه غير موجود في الطلاب.`,"monitoring.html");
+    if(test&&!testIds.has(test))add("high","درجة لاختبار غير موجود",`سجل درجة يشير إلى اختبار ${test} لكنه غير موجود.`,"monitoring.html");
+    const mark=Number(g.mark),full=Number(g.fullMark);
+    if(Number.isFinite(mark)&&mark<0)add("high","درجة سالبة",`الطالب ${student||"—"} لديه درجة سالبة في أحد الاختبارات.`,"monitoring.html");
+    if(Number.isFinite(mark)&&Number.isFinite(full)&&full>=0&&mark>full)add("high","درجة أكبر من الدرجة الكلية",`الطالب ${student||"—"}: الدرجة ${mark} أكبر من ${full}.`,"monitoring.html");
+    const key=[test,student,g.grade||"",g.section||""].join("||");
+    if(test&&student){gradeKeys.set(key,(gradeKeys.get(key)||0)+1)}
+  });
+  [...gradeKeys.entries()].filter(([,n])=>n>1).forEach(([key,n])=>add("medium","سجلات درجات مكررة",`يوجد ${n} سجلات لنفس الطالب والاختبار (${key.split("||").slice(0,2).join(" / ")}).`,"monitoring.html"));
+
+  const nameGroups=new Map();
+  students.forEach(s=>{
+    const key=[String(s.name||"").trim().toLowerCase(),s.grade||"",s.section||""].join("||");
+    if(String(s.name||"").trim())nameGroups.set(key,(nameGroups.get(key)||0)+1);
+  });
+  [...nameGroups.entries()].filter(([,n])=>n>1).forEach(([key,n])=>add("low","أسماء طلاب متكررة داخل نفس الفصل",`الاسم «${key.split("||")[0]}» مكرر ${n} مرات داخل نفس الصف/الفصل. راجع الأكواد للتأكد فقط.`,"admin.html#studentsSection"));
+}
+function render(){
+  sHigh.textContent=problems.filter(p=>p.sev==="high").length;sMedium.textContent=problems.filter(p=>p.sev==="medium").length;sLow.textContent=problems.filter(p=>p.sev==="low").length;sTotal.textContent=problems.length;
+  const weighted=problems.reduce((s,p)=>s+(p.sev==="high"?5:p.sev==="medium"?2:1),0);const base=Math.max(100,students.length+teachers.length+tests.length);const score=Math.max(0,Math.round(100-(weighted/base*100)));quality.textContent=score+"%";ring.style.setProperty("--deg",(score*3.6)+"deg");
+  const order={high:0,medium:1,low:2};problems.sort((a,b)=>order[a.sev]-order[b.sev]);
+  const labels={high:"عالية",medium:"متوسطة",low:"ملاحظة"};
+  issues.innerHTML=problems.length?problems.map(p=>`<div class="issue"><span class="sev ${p.sev}">${labels[p.sev]}</span><div><div class="ititle">${esc(p.title)}</div><div class="idesc">${esc(p.desc)}</div></div><button class="go" onclick="location.href='${esc(p.href)}'">فتح</button></div>`).join(""):'<div class="empty">✅ لم يكتشف الفحص الحالي أي مشكلة في البيانات الأساسية.</div>';
+}
+async function loadAll(){try{const s=await Promise.all([db.collection("students").get(),db.collection("teachers").get(),db.collection("tests").get(),db.collection("grades").get(),db.collection("subjects").get()]);students=s[0].docs.map(d=>({id:d.id,...d.data()}));teachers=s[1].docs.map(d=>({id:d.id,email:d.data().email||d.id,...d.data()}));tests=s[2].docs.map(d=>({id:d.id,...d.data()}));grades=s[3].docs.map(d=>({id:d.id,...d.data()}));subjects=s[4].docs.map(d=>({id:d.id,...d.data()}));analyze();render()}catch(e){console.error(e);issues.innerHTML='<div class="empty">تعذر فحص البيانات حاليًا.</div>'}}
+(async()=>{if(!protect())return;await loadAll()})();
+</script></body></html>

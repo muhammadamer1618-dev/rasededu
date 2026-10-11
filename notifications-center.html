@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - مركز التنبيهات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--navy:#0b2f4f;--blue:#155e91;--gold:#c89a2d;--bg:#f4f7fa;--line:#dfe7ed;--ink:#17364d;--muted:#70818e;--red:#aa342f;--amber:#8a6100;--green:#176b43}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 90% 0,#c89a2d14,transparent 27%),var(--bg);font-family:"Tajawal",Tahoma,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#082942,#0c3d63 60%,#166291);color:#fff}.head{width:min(1360px,96%);margin:auto;padding:18px 4px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:62px;height:62px;object-fit:contain;background:#fff;border-radius:16px;padding:5px}.brand h1{margin:0;font-size:22px}.brand p{margin:3px 0 0;color:#dbe7ef;font-size:11px;font-weight:700}.center{text-align:center}.center small{color:#f2d991;font-weight:900}.center h2{margin:3px 0 0;font-size:23px}.actions{display:flex;gap:8px;justify-content:flex-start}.hbtn{border:1px solid #ffffff33;background:#ffffff12;color:#fff;border-radius:10px;padding:9px 11px;font-weight:900;cursor:pointer}
+.wrap{width:min(1360px,96%);margin:18px auto 34px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:0 8px 24px #173a560c}.stat small{display:block;color:var(--muted);font-size:10px;font-weight:800}.stat b{display:block;color:var(--navy);font-size:24px;margin-top:2px}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 9px 26px #173a560c;overflow:hidden}.phead{padding:14px 16px;border-bottom:1px solid #e8edf1;display:flex;justify-content:space-between;gap:10px;align-items:center}.ptitle{font-size:17px;font-weight:900;color:var(--navy)}.psub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}.pbody{padding:15px}.filters{display:flex;gap:8px;flex-wrap:wrap}.filter{border:1px solid #d3dfe7;background:#fff;color:#32536b;border-radius:999px;padding:7px 11px;font-weight:900;font-size:10px;cursor:pointer}.filter.active{background:#153f62;color:#fff;border-color:#153f62}
+.list{display:flex;flex-direction:column;gap:9px}.item{display:grid;grid-template-columns:46px 1fr auto;gap:11px;align-items:center;border:1px solid #e1e8ee;border-radius:15px;padding:12px;background:#fbfcfd}.ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px}.danger{border-color:#efc8c4;background:#fff8f7}.danger .ico{background:#ffebe9}.warn{border-color:#ecdca9;background:#fffaf0}.warn .ico{background:#fff0c8}.info{border-color:#cfe2ee;background:#f7fbfe}.info .ico{background:#e8f5fc}.ok{border-color:#cbe5d4;background:#f7fcf9}.ok .ico{background:#e8f7ee}.title{font-size:13px;font-weight:900;color:#234258}.text{font-size:11px;color:#6d7e8b;font-weight:700;line-height:1.7;margin-top:2px}.meta{font-size:9.5px;color:#93a0aa;margin-top:4px;font-weight:700}.go{border:0;background:#eaf2f7;color:#1f506f;border-radius:9px;padding:7px 10px;font-weight:900;font-size:10px;cursor:pointer;white-space:nowrap}.empty{text-align:center;padding:35px;color:#7a8a97;font-weight:800}
+@media(max-width:900px){.head{grid-template-columns:1fr}.center{text-align:right}.stats{grid-template-columns:1fr 1fr}}@media(max-width:520px){.stats{grid-template-columns:1fr}.item{grid-template-columns:42px 1fr}.go{grid-column:1/-1}}
+</style></head><body>
+<header><div class="head"><div class="brand"><img src="logo.jpeg"><div><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد</p></div></div><div class="center"><small>متابعة استباقية</small><h2>مركز التنبيهات</h2></div><div class="actions"><button class="hbtn" onclick="location.href='control-center.html'">🎛️ مركز التحكم</button><button class="hbtn" onclick="loadAll()">⟳ تحديث</button></div></div></header>
+<main class="wrap">
+<section class="stats"><div class="stat"><small>تنبيهات حرجة</small><b id="sDanger">0</b></div><div class="stat"><small>تحتاج متابعة</small><b id="sWarn">0</b></div><div class="stat"><small>معلومات</small><b id="sInfo">0</b></div><div class="stat"><small>إجمالي التنبيهات</small><b id="sTotal">0</b></div></section>
+<section class="panel"><div class="phead"><div><div class="ptitle">ما يحتاج انتباهك الآن</div><div class="psub">التنبيهات تُحسب مباشرة من بيانات راصد الحالية وليست رسائل قديمة محفوظة.</div></div><div class="filters"><button class="filter active" data-filter="all" onclick="setFilter('all',this)">الكل</button><button class="filter" data-filter="danger" onclick="setFilter('danger',this)">حرج</button><button class="filter" data-filter="warn" onclick="setFilter('warn',this)">متابعة</button><button class="filter" data-filter="info" onclick="setFilter('info',this)">معلومات</button></div></div><div class="pbody"><div id="list" class="list"></div></div></section>
+</main>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+let students=[],tests=[],grades=[],activities=[],windows=[],locks=[],notifications=[],filter="all";
+const el=id=>document.getElementById(id);
+function authGet(k){const s=sessionStorage.getItem(k);return s!==null?s:localStorage.getItem(k)}
+function protect(){const r=String(authGet("currentUserRole")||"").toLowerCase();if(!["admin","superadmin"].includes(r)){alert("مركز التنبيهات متاح للإدارة فقط.");location.href="index.html";return false}return true}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function toDate(v){try{if(!v)return null;const d=v?.toDate?v.toDate():new Date(v);return isNaN(d.getTime())?null:d}catch{return null}}
+function windowState(w){if(w.active===false)return"disabled";const s=toDate(w.startAt),e=toDate(w.endAt),n=Date.now();if(!s||!e)return"invalid";if(n<s.getTime())return"upcoming";if(n>e.getTime())return"ended";return"open"}
+function add(level,icon,title,text,meta="",href=""){notifications.push({level,icon,title,text,meta,href})}
+function classStudents(grade,section){return students.filter(s=>String(s.grade||"")===String(grade||"")&&String(s.section||"")===String(section||""))}
+function recordedCodes(testId,grade,section){return new Set(grades.filter(g=>String(g.testId||"")===String(testId)&&String(g.grade||"")===String(grade||"")&&String(g.section||"")===String(section||"")).map(g=>String(g.studentCode||"")).filter(Boolean))}
+function applicableWindow(test){const arr=windows.filter(w=>w.active!==false&&((w.scopeType==="test"&&String(w.testId||"")===String(test.id))||(w.scopeType==="category"&&String(w.category||"")===String(test.examCategory||""))||(w.scopeType==="all")));if(!arr.length)return null;const rank=w=>w.scopeType==="test"?3:w.scopeType==="category"?2:1;const max=Math.max(...arr.map(rank));return arr.filter(w=>rank(w)===max).sort((a,b)=>(toDate(b.startAt)?.getTime()||0)-(toDate(a.startAt)?.getTime()||0))[0]}
+function build(){
+  notifications=[];
+  const now=Date.now();
+
+  windows.filter(w=>windowState(w)==="open").forEach(w=>{
+    const end=toDate(w.endAt);if(end&&end.getTime()-now<=24*3600000&&end.getTime()>now)add("danger","⏰","فترة رصد ستنتهي خلال 24 ساعة",w.testName||w.note||"راجع اكتمال الرصد قبل الإغلاق.",`تنتهي: ${end.toLocaleString("ar-SA")}`,"admin.html#gradingWindowsSection");
+  });
+  windows.filter(w=>windowState(w)==="upcoming").forEach(w=>{
+    const start=toDate(w.startAt);if(start&&start.getTime()-now<=24*3600000)add("info","🕒","فترة رصد ستبدأ خلال 24 ساعة",w.testName||w.note||"فترة رصد مجدولة.",`تبدأ: ${start.toLocaleString("ar-SA")}`,"admin.html#gradingWindowsSection");
+  });
+
+  const activeLocks=locks.filter(l=>l.active!==false&&(!toDate(l.unlockAt)||toDate(l.unlockAt).getTime()>now));
+  if(activeLocks.length)add("warn","🔒","يوجد إيقاف رصد يدوي مفعل",`عدد الإيقافات الفعالة حاليًا: ${activeLocks.length}.`,`راجع استمرار الحاجة إلى هذه الإيقافات.`,"monitoring.html");
+
+  let incompleteOpen=0,missingMarks=0;
+  tests.forEach(t=>{
+    const classes=Array.isArray(t.classes)?t.classes:[];
+    const w=applicableWindow(t);if(!w||windowState(w)!=="open")return;
+    classes.forEach(c=>{
+      const ss=classStudents(c.grade,c.section);if(!ss.length)return;
+      const set=recordedCodes(t.id,c.grade,c.section);
+      const missing=ss.filter(s=>!set.has(String(s.code||s.id||""))).length;
+      if(missing){incompleteOpen++;missingMarks+=missing}
+    });
+  });
+  if(incompleteOpen)add("danger","📋","رصد ناقص أثناء فترة مفتوحة",`يوجد ${incompleteOpen} اختبار/فصل غير مكتمل، بإجمالي ${missingMarks} طالبًا لم تُرصد درجاتهم بعد.`,`الأولوية قبل انتهاء فترة الرصد.`,"monitoring.html");
+
+  const submitted=activities.filter(a=>a.status==="submitted").length;
+  const reviewed=activities.filter(a=>a.status==="reviewed").length;
+  const returned=activities.filter(a=>a.status==="revision_requested").length;
+  if(submitted)add("warn","🎯","أنشطة تنتظر المراجعة",`يوجد ${submitted} تقرير نشاط مرسل وينتظر المراجعة.`,`حالة: مرسل للمراجعة`,"supervisor-activities.html");
+  if(reviewed)add("info","📢","أنشطة تمت مراجعتها ولم تُنشر",`يوجد ${reviewed} تقرير تمت مراجعته ولم يُنشر بعد.`,`يمكن نشرها لولي الأمر.`,"supervisor-activities.html");
+  if(returned)add("info","↩️","أنشطة أعيدت للتعديل",`يوجد ${returned} تقرير معاد للمعلم للتعديل.`,`تابع إعادة الإرسال.`,"supervisor-activities.html");
+
+  const noWindow=tests.filter(t=>!applicableWindow(t)).length;
+  if(noWindow)add("info","📝","اختبارات بلا فترة رصد محددة",`يوجد ${noWindow} اختبارًا لا تنطبق عليه فترة رصد محددة.`,`هذا ليس خطأ؛ الرصد يظل مسموحًا افتراضيًا.`,"admin.html#gradingWindowsSection");
+
+  if(!notifications.length)add("ok","✅","لا توجد تنبيهات تحتاج تدخلًا الآن","حالة النظام الحالية لا تظهر تنبيهات عاجلة.","تم الفحص الآن.","");
+}
+function render(){
+  const rows=notifications.filter(n=>filter==="all"||n.level===filter);
+  sDanger.textContent=notifications.filter(n=>n.level==="danger").length;sWarn.textContent=notifications.filter(n=>n.level==="warn").length;sInfo.textContent=notifications.filter(n=>n.level==="info").length;sTotal.textContent=notifications.filter(n=>n.level!=="ok").length;
+  list.innerHTML=rows.length?rows.map(n=>`<div class="item ${n.level}"><div class="ico">${n.icon}</div><div><div class="title">${esc(n.title)}</div><div class="text">${esc(n.text)}</div><div class="meta">${esc(n.meta)}</div></div>${n.href?`<button class="go" onclick="location.href='${esc(n.href)}'">فتح</button>`:""}</div>`).join(""):'<div class="empty">لا توجد تنبيهات ضمن هذا التصنيف.</div>';
+}
+function setFilter(v,btn){filter=v;document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));btn.classList.add("active");render()}
+async function loadAll(){try{const s=await Promise.all([db.collection("students").get(),db.collection("tests").get(),db.collection("grades").get(),db.collection("activities").get(),db.collection("gradingWindows").get(),db.collection("gradingLocks").get()]);students=s[0].docs.map(d=>({id:d.id,...d.data()}));tests=s[1].docs.map(d=>({id:d.id,...d.data()}));grades=s[2].docs.map(d=>({id:d.id,...d.data()}));activities=s[3].docs.map(d=>({id:d.id,...d.data()}));windows=s[4].docs.map(d=>({id:d.id,...d.data()}));locks=s[5].docs.map(d=>({id:d.id,...d.data()}));build();render()}catch(e){console.error(e);list.innerHTML='<div class="empty">تعذر تحميل التنبيهات حاليًا.</div>'}}
+(async()=>{if(!protect())return;await loadAll()})();
+</script></body></html>

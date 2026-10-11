@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - سجل التدقيق</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--navy:#0b2f4f;--bg:#f4f7fa;--line:#dfe7ed;--ink:#19384f;--muted:#70818e}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:"Tajawal",Tahoma,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#082942,#0d3f67 60%,#176292);color:#fff}.head{width:min(1400px,96%);margin:auto;padding:18px 4px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:12px}.brand img{width:62px;height:62px;object-fit:contain;background:#fff;border-radius:16px;padding:5px}.brand h1{margin:0;font-size:22px}.brand p{margin:3px 0 0;font-size:11px;color:#d8e5ef;font-weight:700}
+.center{text-align:center}.center small{color:#f0d68d;font-weight:900}.center h2{margin:3px 0 0;font-size:23px}.actions{display:flex;gap:8px;justify-content:flex-start}.hbtn{border:1px solid #ffffff33;background:#ffffff12;color:#fff;border-radius:10px;padding:9px 11px;font-weight:900;cursor:pointer}
+.wrap{width:min(1400px,96%);margin:18px auto 35px}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px #143a5a0d;margin-bottom:14px;overflow:hidden}.phead{padding:14px 16px;border-bottom:1px solid #e7edf2}.ptitle{font-size:17px;font-weight:900;color:var(--navy)}.psub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}.pbody{padding:15px}
+.filters{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr auto;gap:9px;align-items:end}.field label{display:block;font-size:11px;font-weight:900;color:#536b7c;margin-bottom:5px}.field input,.field select{width:100%;height:42px;border:1px solid #cfdae3;border-radius:10px;padding:0 10px;font-family:inherit;background:#fff}.btn{height:42px;border:0;border-radius:10px;padding:0 15px;background:#154f78;color:#fff;font-weight:900;cursor:pointer}.danger-btn{border:1px solid #f0c5c1;background:#fff1ef;color:#a8302b;border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}.danger-btn:hover{background:#ffe8e5}.friendly-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.friendly-list{display:flex;flex-direction:column;gap:6px}.friendly-row{display:grid;grid-template-columns:145px 1fr;gap:8px;align-items:start;border-bottom:1px dashed #dfe7ed;padding:6px 0}.friendly-row:last-child{border-bottom:0}.friendly-key{color:#597082;font-weight:900;font-size:11px}.friendly-value{color:#213e54;font-weight:700;font-size:11px;word-break:break-word}.change{background:#fff8df;border-radius:7px;padding:2px 5px}.muted-mini{color:#82919c;font-size:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px}.stat small{display:block;color:var(--muted);font-weight:800;font-size:10px}.stat b{display:block;font-size:22px;color:var(--navy);margin-top:2px}
+.table{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:1120px}th,td{padding:9px;border-bottom:1px solid #e8edf1;text-align:center;font-size:10.5px}th{background:#153f62;color:#fff;font-weight:900;position:sticky;top:0}.actor{text-align:right}.actor b{display:block}.actor small{display:block;color:#7c8b97}.pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:9.5px;font-weight:900;background:#eaf3f9;color:#17577f}.pill.delete{background:#ffedeb;color:#a5322c}.pill.update{background:#fff2ce;color:#865b00}.pill.create{background:#e9f8ef;color:#17683f}.details{border:1px solid #ccd9e2;background:#fff;border-radius:8px;padding:5px 8px;color:#244d69;font-weight:900;cursor:pointer}.empty{text-align:center;padding:35px;color:#7b8b97;font-weight:800}
+.modal{display:none;position:fixed;inset:0;background:#071c2d99;z-index:999;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}.mcard{width:min(920px,97vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px}.mhead{background:#123f68;color:#fff;padding:13px 15px;display:flex;justify-content:space-between}.mhead h3{margin:0}.close{border:0;background:#ffffff1c;color:#fff;width:34px;height:34px;border-radius:9px;font-size:18px}.mbody{padding:15px}.diff{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{border:1px solid #dbe4eb;border-radius:12px;padding:11px;background:#f9fbfc}.box h4{margin:0 0 7px;color:#174968}.box pre{white-space:pre-wrap;word-break:break-word;font-family:monospace;font-size:10px;line-height:1.55;margin:0;direction:ltr;text-align:left}
+@media(max-width:950px){.head{grid-template-columns:1fr}.center{text-align:right}.filters{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.diff{grid-template-columns:1fr}}@media(max-width:520px){.filters,.stats{grid-template-columns:1fr}}
+@media print{header,.filters,.details,.actions{display:none!important}.wrap{width:100%;margin:0}.panel,.stat{box-shadow:none}.table{overflow:visible}table{min-width:0}th{position:static}}
+</style></head><body>
+<header><div class="head"><div class="brand"><img src="logo.jpeg"><div><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد</p></div></div><div class="center"><small>الحوكمة والمتابعة</small><h2>سجل التدقيق المركزي</h2></div><div class="actions"><button class="hbtn" onclick="location.href='control-center.html'">🎛️ مركز التحكم</button><button class="hbtn" onclick="window.print()">🖨 طباعة</button><button class="hbtn" style="border-color:#ffb9b4;background:#9f2f2b55" onclick="openPurge()">🗑️ إدارة السجل</button></div></div></header>
+<main class="wrap">
+<section class="stats"><div class="stat"><small>إجمالي العمليات</small><b id="sTotal">0</b></div><div class="stat"><small>عمليات اليوم</small><b id="sToday">0</b></div><div class="stat"><small>عمليات الحذف</small><b id="sDelete">0</b></div><div class="stat"><small>المستخدمون النشطون</small><b id="sActors">0</b></div></section>
+<section class="panel"><div class="phead"><div class="ptitle">البحث والتصفية</div><div class="psub">يمكن البحث في السجل وعرض التفاصيل بصيغة مبسطة. تفريغ السجل متاح للإدارة من زر «إدارة السجل».</div></div><div class="pbody"><div class="filters">
+<div class="field"><label>بحث</label><input id="q" placeholder="المستخدم، الطالب، المعلم، العملية..." oninput="render()"></div>
+<div class="field"><label>نوع العملية</label><select id="actionFilter" onchange="render()"><option value="">كل العمليات</option></select></div>
+<div class="field"><label>نوع السجل</label><select id="entityFilter" onchange="render()"><option value="">كل الأنواع</option></select></div>
+<div class="field"><label>المستخدم</label><select id="actorFilter" onchange="render()"><option value="">كل المستخدمين</option></select></div>
+<div class="field"><label>التاريخ</label><input id="dateFilter" type="date" onchange="render()"></div><button class="btn" onclick="clearFilters()">مسح الفلاتر</button>
+</div></div></section>
+<section class="panel"><div class="phead"><div class="ptitle">سجل العمليات</div><div class="psub" id="countLabel">—</div></div><div class="pbody"><div class="table"><table><thead><tr><th>#</th><th>التاريخ والوقت</th><th>المستخدم</th><th>العملية</th><th>النوع</th><th>العنصر</th><th>تفاصيل</th></tr></thead><tbody id="body"></tbody></table></div></div></section>
+</main>
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="mcard"><div class="mhead"><h3 id="modalTitle">تفاصيل العملية</h3><button class="close" onclick="closeModal()">×</button></div><div class="mbody"><div id="meta" style="font-size:12px;line-height:1.8;margin-bottom:10px"></div><div class="friendly-grid"><div class="box"><h4>قبل العملية</h4><div id="beforeBox" class="friendly-list">—</div></div><div class="box"><h4>بعد العملية</h4><div id="afterBox" class="friendly-list">—</div></div></div><div class="box" style="margin-top:10px"><h4>ملاحظات</h4><div id="detailsBox">—</div></div></div></div></div>
+
+<div class="modal" id="purgeModal" onclick="if(event.target===this)closePurge()"><div class="mcard" style="width:min(620px,96vw)"><div class="mhead"><h3>إدارة سجل التدقيق</h3><button class="close" onclick="closePurge()">×</button></div><div class="mbody">
+<div style="background:#fff5f3;border:1px solid #efc8c4;border-radius:12px;padding:12px;line-height:1.8;font-size:12px;color:#85322e;font-weight:800">الحذف نهائي. سيُترك سجل واحد فقط يثبت أن الإدارة قامت بتفريغ السجل ووقت التنفيذ.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px">
+<button class="danger-btn" onclick="purgeAudit('30')">حذف ما قبل 30 يومًا</button>
+<button class="danger-btn" onclick="purgeAudit('90')">حذف ما قبل 90 يومًا</button>
+<button class="danger-btn" style="grid-column:1/-1;background:#a9312c;color:#fff" onclick="purgeAudit('all')">تفريغ السجل بالكامل</button>
+</div></div></div></div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+const el=id=>document.getElementById(id);let logs=[];
+const ACTION_LABELS={
+student_create:"إضافة طالب",student_update:"تعديل طالب",student_delete:"حذف طالب",
+teacher_create:"إضافة معلم",teacher_update:"تعديل معلم",teacher_delete:"حذف معلم",
+supervisor_create:"إضافة حساب إشراف",supervisor_update:"تعديل حساب إشراف",supervisor_delete:"حذف حساب إشراف",
+grading_window_create:"إنشاء فترة رصد",grading_window_update:"تعديل فترة رصد",grading_window_delete:"حذف فترة رصد",
+grading_lock_create:"إيقاف الرصد",grading_lock_release:"إعادة فتح الرصد",
+test_create:"إنشاء اختبار",test_update:"تعديل اختبار",test_delete:"حذف اختبار",
+grade_create:"رصد درجة",grade_save:"رصد درجة",grade_update:"تعديل درجة",grade_delete:"حذف درجة",
+grades_save:"حفظ درجات",attendance_update:"تعديل حالة حضور",
+audit_log_purge:"تفريغ سجل التدقيق"
+};
+const ENTITY_LABELS={student:"طالب",teacher:"معلم",supervisor:"حساب إشراف",gradingWindow:"فترة رصد",gradingLock:"إيقاف رصد",test:"اختبار",grade:"درجة",grades:"درجات",auditLog:"سجل التدقيق"};
+const FIELD_LABELS={
+name:"الاسم",studentName:"اسم الطالب",studentCode:"كود الطالب",code:"الكود",
+grade:"الصف",section:"الفصل",guardianPhone:"جوال ولي الأمر",phone:"الجوال",
+email:"البريد / اسم المستخدم",username:"اسم المستخدم",role:"الدور",
+subjectName:"المادة",subjectId:"رمز المادة",testName:"اسم الاختبار",testId:"الاختبار",
+examCategory:"نوع الاختبار",category:"نوع الاختبار",mark:"الدرجة",fullMark:"الدرجة الكلية",
+attendance:"الحضور",status:"الحالة",reason:"السبب",note:"ملاحظة",active:"مفعل",
+scopeType:"نطاق التطبيق",startAt:"بداية الفترة",endAt:"نهاية الفترة",unlockAt:"إعادة الفتح التلقائي",
+teacherName:"اسم المعلم",teacherEmail:"حساب المعلم",supervisorType:"نوع الإشراف",
+assignedTeacherEmails:"المعلمون المسندون",teacherScopeMode:"نطاق المعلمين",permissions:"الصلاحيات",
+visibleToParent:"ظاهر لولي الأمر",classes:"الفصول",updatedBy:"آخر تعديل بواسطة",createdBy:"أنشأ بواسطة"
+};
+const VALUE_LABELS={present:"حاضر",absent:"غائب",all:"الكل",category:"نوع اختبار",test:"اختبار محدد",assigned:"المعلمون المسندون",true:"نعم",false:"لا"};
+function authGet(k){const s=sessionStorage.getItem(k);return s!==null?s:localStorage.getItem(k)}function protect(){const r=String(authGet("currentUserRole")||"").toLowerCase();if(!["admin","superadmin"].includes(r)){alert("سجل التدقيق متاح للإدارة فقط.");location.href="index.html";return false}return true}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}function toDate(v){try{if(!v)return null;const d=typeof v.toDate==="function"?v.toDate():new Date(v);return isNaN(d.getTime())?null:d}catch{return null}}function fmt(v){const d=toDate(v);return d?new Intl.DateTimeFormat("ar-SA",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(d):"—"}function isoDate(v){const d=toDate(v);if(!d)return "";const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}function actionClass(a){return String(a).includes("delete")?"delete":String(a).includes("update")?"update":"create"}
+
+function niceKey(key){
+  return FIELD_LABELS[key]||String(key||"").replace(/_/g," ");
+}
+function niceScalar(value){
+  if(value===null||value===undefined||value==="")return "—";
+  if(typeof value==="boolean")return value?"نعم":"لا";
+  if(typeof value==="number")return String(value);
+  if(typeof value==="string"){
+    const mapped=VALUE_LABELS[value.toLowerCase()];
+    if(mapped)return mapped;
+    const d=toDate(value);
+    if(d && /^\d{4}-\d{2}-\d{2}T/.test(value))return fmt(value);
+    return value;
+  }
+  return String(value);
+}
+function friendlyValue(value,depth=0){
+  if(value===null||value===undefined)return "—";
+  if(depth>2)return "بيانات إضافية";
+  if(Array.isArray(value)){
+    if(!value.length)return "—";
+    return value.map(v=>{
+      if(v && typeof v==="object"){
+        const summary=[v.name,v.subjectName,v.grade,v.section].filter(Boolean).join(" - ");
+        return summary||Object.entries(v).slice(0,4).map(([k,val])=>niceKey(k)+": "+niceScalar(val)).join("، ");
+      }
+      return niceScalar(v);
+    }).join(" • ");
+  }
+  if(typeof value==="object"){
+    return Object.entries(value)
+      .filter(([k])=>!["id","createdAt","updatedAt","lockedAt","unlockedAt"].includes(k))
+      .slice(0,25)
+      .map(([k,v])=>niceKey(k)+": "+(typeof v==="object"?friendlyValue(v,depth+1):niceScalar(v)))
+      .join(" • ")||"—";
+  }
+  return niceScalar(value);
+}
+function objectRows(obj,other){
+  if(obj===null||obj===undefined)return '<div class="muted-mini">لا توجد بيانات.</div>';
+  if(typeof obj!=="object")return `<div class="friendly-row"><div class="friendly-key">القيمة</div><div class="friendly-value">${esc(niceScalar(obj))}</div></div>`;
+  const entries=Object.entries(obj).filter(([key])=>![
+    "createdAt","updatedAt","lockedAt","unlockedAt","createdBy","updatedBy"
+  ].includes(key));
+  if(!entries.length)return '<div class="muted-mini">لا توجد بيانات ظاهرة.</div>';
+  return entries.map(([key,value])=>{
+    const changed=other&&typeof other==="object"&&JSON.stringify(other[key])!==JSON.stringify(value);
+    return `<div class="friendly-row"><div class="friendly-key">${esc(niceKey(key))}</div><div class="friendly-value ${changed?"change":""}">${esc(friendlyValue(value))}</div></div>`;
+  }).join("");
+}
+function openPurge(){purgeModal.classList.add("open")}
+function closePurge(){purgeModal.classList.remove("open")}
+async function purgeAudit(mode){
+  let message="";
+  if(mode==="all")message="سيتم حذف جميع سجلات التدقيق الحالية. هل أنت متأكد؟";
+  else message=`سيتم حذف السجلات الأقدم من ${mode} يومًا. هل أنت متأكد؟`;
+  if(!confirm(message))return;
+
+  const confirmWord=prompt('للتأكيد اكتب: مسح السجل');
+  if(String(confirmWord||"").trim()!=="مسح السجل"){alert("لم يتم الحذف.");return}
+
+  const cutoff=mode==="all"?null:(Date.now()-Number(mode)*86400000);
+  const targets=logs.filter(x=>mode==="all"||((toDate(x.createdAt)?.getTime()||0)<cutoff));
+
+  if(!targets.length){alert("لا توجد سجلات مطابقة للحذف.");return}
+
+  try{
+    for(let i=0;i<targets.length;i+=400){
+      const batch=db.batch();
+      targets.slice(i,i+400).forEach(x=>batch.delete(db.collection("auditLogs").doc(x.id)));
+      await batch.commit();
+    }
+
+    const actorName=authGet("currentUserName")||authGet("currentUser")||"الإدارة";
+    const actorUsername=authGet("currentUserEmail")||authGet("currentUser")||"";
+    await db.collection("auditLogs").add({
+      action:"audit_log_purge",
+      entityType:"auditLog",
+      entityId:"auditLogs",
+      label:"سجل التدقيق",
+      actorName:String(actorName),
+      actorUsername:String(actorUsername),
+      actorRole:String(authGet("currentUserRole")||"admin"),
+      details:mode==="all"?`تم تفريغ السجل بالكامل (${targets.length} سجل)`:`تم حذف السجلات الأقدم من ${mode} يومًا (${targets.length} سجل)`,
+      before:{deletedCount:targets.length,range:mode},
+      after:{remaining:"سجل عملية التفريغ"},
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    closePurge();
+    await load();
+    alert("تم تنظيف سجل التدقيق بنجاح ✅");
+  }catch(error){
+    console.error(error);
+    alert("تعذر تنظيف السجل. تحقق من صلاحيات Firestore.");
+  }
+}
+
+async function load(){const snap=await db.collection("auditLogs").get();logs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(toDate(b.createdAt)?.getTime()||0)-(toDate(a.createdAt)?.getTime()||0));fillFilters();render()}
+function fillFilters(){const actions=[...new Set(logs.map(x=>x.action).filter(Boolean))].sort();actionFilter.innerHTML='<option value="">كل العمليات</option>'+actions.map(x=>`<option value="${esc(x)}">${esc(ACTION_LABELS[x]||x)}</option>`).join("");const entities=[...new Set(logs.map(x=>x.entityType).filter(Boolean))].sort();entityFilter.innerHTML='<option value="">كل الأنواع</option>'+entities.map(x=>`<option value="${esc(x)}">${esc(ENTITY_LABELS[x]||x)}</option>`).join("");const actors=[...new Map(logs.filter(x=>x.actorUsername||x.actorName).map(x=>[x.actorUsername||x.actorName,{id:x.actorUsername||x.actorName,name:x.actorName||x.actorUsername}])).values()].sort((a,b)=>a.name.localeCompare(b.name,"ar"));actorFilter.innerHTML='<option value="">كل المستخدمين</option>'+actors.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join("")}
+function clearFilters(){q.value="";actionFilter.value="";entityFilter.value="";actorFilter.value="";dateFilter.value="";render()}
+function render(){const query=q.value.trim().toLowerCase(),a=actionFilter.value,e=entityFilter.value,actor=actorFilter.value,date=dateFilter.value;const rows=logs.filter(x=>{const hay=[x.actorName,x.actorUsername,x.label,x.entityId,ACTION_LABELS[x.action]||x.action,ENTITY_LABELS[x.entityType]||x.entityType,x.details].join(" ").toLowerCase();return(!query||hay.includes(query))&&(!a||x.action===a)&&(!e||x.entityType===e)&&(!actor||(x.actorUsername||x.actorName)===actor)&&(!date||isoDate(x.createdAt)===date)});const today=isoDate(new Date());sTotal.textContent=logs.length;sToday.textContent=logs.filter(x=>isoDate(x.createdAt)===today).length;sDelete.textContent=logs.filter(x=>String(x.action).includes("delete")).length;sActors.textContent=new Set(logs.map(x=>x.actorUsername||x.actorName).filter(Boolean)).size;countLabel.textContent=`عرض ${rows.length} من ${logs.length} عملية`;body.innerHTML=rows.length?rows.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(fmt(x.createdAt))}</td><td class="actor"><b>${esc(x.actorName||"—")}</b><small>${esc(x.actorUsername||"")} • ${esc(x.actorRole||"")}</small></td><td><span class="pill ${actionClass(x.action)}">${esc(ACTION_LABELS[x.action]||x.action||"—")}</span></td><td>${esc(ENTITY_LABELS[x.entityType]||x.entityType||"—")}</td><td>${esc(x.label||x.entityId||"—")}</td><td><button class="details" onclick="openDetails('${x.id}')">عرض</button></td></tr>`).join(""):'<tr><td colspan="7"><div class="empty">لا توجد عمليات مطابقة.</div></td></tr>'}
+function openDetails(id){
+  const x=logs.find(v=>v.id===id);if(!x)return;
+  modalTitle.textContent=ACTION_LABELS[x.action]||x.action||"تفاصيل العملية";
+  meta.innerHTML=`<b>المستخدم:</b> ${esc(x.actorName||"—")} &nbsp; | &nbsp; <b>الحساب:</b> ${esc(x.actorUsername||"—")} &nbsp; | &nbsp; <b>التاريخ:</b> ${esc(fmt(x.createdAt))}<br><b>العنصر:</b> ${esc(x.label||x.entityId||"—")} &nbsp; | &nbsp; <b>النوع:</b> ${esc(ENTITY_LABELS[x.entityType]||x.entityType||"—")}`;
+  beforeBox.innerHTML=objectRows(x.before,x.after);
+  afterBox.innerHTML=objectRows(x.after,x.before);
+  detailsBox.textContent=x.details||"لا توجد ملاحظات إضافية.";
+  modal.classList.add("open")
+}
+function closeModal(){modal.classList.remove("open")}document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});(async()=>{if(!protect())return;try{await load()}catch(e){console.error(e);body.innerHTML='<tr><td colspan="7"><div class="empty">تعذر تحميل سجل التدقيق.</div></td></tr>'}})();
+</script></body></html>

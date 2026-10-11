@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راصد - مركز التحكم الإداري</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --navy:#0b2f4f;
+  --navy2:#123f68;
+  --blue:#17669d;
+  --gold:#c89c32;
+  --gold2:#f0d689;
+  --green:#168650;
+  --green-soft:#eaf8f0;
+  --red:#b93831;
+  --red-soft:#fff0ef;
+  --amber:#a56b00;
+  --amber-soft:#fff7e3;
+  --ink:#18354b;
+  --muted:#6b7d8c;
+  --line:#dfe7ed;
+  --bg:#f3f6f9;
+  --card:#fff;
+  --shadow:0 12px 34px rgba(17,52,80,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Tajawal",Tahoma,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 90% 3%,rgba(200,156,50,.10),transparent 28%),
+    radial-gradient(circle at 0 22%,rgba(23,102,157,.06),transparent 25%),
+    var(--bg);
+  color:var(--ink);
+}
+button{font-family:inherit}
+
+.header{
+  color:#fff;
+  background:linear-gradient(135deg,#082942 0%,#0b3c63 55%,#145d8e 100%);
+  box-shadow:0 9px 28px rgba(4,32,54,.17);
+  position:relative;
+  overflow:hidden;
+}
+.header::before{
+  content:"";
+  position:absolute;
+  width:300px;height:300px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:50%;
+  top:-200px;left:-70px;
+}
+.header-inner{
+  width:min(1420px,96%);
+  margin:auto;
+  padding:20px 8px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:18px;
+  align-items:center;
+  position:relative;
+  z-index:2;
+}
+.brand{display:flex;align-items:center;gap:13px}
+.brand img{
+  width:68px;height:68px;object-fit:contain;background:#fff;
+  border-radius:18px;padding:5px;box-shadow:0 8px 20px rgba(0,0,0,.16)
+}
+.brand h1{font-size:23px;margin:0;font-weight:900}
+.brand p{font-size:12px;margin:4px 0 0;color:#d9e7f2;font-weight:700}
+.header-center{text-align:center}
+.header-center small{color:var(--gold2);font-weight:900}
+.header-center h2{margin:3px 0 0;font-size:24px;font-weight:900}
+.header-actions{display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap}
+.header-btn{
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border-radius:11px;
+  padding:9px 12px;
+  font-weight:900;
+  cursor:pointer;
+}
+.header-btn:hover{background:rgba(255,255,255,.15)}
+
+.wrap{width:min(1420px,96%);margin:20px auto 40px}
+
+.welcome{
+  background:linear-gradient(135deg,#fff,#fbfcfd);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:17px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.welcome h3{margin:0;color:var(--navy);font-size:20px}
+.welcome p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:700}
+.live-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:999px;padding:8px 12px;background:#ebf8f1;
+  color:#17683f;border:1px solid #c4e6d1;font-weight:900;font-size:12px
+}
+.live-dot{
+  width:10px;height:10px;border-radius:50%;background:#20af5b;
+  box-shadow:0 0 0 5px rgba(32,175,91,.11)
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:11px;
+  margin-bottom:14px;
+}
+.kpi{
+  background:#fff;border:1px solid var(--line);border-radius:17px;
+  padding:14px;box-shadow:0 7px 22px rgba(17,52,80,.05);
+  min-height:112px;position:relative;overflow:hidden
+}
+.kpi::after{
+  content:"";position:absolute;width:70px;height:70px;border-radius:50%;
+  left:-30px;bottom:-35px;background:rgba(18,63,104,.04)
+}
+.kpi-icon{
+  width:39px;height:39px;border-radius:12px;background:#eef5fa;
+  display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:7px
+}
+.kpi small{display:block;color:var(--muted);font-weight:800;font-size:11px}
+.kpi b{display:block;color:var(--navy);font-size:23px;font-weight:900;margin-top:2px}
+.kpi em{display:block;font-style:normal;color:#7a8b98;font-size:10px;font-weight:700;margin-top:2px}
+
+.grid-main{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  gap:14px;
+  margin-bottom:14px;
+}
+.panel{
+  background:#fff;border:1px solid var(--line);border-radius:19px;
+  box-shadow:var(--shadow);overflow:hidden
+}
+.panel-head{
+  padding:14px 16px;border-bottom:1px solid #e8edf1;
+  background:linear-gradient(180deg,#fff,#fbfcfd);
+  display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+.panel-title{font-size:17px;font-weight:900;color:var(--navy)}
+.panel-sub{color:var(--muted);font-size:11px;font-weight:700;margin-top:2px}
+.panel-body{padding:15px}
+
+.alerts{display:flex;flex-direction:column;gap:9px}
+.alert-item{
+  display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;
+  border:1px solid #e3e9ee;border-radius:14px;padding:11px;background:#fbfcfd
+}
+.alert-icon{
+  width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px
+}
+.alert-item.danger{border-color:#efc4c1;background:#fff8f7}
+.alert-item.danger .alert-icon{background:#ffebe9}
+.alert-item.warn{border-color:#ecd99f;background:#fffbf1}
+.alert-item.warn .alert-icon{background:#fff1c9}
+.alert-item.info{border-color:#cfe2ef;background:#f7fbfe}
+.alert-item.info .alert-icon{background:#e9f5fc}
+.alert-item.ok{border-color:#c9e5d3;background:#f7fcf9}
+.alert-item.ok .alert-icon{background:#e8f7ee}
+.alert-title{font-weight:900;color:#233f55;font-size:13px}
+.alert-text{font-size:11px;color:#6c7d8a;font-weight:700;margin-top:2px;line-height:1.6}
+.alert-action{
+  border:0;border-radius:9px;padding:7px 9px;background:#eaf1f6;color:#204e70;
+  font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap
+}
+
+.quick-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:9px
+}
+.quick{
+  border:1px solid var(--line);border-radius:14px;padding:13px;
+  background:#fbfcfd;cursor:pointer;transition:.18s;text-align:right
+}
+.quick:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,55,84,.08);border-color:#bfd0dc}
+.quick .ico{font-size:21px}
+.quick b{display:block;color:#173e5d;margin-top:4px;font-size:13px}
+.quick small{display:block;color:#758693;margin-top:2px;font-weight:700;line-height:1.5}
+
+.two-panels{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px
+}
+
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:9px;border-bottom:1px solid #e8edf1;text-align:center;font-size:11px}
+th{background:#153f62;color:#fff;font-weight:900}
+tbody tr:hover{background:#f8fbfd}
+.teacher-cell{text-align:right}
+.teacher-cell b{display:block;color:#173e5d;font-size:12px}
+.teacher-cell small{display:block;color:#7b8b97;margin-top:2px}
+.badge{
+  display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900
+}
+.badge.red{background:#ffedeb;color:#a6322d}
+.badge.amber{background:#fff2ce;color:#8a5d00}
+.badge.green{background:#e9f8ef;color:#17683f}
+.badge.blue{background:#eaf4fb;color:#155b87}
+.badge.gray{background:#eef1f4;color:#60717e}
+
+.window-list{display:flex;flex-direction:column;gap:9px}
+.window-card{
+  border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfcfd
+}
+.window-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.window-name{font-weight:900;color:#173e5d;font-size:13px}
+.window-meta{color:#748592;font-size:11px;font-weight:700;margin-top:4px;line-height:1.7}
+.window-time{
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px
+}
+.time-box{background:#fff;border:1px solid #e4eaf0;border-radius:10px;padding:8px}
+.time-box small{display:block;color:#7b8995;font-size:9px;font-weight:800}
+.time-box b{display:block;color:#2a455b;font-size:11px;margin-top:2px}
+
+.activity-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:11px
+}
+.activity-stat{
+  border:1px solid var(--line);border-radius:13px;padding:11px;text-align:center;background:#fbfcfd
+}
+.activity-stat b{display:block;font-size:20px;color:#173f61}
+.activity-stat small{font-size:10px;color:#71828f;font-weight:800}
+
+.feed{display:flex;flex-direction:column;gap:8px;max-height:410px;overflow:auto;padding-left:3px}
+.feed-item{
+  display:grid;grid-template-columns:36px 1fr;gap:9px;padding:9px 0;border-bottom:1px solid #edf1f4
+}
+.feed-item:last-child{border-bottom:0}
+.feed-icon{
+  width:36px;height:36px;border-radius:11px;background:#eef5fa;display:flex;align-items:center;justify-content:center
+}
+.feed-title{font-size:12px;font-weight:900;color:#26465e}
+.feed-text{font-size:10px;color:#788894;font-weight:700;margin-top:2px;line-height:1.55}
+.feed-time{font-size:9px;color:#98a4ad;margin-top:3px;font-weight:700}
+
+.empty{
+  padding:28px 12px;text-align:center;color:#7d8c98;font-weight:800;font-size:12px
+}
+
+.footer{
+  text-align:center;color:#7b8b98;font-size:10px;font-weight:700;padding:6px 0 0
+}
+.footer b{color:#536a7b}
+
+.loading{
+  position:fixed;inset:0;background:rgba(243,246,249,.94);z-index:2000;
+  display:flex;align-items:center;justify-content:center
+}
+.loading-card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;padding:23px 28px;
+  box-shadow:var(--shadow);text-align:center;min-width:275px
+}
+.spinner{
+  width:37px;height:37px;border:4px solid #e4ecf2;border-top-color:#17669d;border-radius:50%;
+  margin:0 auto 10px;animation:spin .8s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:1150px){
+  .header-inner{grid-template-columns:1fr}
+  .header-center{text-align:right}
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .grid-main,.two-panels{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .quick-grid,.activity-stats{grid-template-columns:1fr 1fr}
+  .welcome{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:450px){
+  .kpis,.quick-grid,.activity-stats{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <div style="font-weight:900;color:#173f61">جاري تجهيز مركز التحكم...</div>
+    <div style="font-size:11px;color:#758592;margin-top:4px">يتم تحليل البيانات الحالية للنظام</div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <img src="logo.jpeg" alt="">
+      <div>
+        <h1>مدارس الفلاح الأهلية</h1>
+        <p>نظام راصد للمتابعة والتحليل</p>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <small>لوحة الإدارة التنفيذية</small>
+      <h2>مركز التحكم</h2>
+    </div>
+
+    <div class="header-actions">
+      <button class="header-btn" onclick="location.href='admin.html'">↩ لوحة الإدارة</button>
+      <button class="header-btn" onclick="reloadAll()">⟳ تحديث</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="welcome">
+    <div>
+      <h3>مرحبًا، <span id="adminName">الإدارة</span></h3>
+      <p>ملخص مباشر لأهم ما يحتاج تدخل الإدارة الآن دون الحاجة للتنقل بين الصفحات.</p>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span> بيانات مباشرة من النظام</div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi">
+      <div class="kpi-icon">👨‍🎓</div>
+      <small>الطلاب</small>
+      <b id="kStudents">0</b>
+      <em>إجمالي الطلاب المسجلين</em>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-icon">👨‍🏫</div>
+      <small>المعلمون</small>
+      <b id="kTeachers">0</b>
+      <em>حسابات المعلمين</em>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-icon">📝</div>
+      <small>الاختبارات</small>
+      <b id="kTests">0</b>
+      <em>كل الاختبارات المسجلة</em>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-icon">⏳</div>
+      <small>الرصد غير المكتمل</small>
+      <b id="kIncomplete">0</b>
+      <em>اختبار / فصل يحتاج متابعة</em>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-icon">⏱️</div>
+      <small>فترات الرصد المفتوحة</small>
+      <b id="kOpenWindows">0</b>
+      <em>مفتوحة الآن</em>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-icon">🔒</div>
+      <small>إيقافات الرصد</small>
+      <b id="kLocks">0</b>
+      <em>إيقافات يدوية فعالة</em>
+    </div>
+  </section>
+
+  <section class="grid-main">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">🔔 يحتاج انتباه الإدارة</div>
+          <div class="panel-sub">تنبيهات تلقائية مبنية على حالة النظام الحالية.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="alertsArea" class="alerts"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">⚡ وصول سريع</div>
+          <div class="panel-sub">أكثر الصفحات استخدامًا من مكان واحد.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="quick-grid">
+          <button class="quick" onclick="location.href='monitoring.html'"><span class="ico">📋</span><b>حالة الرصد</b><small>متابعة اكتمال الدرجات وإيقاف الرصد.</small></button>
+          <button class="quick" onclick="location.href='admin.html#gradingWindowsSection'"><span class="ico">⏱️</span><b>فترات الرصد</b><small>فتح وإغلاق فترات إدخال الدرجات.</small></button>
+          <button class="quick" onclick="location.href='top10.html'"><span class="ico">🏆</span><b>أوائل الطلاب</b><small>الترتيب على مستوى الفصل أو الصف.</small></button><button class="quick" onclick="location.href='student-report.html'"><span class="ico">📄</span><b>تقرير الطالب الشامل</b><small>الأداء والترتيب ونقاط القوة والدعم.</small></button>
+          <button class="quick" onclick="location.href='audit-log.html'"><span class="ico">🛡️</span><b>سجل التدقيق</b><small>من غيّر ماذا ومتى مع تفاصيل العملية.</small></button><button class="quick" onclick="location.href='notifications-center.html'"><span class="ico">🔔</span><b>مركز التنبيهات</b><small>ما يحتاج تدخلك الآن في الرصد والأنشطة.</small></button>
+          <button class="quick" onclick="location.href='data-quality.html'"><span class="ico">🧹</span><b>جودة البيانات</b><small>اكتشاف البيانات الناقصة والمتعارضة قبل أن تسبب مشكلة.</small></button>
+          <button class="quick" onclick="location.href='supervisor-activities.html'"><span class="ico">🎯</span><b>تقارير الأنشطة</b><small>المراجعة والاعتماد والنشر.</small></button>
+          <button class="quick" onclick="location.href='exam-admin.html'"><span class="ico">💻</span><b>الاختبارات الإلكترونية</b><small>الإنشاء والنتائج والتصحيح.</small></button>
+          <button class="quick" onclick="location.href='support-students.html'"><span class="ico">👥</span><b>الطلاب المحتاجون للدعم</b><small>الوصول السريع لصفحة الدعم.</small></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">📌 متابعة الرصد غير المكتمل</div>
+        <div class="panel-sub">أعلى الحالات التي تحتاج متابعة الآن، مع المعلم المسؤول عند إمكانية تحديده من الإسناد.</div>
+      </div>
+      <button class="alert-action" onclick="location.href='monitoring.html'">فتح حالة الرصد</button>
+    </div>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الاختبار</th>
+              <th>المادة</th>
+              <th>الصف / الفصل</th>
+              <th>المعلم</th>
+              <th>تم الرصد</th>
+              <th>المتبقي</th>
+              <th>حالة فترة الرصد</th>
+            </tr>
+          </thead>
+          <tbody id="incompleteBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="two-panels">
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">⏱️ فترات رصد الدرجات</div>
+          <div class="panel-sub">الحالة الزمنية لكل فترة مفعلة.</div>
+        </div>
+        <button class="alert-action" onclick="location.href='admin.html#gradingWindowsSection'">إدارة الفترات</button>
+      </div>
+      <div class="panel-body">
+        <div id="windowsArea" class="window-list"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">🎯 الأنشطة الطلابية</div>
+          <div class="panel-sub">حالة تقارير الأنشطة الحالية.</div>
+        </div>
+        <button class="alert-action" onclick="location.href='supervisor-activities.html'">فتح الأنشطة</button>
+      </div>
+      <div class="panel-body">
+        <div class="activity-stats">
+          <div class="activity-stat"><b id="aSubmitted">0</b><small>بانتظار المراجعة</small></div>
+          <div class="activity-stat"><b id="aReviewed">0</b><small>تمت المراجعة</small></div>
+          <div class="activity-stat"><b id="aReturned">0</b><small>معاد للتعديل</small></div>
+          <div class="activity-stat"><b id="aPublished">0</b><small>منشور</small></div>
+        </div>
+        <div id="activityPendingList"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">🕘 آخر الأحداث المسجلة</div>
+        <div class="panel-sub">ملخص زمني من البيانات الموجودة حاليًا: فترات الرصد، الإيقافات، الأنشطة والاختبارات.</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="feedArea" class="feed"></div>
+    </div>
+  </section>
+
+  <div class="footer">نظام راصد — مدارس الفلاح الأهلية &nbsp; | &nbsp; <b>تصميم محمد عامر أحمد</b></div>
+
+</main>
+
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd",
+  storageBucket:"results2026-7c0dd.firebasestorage.app",
+  messagingSenderId:"241421115694",
+  appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+const el=id=>document.getElementById(id);
+
+const CATEGORY_LABELS={
+  period1:"اختبارات الفترة الأولى",
+  period2:"اختبارات الفترة الثانية",
+  diagnostic:"اختبار تشخيصي",
+  unit:"اختبار وحدة",
+  short:"اختبار قصير / عادي",
+  final:"اختبار نهائي",
+  other:"أخرى / غير مصنف"
+};
+
+let students=[],teachers=[],tests=[],grades=[],activities=[],gradingWindows=[],gradingLocks=[];
+
+function esc(v){
+  return String(v??"").replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+function authGet(key){
+  const tab=sessionStorage.getItem(key);
+  return tab!==null?tab:localStorage.getItem(key);
+}
+
+function currentRole(){
+  return String(authGet("currentUserRole")||"").toLowerCase();
+}
+
+function protect(){
+  const role=currentRole();
+  if(!["admin","superadmin"].includes(role)){
+    alert("مركز التحكم متاح للإدارة فقط.");
+    location.href="index.html";
+    return false;
+  }
+  el("adminName").textContent=authGet("currentUserName")||authGet("currentUser")||"الإدارة";
+  return true;
+}
+
+function categoryKey(v){
+  const key=String(v||"").trim();
+  return CATEGORY_LABELS[key]?key:"other";
+}
+
+function categoryLabel(v){
+  return CATEGORY_LABELS[categoryKey(v)]||CATEGORY_LABELS.other;
+}
+
+function toDate(v){
+  try{
+    if(!v)return null;
+    const d=typeof v.toDate==="function"?v.toDate():new Date(v);
+    return Number.isNaN(d.getTime())?null:d;
+  }catch{return null}
+}
+
+function timeMs(v){
+  const d=toDate(v);
+  return d?d.getTime():0;
+}
+
+function fmtDateTime(v){
+  const d=toDate(v);
+  if(!d)return "—";
+  return new Intl.DateTimeFormat("ar-SA",{
+    year:"numeric",month:"2-digit",day:"2-digit",
+    hour:"2-digit",minute:"2-digit"
+  }).format(d);
+}
+
+function relativeTime(v){
+  const d=toDate(v);
+  if(!d)return "";
+  const diff=d.getTime()-Date.now();
+  const abs=Math.abs(diff);
+  const min=Math.round(abs/60000);
+  const hours=Math.round(abs/3600000);
+  const days=Math.round(abs/86400000);
+  const text=days>=1?days+" يوم":hours>=1?hours+" ساعة":Math.max(1,min)+" دقيقة";
+  return diff>=0?"بعد "+text:"منذ "+text;
+}
+
+function classKey(grade,section){
+  return String(grade||"").trim()+"||"+String(section||"").trim();
+}
+
+function testClassKey(testId,grade,section){
+  return String(testId)+"||"+classKey(grade,section);
+}
+
+function activeManualLock(lock){
+  if(lock.active===false)return false;
+  const unlock=toDate(lock.unlockAt);
+  return !unlock || Date.now()<unlock.getTime();
+}
+
+function windowState(w){
+  if(w.active===false)return {key:"disabled",label:"معطلة"};
+  const start=toDate(w.startAt);
+  const end=toDate(w.endAt);
+  if(!start||!end)return {key:"invalid",label:"غير مكتملة"};
+  const now=Date.now();
+  if(now<start.getTime())return {key:"upcoming",label:"لم تبدأ"};
+  if(now>end.getTime())return {key:"ended",label:"انتهت"};
+  return {key:"open",label:"مفتوحة الآن"};
+}
+
+function windowScopeLabel(w){
+  if(String(w.scopeType||"all")==="test")return "اختبار: "+String(w.testName||"اختبار محدد");
+  if(String(w.scopeType||"all")==="category")return categoryLabel(w.category);
+  return "كل الاختبارات";
+}
+
+function applicableWindow(test){
+  const matches=gradingWindows.filter(w=>{
+    if(w.active===false)return false;
+    const scope=String(w.scopeType||"all");
+    if(scope==="test")return String(w.testId||"")===String(test.id||"");
+    if(scope==="category")return categoryKey(w.category)===categoryKey(test.examCategory);
+    return scope==="all";
+  });
+
+  if(!matches.length)return null;
+
+  const specificity=w=>w.scopeType==="test"?3:w.scopeType==="category"?2:1;
+  const max=Math.max(...matches.map(specificity));
+  const selected=matches.filter(w=>specificity(w)===max);
+
+  const open=selected.find(w=>windowState(w).key==="open");
+  if(open)return open;
+
+  const upcoming=selected.filter(w=>windowState(w).key==="upcoming")
+    .sort((a,b)=>timeMs(a.startAt)-timeMs(b.startAt))[0];
+  if(upcoming)return upcoming;
+
+  return selected.sort((a,b)=>timeMs(b.endAt)-timeMs(a.endAt))[0];
+}
+
+function windowBadgeForTest(test){
+  const w=applicableWindow(test);
+  if(!w)return '<span class="badge gray">بدون فترة محددة</span>';
+  const state=windowState(w);
+  if(state.key==="open")return '<span class="badge green">مفتوحة الآن</span>';
+  if(state.key==="upcoming")return '<span class="badge amber">لم تبدأ</span>';
+  if(state.key==="ended")return '<span class="badge red">انتهت</span>';
+  return '<span class="badge gray">'+esc(state.label)+'</span>';
+}
+
+function teacherFor(subjectId,subjectName,grade,section){
+  const found=teachers.find(t=>{
+    const assignments=Array.isArray(t.assignments)?t.assignments:[];
+    return assignments.some(a=>{
+      const subjectMatch=
+        (subjectId && String(a.subjectId||"")===String(subjectId)) ||
+        (!subjectId && subjectName && String(a.subjectName||"")===String(subjectName));
+      return subjectMatch &&
+        String(a.grade||"")===String(grade||"") &&
+        String(a.section||"")===String(section||"");
+    });
+  });
+  return found||null;
+}
+
+function buildIncompleteRows(){
+  const studentSets=new Map();
+  students.forEach(s=>{
+    const key=classKey(s.grade,s.section);
+    if(!studentSets.has(key))studentSets.set(key,new Set());
+    studentSets.get(key).add(String(s.code||s.id||""));
+  });
+
+  const gradeSets=new Map();
+  grades.forEach(g=>{
+    const key=testClassKey(g.testId,g.grade,g.section);
+    if(!gradeSets.has(key))gradeSets.set(key,new Set());
+    const code=String(g.studentCode||"");
+    if(code)gradeSets.get(key).add(code);
+  });
+
+  const rows=[];
+
+  tests.forEach(test=>{
+    const classes=Array.isArray(test.classes)?test.classes:[];
+    classes.forEach(c=>{
+      const classStudents=studentSets.get(classKey(c.grade,c.section))||new Set();
+      if(!classStudents.size)return;
+
+      const recordedSet=gradeSets.get(testClassKey(test.id,c.grade,c.section))||new Set();
+      let recorded=0;
+      classStudents.forEach(code=>{if(recordedSet.has(code))recorded++});
+      const missing=Math.max(0,classStudents.size-recorded);
+
+      if(missing>0){
+        const teacher=teacherFor(test.subjectId,test.subjectName,c.grade,c.section);
+        rows.push({
+          test,
+          grade:c.grade,
+          section:c.section,
+          total:classStudents.size,
+          recorded,
+          missing,
+          teacher
+        });
+      }
+    });
+  });
+
+  rows.sort((a,b)=>{
+    const wa=applicableWindow(a.test), wb=applicableWindow(b.test);
+    const sa=wa?windowState(wa).key:"none";
+    const sb=wb?windowState(wb).key:"none";
+    const priority={open:0,upcoming:1,ended:2,none:3,disabled:4,invalid:5};
+    if((priority[sa]??9)!==(priority[sb]??9))return (priority[sa]??9)-(priority[sb]??9);
+    return b.missing-a.missing;
+  });
+
+  return rows;
+}
+
+function renderKPIs(incomplete){
+  el("kStudents").textContent=students.length;
+  el("kTeachers").textContent=teachers.length;
+  el("kTests").textContent=tests.length;
+  el("kIncomplete").textContent=incomplete.length;
+  el("kOpenWindows").textContent=gradingWindows.filter(w=>windowState(w).key==="open").length;
+  el("kLocks").textContent=gradingLocks.filter(activeManualLock).length;
+}
+
+function addAlert(type,icon,title,text,actionLabel,href){
+  return `<div class="alert-item ${type}">
+    <div class="alert-icon">${icon}</div>
+    <div>
+      <div class="alert-title">${esc(title)}</div>
+      <div class="alert-text">${text}</div>
+    </div>
+    ${href?`<button class="alert-action" onclick="location.href='${esc(href)}'">${esc(actionLabel||"فتح")}</button>`:""}
+  </div>`;
+}
+
+function renderAlerts(incomplete){
+  const alerts=[];
+  const now=Date.now();
+
+  const openSoon=gradingWindows.filter(w=>{
+    if(windowState(w).key!=="open")return false;
+    const end=timeMs(w.endAt);
+    return end>now && end-now<=24*3600000;
+  });
+
+  if(openSoon.length){
+    alerts.push(addAlert(
+      "danger","⏰",
+      "فترات رصد ستنتهي خلال 24 ساعة",
+      `يوجد <strong>${openSoon.length}</strong> فترة رصد اقترب موعد إغلاقها. راجع اكتمال الرصد قبل الإغلاق.`,
+      "إدارة الفترات","admin.html#gradingWindowsSection"
+    ));
+  }
+
+  const openIncomplete=incomplete.filter(r=>{
+    const w=applicableWindow(r.test);
+    return w && windowState(w).key==="open";
+  });
+
+  if(openIncomplete.length){
+    const missing=openIncomplete.reduce((s,r)=>s+r.missing,0);
+    alerts.push(addAlert(
+      "warn","📋",
+      "رصد غير مكتمل أثناء فترة مفتوحة",
+      `يوجد <strong>${openIncomplete.length}</strong> اختبار/فصل غير مكتمل بإجمالي <strong>${missing}</strong> درجة طالب لم تُرصد بعد.`,
+      "حالة الرصد","monitoring.html"
+    ));
+  }
+
+  const submitted=activities.filter(a=>a.status==="submitted").length;
+  if(submitted){
+    alerts.push(addAlert(
+      "info","🎯",
+      "تقارير أنشطة بانتظار المراجعة",
+      `يوجد <strong>${submitted}</strong> تقرير نشاط مرسل للمشرف ولم تتم مراجعته بعد.`,
+      "فتح الأنشطة","supervisor-activities.html"
+    ));
+  }
+
+  const reviewed=activities.filter(a=>a.status==="reviewed").length;
+  if(reviewed){
+    alerts.push(addAlert(
+      "info","📢",
+      "تقارير تمت مراجعتها ولم تُنشر",
+      `يوجد <strong>${reviewed}</strong> تقرير تمت مراجعته ولم يتم نشره لولي الأمر حتى الآن.`,
+      "فتح الأنشطة","supervisor-activities.html"
+    ));
+  }
+
+  const locks=gradingLocks.filter(activeManualLock);
+  if(locks.length){
+    alerts.push(addAlert(
+      "warn","🔒",
+      "إيقافات رصد يدوية فعالة",
+      `يوجد <strong>${locks.length}</strong> إيقاف رصد يدوي مفعل حاليًا. تأكد من أنها ما زالت مطلوبة.`,
+      "إدارة الرصد","monitoring.html"
+    ));
+  }
+
+  if(!alerts.length){
+    alerts.push(addAlert(
+      "ok","✅",
+      "لا توجد تنبيهات حرجة الآن",
+      "لا يظهر في البيانات الحالية ما يحتاج تدخلًا عاجلًا من الإدارة.",
+      "",""
+    ));
+  }
+
+  el("alertsArea").innerHTML=alerts.join("");
+}
+
+function renderIncomplete(rows){
+  const body=el("incompleteBody");
+  const shown=rows.slice(0,15);
+
+  if(!shown.length){
+    body.innerHTML='<tr><td colspan="8"><div class="empty">✅ جميع الاختبارات المسجلة حاليًا مكتملة الرصد على الفصول المستهدفة.</div></td></tr>';
+    return;
+  }
+
+  body.innerHTML=shown.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${esc(r.test.name||"اختبار")}</b><br><small>${esc(categoryLabel(r.test.examCategory))}</small></td>
+      <td>${esc(r.test.subjectName||"—")}</td>
+      <td>${esc(r.grade||"—")} / ${esc(r.section||"—")}</td>
+      <td class="teacher-cell">
+        <b>${esc(r.teacher?.name||"غير محدد")}</b>
+        <small>${esc(r.teacher?.email||"")}</small>
+      </td>
+      <td><span class="badge blue">${r.recorded} / ${r.total}</span></td>
+      <td><span class="badge red">${r.missing}</span></td>
+      <td>${windowBadgeForTest(r.test)}</td>
+    </tr>
+  `).join("");
+}
+
+function renderWindows(){
+  const active=gradingWindows
+    .filter(w=>w.active!==false)
+    .sort((a,b)=>{
+      const priority={open:0,upcoming:1,ended:2,invalid:3,disabled:4};
+      return (priority[windowState(a).key]??9)-(priority[windowState(b).key]??9) ||
+        timeMs(a.startAt)-timeMs(b.startAt);
+    });
+
+  if(!active.length){
+    el("windowsArea").innerHTML='<div class="empty">لا توجد فترات رصد مفعلة.</div>';
+    return;
+  }
+
+  el("windowsArea").innerHTML=active.slice(0,8).map(w=>{
+    const s=windowState(w);
+    const badge=s.key==="open"?"green":s.key==="upcoming"?"amber":s.key==="ended"?"red":"gray";
+
+    return `<div class="window-card">
+      <div class="window-top">
+        <div>
+          <div class="window-name">${esc(windowScopeLabel(w))}</div>
+          <div class="window-meta">${esc(w.note||"لا توجد ملاحظة")}</div>
+        </div>
+        <span class="badge ${badge}">${esc(s.label)}</span>
+      </div>
+      <div class="window-time">
+        <div class="time-box"><small>البداية</small><b>${esc(fmtDateTime(w.startAt))}</b></div>
+        <div class="time-box"><small>النهاية</small><b>${esc(fmtDateTime(w.endAt))}</b></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderActivities(){
+  const count=status=>activities.filter(a=>a.status===status).length;
+
+  el("aSubmitted").textContent=count("submitted");
+  el("aReviewed").textContent=count("reviewed");
+  el("aReturned").textContent=count("revision_requested");
+  el("aPublished").textContent=count("published");
+
+  const pending=activities
+    .filter(a=>["submitted","reviewed","revision_requested"].includes(a.status))
+    .sort((a,b)=>Math.max(timeMs(b.updatedAt),timeMs(b.submittedAt),timeMs(b.reviewedAt))-
+                 Math.max(timeMs(a.updatedAt),timeMs(a.submittedAt),timeMs(a.reviewedAt)))
+    .slice(0,5);
+
+  if(!pending.length){
+    el("activityPendingList").innerHTML='<div class="empty" style="padding:16px 10px">لا توجد تقارير أنشطة معلقة.</div>';
+    return;
+  }
+
+  const label={
+    submitted:["بانتظار المراجعة","amber"],
+    reviewed:["تمت المراجعة","blue"],
+    revision_requested:["معاد للتعديل","red"]
+  };
+
+  el("activityPendingList").innerHTML=pending.map(a=>`
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:1px solid #edf1f4;padding:9px 2px">
+      <div>
+        <div style="font-weight:900;color:#26465e;font-size:12px">${esc(a.title||"نشاط")}</div>
+        <div style="font-size:10px;color:#7d8c97;margin-top:2px">${esc(a.teacherName||a.createdByName||a.activityLeaderName||"")}</div>
+      </div>
+      <span class="badge ${label[a.status]?.[1]||"gray"}">${label[a.status]?.[0]||esc(a.status)}</span>
+    </div>
+  `).join("");
+}
+
+function buildFeed(){
+  const items=[];
+
+  gradingWindows.forEach(w=>{
+    const t=w.updatedAt||w.createdAt;
+    if(!t)return;
+    items.push({
+      time:timeMs(t),date:t,icon:"⏱️",
+      title:"تحديث فترة رصد",
+      text:windowScopeLabel(w)+" — "+windowState(w).label
+    });
+  });
+
+  gradingLocks.forEach(l=>{
+    const t=l.unlockedAt||l.lockedAt;
+    if(!t)return;
+    const unlocked=l.active===false;
+    items.push({
+      time:timeMs(t),date:t,icon:unlocked?"🔓":"🔒",
+      title:unlocked?"إعادة فتح الرصد":"إيقاف الرصد",
+      text:(l.teacherName||l.teacherEmail||"معلم")+(l.reason?" — "+l.reason:"")
+    });
+  });
+
+  activities.forEach(a=>{
+    const hist=Array.isArray(a.history)?a.history:[];
+    hist.forEach(h=>{
+      const t=h.at;
+      if(!t)return;
+      items.push({
+        time:timeMs(t),date:t,icon:"🎯",
+        title:h.label||"تحديث نشاط",
+        text:(a.title||"نشاط")+(h.by?" — "+h.by:"")
+      });
+    });
+  });
+
+  tests.forEach(t=>{
+    const dt=t.updatedAt||t.createdAt;
+    if(!dt)return;
+    items.push({
+      time:timeMs(dt),date:dt,icon:"📝",
+      title:t.updatedAt?"تحديث اختبار":"إنشاء اختبار",
+      text:(t.name||"اختبار")+" — "+(t.subjectName||"")
+    });
+  });
+
+  items.sort((a,b)=>b.time-a.time);
+  return items.slice(0,25);
+}
+
+function renderFeed(){
+  const items=buildFeed();
+
+  if(!items.length){
+    el("feedArea").innerHTML='<div class="empty">لا توجد أحداث مؤرخة متاحة للعرض حاليًا.</div>';
+    return;
+  }
+
+  el("feedArea").innerHTML=items.map(item=>`
+    <div class="feed-item">
+      <div class="feed-icon">${item.icon}</div>
+      <div>
+        <div class="feed-title">${esc(item.title)}</div>
+        <div class="feed-text">${esc(item.text)}</div>
+        <div class="feed-time">${esc(fmtDateTime(item.date))} • ${esc(relativeTime(item.date))}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function loadAll(){
+  el("loading").style.display="flex";
+
+  try{
+    const snaps=await Promise.all([
+      db.collection("students").get(),
+      db.collection("teachers").get(),
+      db.collection("tests").get(),
+      db.collection("grades").get(),
+      db.collection("activities").get(),
+      db.collection("gradingWindows").get(),
+      db.collection("gradingLocks").get()
+    ]);
+
+    students=snaps[0].docs.map(d=>({id:d.id,code:d.data().code||d.id,...d.data()}));
+    teachers=snaps[1].docs.map(d=>({id:d.id,email:d.data().email||d.id,...d.data()}));
+    tests=snaps[2].docs.map(d=>({id:d.id,...d.data()}));
+    grades=snaps[3].docs.map(d=>({id:d.id,...d.data()}));
+    activities=snaps[4].docs.map(d=>({id:d.id,...d.data()}));
+    gradingWindows=snaps[5].docs.map(d=>({id:d.id,...d.data()}));
+    gradingLocks=snaps[6].docs.map(d=>({id:d.id,...d.data()}));
+
+    const incomplete=buildIncompleteRows();
+
+    renderKPIs(incomplete);
+    renderAlerts(incomplete);
+    renderIncomplete(incomplete);
+    renderWindows();
+    renderActivities();
+    renderFeed();
+
+  }catch(error){
+    console.error(error);
+    el("alertsArea").innerHTML=addAlert(
+      "danger","⚠️",
+      "تعذر تحميل مركز التحكم",
+      esc(error.message||error),
+      "إعادة المحاولة","control-center.html"
+    );
+  }finally{
+    el("loading").style.display="none";
+  }
+}
+
+async function reloadAll(){
+  await loadAll();
+}
+
+(async function start(){
+  if(!protect()){
+    el("loading").style.display="none";
+    return;
+  }
+  await loadAll();
+})();
+</script>
+
+</body>
+</html>
