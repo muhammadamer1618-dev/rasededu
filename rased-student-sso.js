@@ -13,18 +13,49 @@ function parse(v){try{return JSON.parse(v)}catch(e){return null}}
 function getSession(){var s=parse(localStorage.getItem(KEY));if(!s||!s.code||!s.expiresAt)return null;if(Number(s.expiresAt)<=Date.now()){localStorage.removeItem(KEY);return null}return s}
 function saveSession(student,loginCode){var code=String((student&&student.code)||(student&&student._docId)||loginCode||"").trim();if(!code)throw new Error("تعذر تحديد كود الطالب.");var s={version:1,code:code,loginCode:String(loginCode||code),docId:String((student&&student._docId)||""),name:String((student&&student.name)||""),grade:String((student&&student.grade)||""),section:String((student&&student.section)||""),createdAt:Date.now(),expiresAt:Date.now()+TTL};localStorage.setItem(KEY,JSON.stringify(s));return s}
 function touch(){var s=getSession();if(!s)return null;s.expiresAt=Date.now()+TTL;localStorage.setItem(KEY,JSON.stringify(s));return s}
-function clearSession(){localStorage.removeItem(KEY)}
+function clearSession(){localStorage.removeItem(KEY);try{if(String(window.name||"").indexOf("RASED_STUDENT:")===0)window.name=""}catch(e){}}
+function encodeHandoff(s){try{return btoa(unescape(encodeURIComponent(JSON.stringify({code:String(s.loginCode||s.code||""),name:s.name||"",grade:s.grade||"",section:s.section||"",expiresAt:s.expiresAt||0}))))}catch(e){return""}}
+function decodeHandoff(v){try{return JSON.parse(decodeURIComponent(escape(atob(v))))}catch(e){return null}}
+function persistWindowName(s){try{var x=encodeHandoff(s);if(x)window.name="RASED_STUDENT:"+x}catch(e){}}
+function handoffFromWindowName(){try{var n=String(window.name||"");if(n.indexOf("RASED_STUDENT:")!==0)return null;return decodeHandoff(n.slice(14))}catch(e){return null}}
+function handoffFromHash(){try{var m=String(location.hash||"").match(/(?:^#|&)rs=([^&]+)/);return m?decodeHandoff(decodeURIComponent(m[1])):null}catch(e){return null}}
+function currentStudentHandoff(){var s=getSession();if(s)return s;var h=handoffFromWindowName()||handoffFromHash();if(!h||!h.code)return null;if(h.expiresAt&&Number(h.expiresAt)<=Date.now())return null;return {code:String(h.code),loginCode:String(h.code),name:String(h.name||""),grade:String(h.grade||""),section:String(h.section||""),expiresAt:Number(h.expiresAt||Date.now()+TTL)}}
 
 function loadScript(src){return new Promise(function(resolve,reject){var existing=Array.prototype.slice.call(document.scripts).find(function(s){return s.src===src});if(existing){if(window.firebase)return resolve();existing.addEventListener("load",resolve,{once:true});existing.addEventListener("error",reject,{once:true});return}var s=document.createElement("script");s.src=src;s.async=true;s.onload=resolve;s.onerror=function(){reject(new Error("تعذر تحميل Firebase."))};document.head.appendChild(s)})}
 async function getDb(){if(!window.firebase){await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js");await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js")}else if(!window.firebase.firestore){await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js")}if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(firebaseConfig);return firebase.firestore()}
 async function findStudent(raw){var code=clean(raw);if(!code)return null;var store=await getDb();var d=await store.collection("students").doc(code).get();if(d.exists){var x=d.data()||{};return Object.assign({},x,{code:String(x.code||d.id),_docId:String(d.id)})}var q=await store.collection("students").where("code","==",code).limit(1).get();if(!q.empty){d=q.docs[0];x=d.data()||{};return Object.assign({},x,{code:String(x.code||d.id),_docId:String(d.id)})}var n=Number(code);if(Number.isFinite(n)){q=await store.collection("students").where("code","==",n).limit(1).get();if(!q.empty){d=q.docs[0];x=d.data()||{};return Object.assign({},x,{code:String(x.code||d.id),_docId:String(d.id)})}}return null}
-async function login(code){var c=clean(code);if(!c)throw new Error("أدخل رقم هوية الطالب.");var student=await findStudent(c);if(!student)throw new Error("رقم الهوية غير مسجل.");return saveSession(student,c)}
+async function login(code){var c=clean(code);if(!c)throw new Error("أدخل رقم هوية الطالب.");var student=await findStudent(c);if(!student)throw new Error("رقم الهوية غير مسجل.");var s=saveSession(student,c);persistWindowName(s);return s}
 
 function addStyle(){if(document.getElementById("rasedStudentSsoStyle"))return;var s=document.createElement("style");s.id="rasedStudentSsoStyle";s.textContent=".rased-sso-overlay{position:fixed;inset:0;z-index:999999;background:rgba(0,45,37,.80);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:18px;font-family:Tajawal,Tahoma,Arial,sans-serif}.rased-sso-box{width:min(470px,94vw);background:linear-gradient(180deg,#fffefb,#f8f1e4);border-radius:24px;padding:24px;border:2px solid rgba(201,151,44,.5);box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center;color:#17372f}.rased-sso-icon{width:78px;height:78px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:34px;color:#fff;background:linear-gradient(145deg,#006653,#004c3f);border:4px solid #c9972c}.rased-sso-box h2{margin:0 0 6px;color:#004c3f;font-size:24px}.rased-sso-box p{margin:0 0 15px;color:#6a776f;line-height:1.7}.rased-sso-input{width:100%;height:52px;border:1px solid #d8cbb1;border-radius:13px;padding:0 14px;text-align:center;font-size:18px;outline:none;background:#fff}.rased-sso-input:focus{border-color:#c9972c;box-shadow:0 0 0 3px rgba(201,151,44,.15)}.rased-sso-btn{width:100%;height:50px;border:0;border-radius:13px;margin-top:11px;background:linear-gradient(145deg,#006653,#004c3f);color:#fff;font-weight:900;font-size:16px;cursor:pointer}.rased-sso-btn:disabled{opacity:.6;cursor:wait}.rased-sso-msg{min-height:22px;margin-top:10px;font-weight:800;font-size:13px}.rased-sso-msg.err{color:#b42318}.rased-sso-msg.ok{color:#087443}.rased-sso-chip{position:fixed;top:8px;left:8px;z-index:99990;background:#fffdf8;border:1px solid rgba(201,151,44,.55);border-radius:14px;box-shadow:0 7px 20px rgba(0,0,0,.12);padding:7px 10px;display:flex;gap:8px;align-items:center;color:#004c3f;font-family:Tajawal,Tahoma,Arial,sans-serif;font-size:12px}.rased-sso-chip b{font-weight:900}.rased-sso-chip button{border:0!important;border-radius:9px!important;background:#f3ead5!important;color:#7a5411!important;padding:6px 8px!important;margin:0!important;font-family:inherit!important;font-weight:800!important;cursor:pointer!important;min-height:auto!important;height:auto!important}@media(max-width:600px){.rased-sso-chip{font-size:10px;max-width:76vw}.rased-sso-grade{display:none}}";document.head.appendChild(s)}
 function isPortal(){return /\/Studet-Gate\/?$/i.test(location.pathname)||(!!document.querySelector(".portal-grid")&&/بوابة الطالب الرقمية/.test(document.title||""))}
-function showChip(){addStyle();var old=document.getElementById("rasedSsoChip");if(old)old.remove();var ss=getSession();if(!ss)return;var c=document.createElement("div");c.id="rasedSsoChip";c.className="rased-sso-chip";var meta="";if(ss.grade)meta+=" — "+esc(ss.grade);if(ss.section)meta+=" / "+esc(ss.section);c.innerHTML="<span>👨‍🎓 <b>"+esc(ss.name||"الطالب")+"</b><span class='rased-sso-grade'>"+meta+"</span></span><button type='button'>خروج</button>";c.querySelector("button").onclick=function(){clearSession();if(isPortal()){c.remove();portalLogin()}else location.href=PORTAL_URL};document.body.appendChild(c)}
+function showChip(){addStyle();var old=document.getElementById("rasedSsoChip");if(old)old.remove();var ss=currentStudentHandoff();if(!ss)return;var c=document.createElement("div");c.id="rasedSsoChip";c.className="rased-sso-chip";var meta="";if(ss.grade)meta+=" — "+esc(ss.grade);if(ss.section)meta+=" / "+esc(ss.section);c.innerHTML="<span>👨‍🎓 <b>"+esc(ss.name||"الطالب")+"</b><span class='rased-sso-grade'>"+meta+"</span></span><button type='button'>خروج</button>";c.querySelector("button").onclick=function(){clearSession();if(isPortal()){c.remove();portalLogin()}else location.href=PORTAL_URL};document.body.appendChild(c)}
 function portalLogin(){addStyle();var prev=document.getElementById("rasedSsoOverlay");if(prev)prev.remove();var o=document.createElement("div");o.id="rasedSsoOverlay";o.className="rased-sso-overlay";o.innerHTML="<div class='rased-sso-box'><div class='rased-sso-icon'>🎓</div><h2>دخول الطالب</h2><p>أدخل رقم الهوية مرة واحدة للدخول إلى جميع خدمات بوابة الطالب.</p><input id='rasedSsoCode' class='rased-sso-input' inputmode='numeric' autocomplete='off' maxlength='20' placeholder='رقم هوية الطالب'><button id='rasedSsoBtn' class='rased-sso-btn'>دخول البوابة</button><div id='rasedSsoMsg' class='rased-sso-msg'></div></div>";document.body.appendChild(o);var input=o.querySelector("#rasedSsoCode"),btn=o.querySelector("#rasedSsoBtn"),msg=o.querySelector("#rasedSsoMsg");async function go(){if(!clean(input.value)){msg.className="rased-sso-msg err";msg.textContent="أدخل رقم هوية الطالب.";return}btn.disabled=true;input.disabled=true;msg.className="rased-sso-msg";msg.textContent="جاري التحقق...";try{var ss=await login(input.value);msg.className="rased-sso-msg ok";msg.textContent="مرحبًا "+(ss.name||"بك");setTimeout(function(){o.remove();showChip()},180)}catch(e){console.error(e);msg.className="rased-sso-msg err";msg.textContent=(e&&e.message)||"تعذر تسجيل الدخول.";btn.disabled=false;input.disabled=false;input.focus()}}btn.onclick=go;input.addEventListener("keydown",function(e){if(e.key==="Enter")go()});setTimeout(function(){input.focus()},50)}
-function protectPortal(){Array.prototype.slice.call(document.querySelectorAll(".portal-card")).forEach(function(card){card.addEventListener("click",function(e){if(!getSession()){e.preventDefault();e.stopImmediatePropagation();portalLogin()}else touch()},true)})}
+function protectPortal(){
+  var original=typeof window.openStudentLink==="function"?window.openStudentLink:null;
+  if(original&&!original.__rasedHandoff){
+    var wrapped=function(type){
+      var s=touch();
+      if(!s){portalLogin();return}
+      persistWindowName(s);
+      var url=(window.studentLinks&&window.studentLinks[type])||null;
+      if(url){
+        var token=encodeHandoff(s);
+        window.location.href=url+(url.indexOf("#")>=0?"&":"#")+"rs="+encodeURIComponent(token);
+        return;
+      }
+      return original.call(this,type);
+    };
+    wrapped.__rasedHandoff=true;
+    window.openStudentLink=wrapped;
+  }
+  Array.prototype.slice.call(document.querySelectorAll(".portal-card")).forEach(function(card){
+    card.addEventListener("click",function(e){
+      var s=getSession();
+      if(!s){e.preventDefault();e.stopImmediatePropagation();portalLogin()}
+      else{touch();persistWindowName(s)}
+    },true);
+  });
+}
 
 var adapters=[
   {re:/\/rasededu\/exams\.html$/i,input:"code",fn:"loginStudent"},
@@ -38,7 +69,7 @@ var adapters=[
 ];
 function resume(){var ss=touch();if(!ss)return;var a=adapters.find(function(x){return x.re.test(location.pathname)});if(!a)return;var input=document.getElementById(a.input),fn=window[a.fn];if(!input||typeof fn!=="function")return;input.value=ss.loginCode||ss.code;input.dispatchEvent(new Event("input",{bubbles:true}));input.dispatchEvent(new Event("change",{bubbles:true}));Promise.resolve().then(function(){return fn()}).catch(function(e){console.error("[Rased SSO]",e)});showChip()}
 function wrapLogout(){if(typeof window.logout==="function"&&!window.logout.__rasedSso){var old=window.logout;var wrapped=function(){clearSession();return old.apply(this,arguments)};wrapped.__rasedSso=true;window.logout=wrapped}}
-function init(){if(isPortal()){protectPortal();if(getSession()){touch();showChip()}else portalLogin()}else{if(getSession()){touch();showChip()}wrapLogout()}}
-window.RasedStudentSSO={getSession:getSession,saveSession:saveSession,clearSession:clearSession,touch:touch,login:login,findStudent:findStudent,portalUrl:PORTAL_URL};
+function init(){if(isPortal()){protectPortal();var ps=currentStudentHandoff();if(ps){if(getSession())touch();persistWindowName(ps);showChip()}else portalLogin()}else{var cs=currentStudentHandoff();if(cs){persistWindowName(cs);showChip()}wrapLogout()}}
+window.RasedStudentSSO={getSession:getSession,currentStudentHandoff:currentStudentHandoff,encodeHandoff:encodeHandoff,saveSession:saveSession,clearSession:clearSession,touch:touch,login:login,findStudent:findStudent,portalUrl:PORTAL_URL};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(init,0)},{once:true});else setTimeout(init,0);
 })();
