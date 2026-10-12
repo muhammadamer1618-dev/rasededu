@@ -38,7 +38,7 @@ var adapters=[
 ];
 function resume(){var ss=touch();if(!ss)return;var a=adapters.find(function(x){return x.re.test(location.pathname)});if(!a)return;var input=document.getElementById(a.input),fn=window[a.fn];if(!input||typeof fn!=="function")return;input.value=ss.loginCode||ss.code;input.dispatchEvent(new Event("input",{bubbles:true}));input.dispatchEvent(new Event("change",{bubbles:true}));Promise.resolve().then(function(){return fn()}).catch(function(e){console.error("[Rased SSO]",e)});showChip()}
 function wrapLogout(){if(typeof window.logout==="function"&&!window.logout.__rasedSso){var old=window.logout;var wrapped=function(){clearSession();return old.apply(this,arguments)};wrapped.__rasedSso=true;window.logout=wrapped}}
-function init(){if(isPortal()){protectPortal();if(getSession()){touch();showChip()}else portalLogin()}else{resume();wrapLogout()}}
+function init(){if(isPortal()){protectPortal();if(getSession()){touch();showChip()}else portalLogin()}else{if(getSession()){touch();showChip()}wrapLogout()}}
 window.RasedStudentSSO={getSession:getSession,saveSession:saveSession,clearSession:clearSession,touch:touch,login:login,findStudent:findStudent,portalUrl:PORTAL_URL};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(init,0)},{once:true});else setTimeout(init,0);
 })();
