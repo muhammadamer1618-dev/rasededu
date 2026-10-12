@@ -353,4 +353,33 @@ async function submitExam(auto){
 }
 function logout(){st=null;code.value="";view("login")}
 </script><script src="https://muhammadamer1618-dev.github.io/rasededu/rased-student-sso.js?v=20261012-1"></script>
+
+<script>
+(function(){
+  try{
+    const raw=localStorage.getItem("rased.student.session.v1");
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    if(!s||!s.code||!s.expiresAt||Number(s.expiresAt)<=Date.now())return;
+    const v=String(s.loginCode||s.code||"").trim();
+    if(!v)return;
+    const run=()=>{
+      const el=document.getElementById("code");
+      if(!el||typeof window["loginStudent"]!=="function")return false;
+      el.value=v;
+      el.dispatchEvent(new Event("input",{bubbles:true}));
+      el.dispatchEvent(new Event("change",{bubbles:true}));
+      Promise.resolve(window["loginStudent"]()).catch(console.error);
+      return true;
+    };
+    if(!run()){
+      let n=0;
+      const t=setInterval(()=>{
+        n++;
+        if(run()||n>30)clearInterval(t);
+      },150);
+    }
+  }catch(e){console.error("[Rased Student Auto Login]",e)}
+})();
+</script>
 </body></html>
