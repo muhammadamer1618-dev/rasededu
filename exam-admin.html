@@ -397,6 +397,11 @@ function ownerAliases(){
 function examBelongsToCurrentUser(e){
  if(!["teacher","supervisor"].includes(role))return true;
 
+ // Separate ownership by the role used when the exam was created.
+ // A person may have both a teacher account and a supervisor account.
+ const creatorRole=String(e?.createdByRole||"").trim().toLowerCase();
+ if(creatorRole && creatorRole!==role)return false;
+
  const aliases=ownerAliases();
  const ownerCandidates=[
    e?.teacherEmail,
