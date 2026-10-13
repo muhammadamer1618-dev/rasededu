@@ -4454,7 +4454,7 @@ function scrollToMessages(){el("messagesSection").scrollIntoView({behavior:"smoo
 
 function formatMessageDate(ts){
 if(!ts) return "الآن";
-try{const d=ts.toDate?ts.toDate():new Date(ts);return new Intl.DateTimeFormat("ar-SA",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);}catch{return "-";}
+try{const d=ts.toDate?ts.toDate():new Date(ts);return new Intl.DateTimeFormat("ar-SA-u-ca-gregory",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);}catch{return "-";}
 }
 
 async function loadMessageLogs(){
