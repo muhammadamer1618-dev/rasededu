@@ -968,7 +968,7 @@ function publishTimeText(e){
  if(!e?.publishAt)return "فوري";
  const d=new Date(e.publishAt);
  if(Number.isNaN(d.getTime()))return "فوري";
- return d.toLocaleString("ar-SA");
+ return d.toLocaleString("ar-SA-u-ca-gregory");
 }
 function examAdminStatus(e){
  if(!examHasPublication(e))return "غير منشور";
@@ -996,7 +996,7 @@ async function loadExams(){
    let e=examsData[i],qc=await db.collection("onlineExams").doc(e.id).collection("questions").get();
    let cls=examTargetText(e);
    const toggleBtn=examHasPublication(e)?` <button class="light" onclick="toggleExam('${e.id}',${e.active!==false})">${e.active!==false?"إيقاف":"تفعيل"}</button>`:"";
-   examRows.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.subjectName)}</td><td>${esc(cls)}</td><td>${esc(e.fullMark)}</td><td>${esc(e.durationMinutes)} د</td><td>${esc(publishTimeText(e))}</td><td>${e.deadline?esc(new Date(e.deadline).toLocaleString("ar-SA")):"بدون موعد"}</td><td>${esc(examAdminStatus(e))}</td><td>${qc.size}</td><td><button class="primary" onclick="editExam('${e.id}')">تعديل</button> <button class="green" onclick="openQuestions('${e.id}')">الأسئلة</button> <button class="gold" onclick="openPublish('${e.id}')">📢 النشر</button> <button class="gold" onclick="showResults('${e.id}')">النتائج</button>${toggleBtn} <button class="gold" onclick="deleteExamResults('${e.id}')">حذف النتائج</button> <button class="red" onclick="deleteExam('${e.id}')">حذف</button></td></tr>`);
+   examRows.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.subjectName)}</td><td>${esc(cls)}</td><td>${esc(e.fullMark)}</td><td>${esc(e.durationMinutes)} د</td><td>${esc(publishTimeText(e))}</td><td>${e.deadline?esc(new Date(e.deadline).toLocaleString("ar-SA-u-ca-gregory")):"بدون موعد"}</td><td>${esc(examAdminStatus(e))}</td><td>${qc.size}</td><td><button class="primary" onclick="editExam('${e.id}')">تعديل</button> <button class="green" onclick="openQuestions('${e.id}')">الأسئلة</button> <button class="gold" onclick="openPublish('${e.id}')">📢 النشر</button> <button class="gold" onclick="showResults('${e.id}')">النتائج</button>${toggleBtn} <button class="gold" onclick="deleteExamResults('${e.id}')">حذف النتائج</button> <button class="red" onclick="deleteExam('${e.id}')">حذف</button></td></tr>`);
  }
 }
 function editExam(id){
