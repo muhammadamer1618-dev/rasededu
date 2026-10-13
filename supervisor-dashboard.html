@@ -110,7 +110,7 @@ const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomai
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));let students=[],teachers=[],subjects=[],tests=[],grades=[],messages=[],activities=[],schedules=[];let currentPermissions={},currentSupervisorType="general_supervisor";
 function protect(){const r=(rasedAuthGet("currentUserRole")||"").toLowerCase();if(r!=="supervisor"){alert("هذه الصفحة لحسابات الإشراف فقط");location.href="index.html";return false}return true}
 function logout(){rasedLogoutThisTab();location.href="index.html"}
-function fmtTs(v){try{const d=v?.toDate?v.toDate():new Date(v);return isNaN(d)?"—":new Intl.DateTimeFormat("ar-SA",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d)}catch{return "—"}}
+function fmtTs(v){try{const d=v?.toDate?v.toDate():new Date(v);return isNaN(d)?"—":new Intl.DateTimeFormat("ar-SA-u-ca-gregory",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d)}catch{return "—"}}
 function roleTypeLabel(type){
 const t=String(type||"").toLowerCase();
 return t==="manager"?"مدير":(t==="supervisor"?"مشرف":"مشرف عام");
