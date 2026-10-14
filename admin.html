@@ -5520,69 +5520,28 @@ oldDoc.data()||{};
 }
 
 
-if(
-original &&
-original!==username
-){
-
-await db
-.collection("teachers")
-.doc(original)
-.delete();
-
-
-const oldUser=
-
-await db
-.collection("users")
-.doc(original)
-.get();
-
-
-if(
-oldUser.exists &&
-oldUser.data().role==="teacher"
-){
-
-await db
-.collection("users")
-.doc(original)
-.delete();
-
+// Preserve identity even when the login username changes.
+const teacherId=String(oldData.teacherId||original||username);
+const existingTarget=await db.collection("teachers").doc(username).get();
+if(original!==username && existingTarget.exists){
+  alert("اسم المستخدم الجديد مستخدم بالفعل لمعلم آخر.");
+  return;
 }
-
+const batch=db.batch();
+batch.set(db.collection("teachers").doc(username),{
+  ...oldData,name,email:username,phone,teacherId
+},{merge:true});
+batch.set(db.collection("users").doc(username),{
+  name,role:"teacher",password,teacherId
+},{merge:true});
+if(original && original!==username){
+  batch.delete(db.collection("teachers").doc(original));
+  const oldUser=await db.collection("users").doc(original).get();
+  if(oldUser.exists && oldUser.data().role==="teacher"){
+    batch.delete(db.collection("users").doc(original));
+  }
 }
-
-
-await db
-.collection("teachers")
-.doc(username)
-.set({
-
-...oldData,
-
-name,
-email:username,
-phone
-
-},{
-merge:true
-});
-
-
-await db
-.collection("users")
-.doc(username)
-.set({
-
-name,
-role:"teacher",
-password
-
-},{
-merge:true
-});
-
+await batch.commit();
 
 alert(
 "تم حفظ المعلم ✅"
