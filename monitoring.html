@@ -477,9 +477,11 @@ tr:nth-child(even){background:#f8fafc}
           </select>
         </div>
         <button class="btn primary" onclick="generateComprehensiveReport()">↻ تحديث التقرير الشامل</button>
+        <button class="btn light" onclick="diagnoseSalahGrades()">🔎 فحص رصد محمد صلاح</button>
         <button class="btn gold" onclick="printComprehensive()">🖨️ طباعة التقرير الشامل</button>
       </div>
 
+      <div id="salahDiagnosis" class="note no-print" style="white-space:pre-wrap" aria-live="polite">يمكن فحص سجلات محمد صلاح دون تعديل أي بيانات.</div>
       <div class="table-wrap">
         <table class="overview-table">
           <thead>
@@ -1711,6 +1713,36 @@ async function generateComprehensiveReport(){
     console.error("COMPREHENSIVE MONITORING",error);
     body.innerHTML='<tr><td colspan="14">تعذر إعداد التقرير الشامل: '+esc(error.message||error)+'</td></tr>';
   }
+}
+
+async function diagnoseSalahGrades(){
+  const namePart="محمد صلاح";
+  const box=document.getElementById("salahDiagnosis");
+  box.textContent="جاري فحص سجلات الرصد دون تغييرها...";
+  try{
+    const snap=await db.collection("grades").get();
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const matches=teachers.filter(t=>String(t.name||"").includes(namePart));
+    const lines=[];
+    for(const teacher of matches){
+      lines.push("المعلم: "+String(teacher.name||"")+" — حساب: "+String(teacher.email||""));
+      for(const a of teacherAssignments(teacher).filter(a=>String(a.grade||"").includes("ثانوي"))){
+        const testList=tests.filter(t=>String(t.subjectId||"")===String(a.subjectId||"") && testMatchesClass(t,a.grade,a.section) && normalizeTestCategory(t.examCategory)==="period1");
+        lines.push("الفصل: "+a.grade+" / "+a.section+" — اختبارات الفترة الأولى: "+testList.length);
+        for(const test of testList){
+          const byTest=all.filter(g=>String(g.testId||"")===String(test.id));
+          const bySubject=byTest.filter(g=>String(g.subjectId||"")===String(a.subjectId||""));
+          const byClass=bySubject.filter(g=>String(g.grade||"")===String(a.grade||"") && String(g.section||"")===String(a.section||""));
+          const codes=new Set(classStudentsFor(a.grade,a.section).map(x=>String(x.code)));
+          const matched=byClass.filter(g=>codes.has(String(g.studentCode||"")));
+          lines.push("الاختبار: "+(test.name||test.id)+" | محفوظ للاختبار: "+byTest.length+" | نفس المادة: "+bySubject.length+" | نفس الفصل: "+byClass.length+" | أكواد الطلاب المطابقة: "+new Set(matched.map(g=>String(g.studentCode))).size);
+          if(byTest.length && !matched.length)lines.push("تنبيه: الدرجات موجودة لكن شروط مطابقة الفصل أو أكواد الطلاب لا تتحقق.");
+        }
+      }
+    }
+    if(!matches.length)lines.push("لم يتم العثور على المعلم في قائمة المعلمين المتاحة لهذا الحساب.");
+    box.textContent=lines.join("\n");
+  }catch(e){box.textContent="تعذر الفحص: "+e.message;}
 }
 
 function renderComprehensiveRows(){
