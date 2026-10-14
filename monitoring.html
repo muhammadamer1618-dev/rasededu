@@ -1628,7 +1628,6 @@ async function generateComprehensiveReport(){
 
           const related=allGrades.filter(r=>
             String(r.testId||"")===String(test.id) &&
-            teacherMatchesGradeRow(teacher,r) &&
             String(r.subjectId||"")===String(a.subjectId||"") &&
             String(r.grade||"")===String(a.grade||"") &&
             String(r.section||"")===String(a.section||"")
@@ -1819,12 +1818,9 @@ async function generateReport(){
       .filter(r=>{
         const email=String(r.teacherEmail||"").trim().toLowerCase();
         const name=String(r.teacherName||"").trim();
-        const teacherMatch=email
-          ? email===teacherEmail
-          : (!!teacherName && name===teacherName);
-
-        return teacherMatch &&
-          String(r.subjectId||"")===String(subjectId) &&
+        // The teacher gradebook loads by testId and class, regardless of
+        // a previously saved login identifier. Match the same records here.
+        return String(r.subjectId||"")===String(subjectId) &&
           String(r.grade||"")===String(grade) &&
           String(r.section||"")===String(section);
       });
