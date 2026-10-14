@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>الشهادات والتحفيز الذكي | راصد</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>*{box-sizing:border-box}body{margin:0;background:#f2f7f5;font-family:Tahoma,Arial;color:#174b3d}header{background:#075442;color:white;padding:24px;text-align:center}main{max-width:1150px;margin:20px auto;padding:0 12px}.box{background:white;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px #0001}button{border:0;border-radius:7px;background:#087159;color:white;padding:10px 15px;cursor:pointer;margin:5px}button:disabled{opacity:.5}select,input{padding:10px;border:1px solid #bbb;border-radius:7px;max-width:100%;margin:5px}.muted{color:#667b72}.item{padding:14px;border:1px solid #ddd;border-radius:9px;margin:9px 0}.pill{display:inline-block;background:#fff0c6;color:#775500;padding:5px 10px;border-radius:20px}.approved{background:#def3e5;color:#176b3a}.hidden{display:none}a{color:#087159}#msg{white-space:pre-wrap}label{display:inline-block;margin:5px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:9px;text-align:right}th{background:#e8f3ed}@media print{button,.controls,header{display:none!important}}</style></head><body>
+<header><h1>الشهادات والتحفيز الذكي</h1><p>مدارس الفلاح الأهلية — راصد</p></header><main>
+<section class="box"><h2>شهادات التفوق التلقائية</h2><p>الحد الأدنى: <b>85% فأكثر</b> في كل مادة واختبار مستقل. تُجهَّز الشهادات للمراجعة، ولا تظهر في ملف الطالب قبل الاعتماد.</p><p id="msg">جاري التحقق من الحساب...</p></section>
+<section class="box controls hidden" id="controls"><label>المادة <select id="subject"><option value="">اختر المادة</option></select></label><label>الاختبار <select id="test"><option value="">اختر الاختبار</option></select></label><button id="scan" onclick="scan()">حساب المستحقين وتجهيز الشهادات</button></section>
+<section class="box hidden" id="results"><h2>الشهادات المرشحة والمعتمدة</h2><div id="list"></div></section>
+<p class="muted">لا يغيّر النظام درجات الطلاب. الاعتماد يتم يدويًا من المعلم المختص أو المشرف المخوّل، مع الاحتفاظ بسجل حالة الشهادة.</p><a href="index.html">العودة إلى راصد</a>
+</main><script>
+const firebaseConfig={apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",authDomain:"results2026-7c0dd.firebaseapp.com",projectId:"results2026-7c0dd",storageBucket:"results2026-7c0dd.firebasestorage.app",messagingSenderId:"241421115694",appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore(),$=id=>document.getElementById(id);
+let user=null,tests=[],students=[],certs=[],role="";
+const str=x=>String(x??"").trim(),esc=x=>str(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function msg(x){$("msg").textContent=x}
+function eligibleTest(t){return !!t?.id&&Number(t.fullMark)>0}
+function allowed(t){return role==="teacher"?(user.assignments||[]).some(a=>str(a.subjectId)===str(t.subjectId)&&(!Array.isArray(t.classes)||!t.classes.length||t.classes.some(c=>str(c.grade)===str(a.grade)&&str(c.section)===str(a.section)))):true}
+function teacherFor(t,g,s){return role==="teacher"?(user.assignments||[]).some(a=>str(a.subjectId)===str(t.subjectId)&&str(a.grade)===str(g)&&str(a.section)===str(s)):true}
+function certificateId(testId,code){return encodeURIComponent(str(testId))+"__"+encodeURIComponent(str(code))}
+async function init(){try{
+role=str(sessionStorage.getItem("currentUserRole")||localStorage.getItem("currentUserRole")).toLowerCase();
+const username=str(sessionStorage.getItem("currentUserEmail")||sessionStorage.getItem("currentUser")||localStorage.getItem("currentUserEmail")).toLowerCase();
+if(role==="teacher"){const d=await db.collection("teachers").doc(username).get();if(!d.exists)throw Error("حساب المعلم غير موجود");user={email:d.id,...d.data()}}
+else if(["admin","superadmin","manager","supervisor"].includes(role)){user={email:username,name:str(sessionStorage.getItem("currentUserName")||localStorage.getItem("currentUserName"))||"الإشراف"}}
+else throw Error("الدخول متاح للمعلمين والإدارة والإشراف فقط.");
+const [t,s]=await Promise.all([db.collection("tests").get(),db.collection("students").get()]);tests=t.docs.map(d=>({id:d.id,...d.data()})).filter(t=>eligibleTest(t)&&allowed(t));students=s.docs.map(d=>({code:str(d.data().code||d.id),...d.data()}));
+const subjects=new Map(tests.map(t=>[str(t.subjectId),str(t.subjectName||t.subjectId)]));subjects.forEach((name,id)=>$("subject").add(new Option(name,id)));
+$("subject").onchange=()=>{const id=$("subject").value,sel=$("test");sel.innerHTML='<option value="">اختر الاختبار</option>';tests.filter(t=>str(t.subjectId)===id).forEach(t=>sel.add(new Option((t.name||"اختبار")+" — "+(t.date||""),t.id)));$("list").innerHTML="";};
+$("test").onchange=loadExisting;$("controls").classList.remove("hidden");$("results").classList.remove("hidden");msg("اختر المادة والاختبار لحساب المستحقين.");
+}catch(e){msg("تعذر التشغيل: "+e.message);console.error(e)}}
+async function loadExisting(){const t=tests.find(x=>x.id===$("test").value);if(!t)return;try{const q=await db.collection("studentCertificates").where("testId","==",t.id).get();certs=q.docs.map(d=>({id:d.id,...d.data()})).filter(c=>teacherFor(t,c.grade,c.section));render()}catch(e){msg("تعذر تحميل الشهادات: "+e.message)}}
+function render(){const el=$("list");el.innerHTML=certs.length?'<table><thead><tr><th>الطالب</th><th>الصف / الشعبة</th><th>النسبة</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>'+certs.sort((a,b)=>str(a.studentName).localeCompare(str(b.studentName),"ar")).map(c=>'<tr><td>'+esc(c.studentName)+'</td><td>'+esc(c.grade)+' / '+esc(c.section)+'</td><td>'+esc(c.percentage)+'%</td><td><span class="pill '+(c.status==="approved"?"approved":"")+'">'+(c.status==="approved"?"معتمدة":c.status==="rejected"?"مرفوضة":"بانتظار الاعتماد")+'</span></td><td>'+(c.status==="pending"?'<button onclick="review('+JSON.stringify(c.id)+',\'approved\')">اعتماد</button><button onclick="review('+JSON.stringify(c.id)+',\'rejected\')">رفض</button>':"—")+'</td></tr>').join("")+'</tbody></table>':'<p class="muted">لا توجد شهادات لهذا الاختبار حتى الآن.</p>'}
+async function scan(){const t=tests.find(x=>x.id===$("test").value);if(!t)return msg("اختر المادة والاختبار.");const btn=$("scan");btn.disabled=true;msg("جاري احتساب المستحقين من الدرجات المحفوظة...");try{
+const [gSnap,cSnap]=await Promise.all([db.collection("grades").where("testId","==",t.id).get(),db.collection("studentCertificates").where("testId","==",t.id).get()]);
+const existing=new Set(cSnap.docs.map(d=>d.id));const byCode=new Map(students.map(s=>[str(s.code),s]));let created=0,skipped=0,eligible=0;
+const grades=new Map();gSnap.forEach(d=>{const g=d.data(),code=str(g.studentCode),s=byCode.get(code);if(!s||!teacherFor(t,s.grade,s.section)||str(g.grade)!==str(s.grade)||str(g.section)!==str(s.section))return;
+if(Array.isArray(t.classes)&&t.classes.length&&!t.classes.some(c=>str(c.grade)===str(s.grade)&&str(c.section)===str(s.section)))return;
+if(str(g.attendance).toLowerCase()==="absent"||g.mark==null||g.mark===""||!Number.isFinite(Number(g.mark)))return;
+const max=Number(g.fullMark)>0?Number(g.fullMark):Number(t.fullMark);if(!(max>0))return;const mark=Number(g.mark);if(mark<0||mark>max)return;
+const prev=grades.get(code);if(!prev||String(d.id)===t.id+"_"+code)grades.set(code,{g,s,mark,max});
+});
+for(const [code,{g,s,mark,max}] of grades){const percentage=Number((mark/max*100).toFixed(2));if(percentage<85)continue;eligible++;
+const id=certificateId(t.id,code);if(existing.has(id)){skipped++;continue}
+await db.collection("studentCertificates").doc(id).set({studentCode:code,studentName:s.name||g.studentName||"",grade:s.grade||"",section:s.section||"",testId:t.id,testName:t.name||"اختبار",subjectId:t.subjectId||"",subjectName:t.subjectName||g.subjectName||"",teacherId:str(g.teacherId||user.teacherId||user.email),teacherName:g.teacherName||user.name||"",mark,maxMark:max,percentage,threshold:85,status:"pending",createdById:str(user.teacherId||user.email),createdByRole:role,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});existing.add(id);created++}
+await loadExisting();msg("مؤهلون: "+eligible+" | شهادات جديدة بانتظار الاعتماد: "+created+" | شهادات موجودة لم تُكرر: "+skipped);
+}catch(e){msg("تعذر تجهيز الشهادات: "+e.message);console.error(e)}finally{btn.disabled=false}}
+async function review(id,status){const c=certs.find(x=>x.id===id);const t=tests.find(x=>x.id===c?.testId);if(!c||c.status!=="pending"||!t||!teacherFor(t,c.grade,c.section))return;
+if(!confirm(status==="approved"?"اعتماد الشهادة ونشرها في ملف إنجاز الطالب؟":"رفض الشهادة؟"))return;
+try{await db.collection("studentCertificates").doc(id).update({status,reviewedById:str(user.teacherId||user.email),reviewedByName:user.name||"",reviewedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});await loadExisting();msg(status==="approved"?"تم اعتماد الشهادة وإتاحتها لملف إنجاز الطالب.":"تم رفض الشهادة.")}catch(e){msg("تعذر الاعتماد: "+e.message)}}
+init();
+</script></body></html>
