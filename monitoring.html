@@ -1545,6 +1545,14 @@ function teacherMatchesGradeRow(teacher,row){
   return !!name && name===String(teacher.name||"").trim();
 }
 
+function gradeBelongsToTeacher(row,teacher){
+  // New records have an immutable owner. Legacy records predate teacherId
+  // and must remain visible after a username change.
+  const owner=String(row.teacherId||"").trim();
+  if(!owner)return true;
+  return owner===String(teacher.teacherId||teacher.email||"").trim();
+}
+
 function latestStudentRows(rows,validCodes){
   const byStudent=new Map();
   rows.forEach(r=>{
@@ -1630,6 +1638,7 @@ async function generateComprehensiveReport(){
 
           const related=allGrades.filter(r=>
             String(r.testId||"")===String(test.id) &&
+            gradeBelongsToTeacher(r,teacher) &&
             // Match the teacher gradebook: test + class + student code.
             // A saved subject identifier may differ after account/assignment edits.
             String(r.grade||"")===String(a.grade||"") &&
@@ -1853,7 +1862,8 @@ async function generateReport(){
         const name=String(r.teacherName||"").trim();
         // The teacher gradebook loads by testId and class, regardless of
         // a previously saved login identifier. Match the same records here.
-        return String(r.grade||"")===String(grade) &&
+        return gradeBelongsToTeacher(r,teacher) &&
+          String(r.grade||"")===String(grade) &&
           String(r.section||"")===String(section);
       });
 
