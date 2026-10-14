@@ -1538,7 +1538,7 @@ function assignmentSubjectName(teacher,assignment){
 function teacherMatchesGradeRow(teacher,row){
   const email=String(row.teacherEmail||"").trim().toLowerCase();
   const teacherEmail=String(teacher.email||"").trim().toLowerCase();
-  if(email)return email===teacherEmail;
+  if(email===teacherEmail && email)return true;
   const name=String(row.teacherName||"").trim();
   return !!name && name===String(teacher.name||"").trim();
 }
