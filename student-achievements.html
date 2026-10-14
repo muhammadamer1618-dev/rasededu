@@ -17,6 +17,7 @@
 <p class="muted">يمكن إرفاق رابط ملف أو صورة منشورة في خدمة معتمدة. رفع الملفات المباشر غير متاح في هذه النسخة.</p>
 <button id="saveBtn" onclick="submitAchievement()">إرسال الإنجاز للمراجعة</button></section>
 <section class="panel hide" id="reviewPanel"><h2>طلبات تنتظر اعتماد المعلم</h2><div id="pendingList"></div></section>
+<section id="certificates" class="panel hide"><h2>شهادات الشكر والتقدير المعتمدة</h2><div id="certificateList"></div></section>
 <section id="achievements" class="panel hide"><h2>الإنجازات المعتمدة</h2><div id="approvedList"></div></section>
 </main>
 <script>
@@ -51,8 +52,8 @@ student={...d.data(),code:String(d.data().code||d.id)};role="student";await sele
 async function selectStudent(code){
 if(role==="teacher"){student=allowed.get(String(code))||null}if(!student){["profile","editor","reviewPanel","achievements"].forEach(x=>visible(x,false));return}
 $("studentName").textContent=student.name||"الطالب";$("studentMeta").textContent=(student.grade||"")+" / "+(student.section||"");
-visible("profile",true);visible("editor",true);visible("achievements",true);visible("reviewPanel",role==="teacher");
-await refresh();
+visible("profile",true);visible("editor",true);visible("achievements",true);visible("certificates",true);visible("reviewPanel",role==="teacher");
+await refresh();await loadCertificates();
 }
 async function refresh(){
 if(!student)return;try{const q=await db.collection("studentAchievements").where("studentCode","==",String(student.code)).get();records=q.docs.map(d=>({id:d.id,...d.data()}));render();msg("ملف الإنجاز جاهز — "+(student.name||""))}catch(e){msg("تعذر قراءة الإنجازات: "+e.message)}
@@ -83,5 +84,17 @@ const r=records.find(x=>x.id===id);if(!r||r.status!=="pending")return;
 if(!confirm(status==="approved"?"اعتماد الإنجاز ونشره؟":"رفض هذا الإنجاز؟"))return;
 try{await db.collection("studentAchievements").doc(id).update({status,reviewedById:actor(),reviewedByName:teacher.name||"",reviewedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});await refresh();msg(status==="approved"?"تم اعتماد الإنجاز.":"تم رفض الإنجاز.")}catch(e){msg("تعذر إتمام المراجعة: "+e.message)}
 }
+async function loadCertificates(){
+if(!student)return;const area=$("certificateList");area.textContent="جاري تحميل الشهادات...";
+try{const q=await db.collection("studentCertificates").where("studentCode","==",String(student.code)).get();const approved=q.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==="approved");
+area.innerHTML=approved.map(c=>'<div class="item"><h3>شهادة شكر وتقدير</h3><p>'+esc(c.subjectName||"")+' — '+esc(c.testName||"")+' — '+esc(c.percentage)+'%</p><button onclick="printCertificate('+JSON.stringify(c.id)+')">عرض وطباعة الشهادة</button></div>').join("")||'<p class="muted">لا توجد شهادات معتمدة بعد.</p>';
+window.studentApprovedCertificates=approved;
+}catch(e){area.textContent="تعذر تحميل الشهادات: "+e.message}
+}
+function printCertificate(id){const c=(window.studentApprovedCertificates||[]).find(x=>x.id===id);if(!c||c.status!=="approved")return;
+const w=window.open("","_blank");if(!w){msg("اسمح بفتح النوافذ المنبثقة للطباعة.");return}
+const safe=x=>esc(x);w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><meta charset="UTF-8"><title>شهادة شكر وتقدير</title><style>body{font-family:Tahoma,Arial;text-align:center;padding:45px;color:#154d3e;border:12px double #c69b42;min-height:75vh}h1{font-size:40px}h2{font-size:32px}.sign{display:flex;justify-content:space-around;margin-top:90px}@media print{body{margin:0}}</style><p>المملكة العربية السعودية — وزارة التعليم</p><h3>مدارس الفلاح الأهلية</h3><h1>شهادة شكر وتقدير</h1><p>تُمنح للطالب</p><h2>'+safe(c.studentName)+'</h2><p>تقديرًا لتفوقه في مادة <b>'+safe(c.subjectName)+'</b></p><p>في '+safe(c.testName)+' بنسبة '+safe(c.percentage)+'%</p><p>الصف: '+safe(c.grade)+' / '+safe(c.section)+'</p><div class="sign"><span>معلم المادة: '+safe(c.teacherName||"")+'</span><span>المشرف العام: أحمد سمير</span><span>مدير المدرسة: عبد العزيز بن إبراهيم القحطاني</span></div><script>window.onload=function(){window.print()}<\\/script></html>');w.document.close();
+}
+
 init();
 </script></body></html>
