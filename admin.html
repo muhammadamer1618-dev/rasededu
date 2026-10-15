@@ -3614,6 +3614,19 @@ return;
 }
 
 
+if(original && original!==code){
+  alert("لحماية درجات الطالب وسجلاته، لا يمكن تغيير كود الطالب من شاشة التعديل العادية حاليًا. لم يتم حفظ التغيير. يرجى إجراء نقل آمن للكود والسجلات المرتبطة به.");
+  return;
+}
+
+if(!original){
+  const existingStudent=await db.collection("students").doc(code).get();
+  if(existingStudent.exists){
+    alert("هذا الكود مستخدم بالفعل. لم يتم حفظ التغيير.");
+    return;
+  }
+}
+
 let oldData={};
 
 
