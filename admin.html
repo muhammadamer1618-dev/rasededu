@@ -3615,7 +3615,7 @@ return;
 
 
 if(original && original!==code){
-  if(!confirm("تأكيد تغيير كود الطالب من "+original+" إلى "+code+" ونقل درجاته؟"))return;
+  if(!confirm("تأكيد تغيير كود الطالب من "+original+" إلى "+code+" مع نقل درجاته وسجلاته المرتبطة؟"))return;
   try{
     const oldRef=db.collection("students").doc(original);
     const newRef=db.collection("students").doc(code);
@@ -3623,29 +3623,42 @@ if(original && original!==code){
     const newSnap=await newRef.get();
     if(!oldSnap.exists)throw Error("الطالب الأصلي غير موجود");
     if(newSnap.exists)throw Error("الكود الجديد مستخدم بالفعل");
-    const gradesSnap=await db.collection("grades").where("studentCode","==",original).get();
-    if(gradesSnap.size>400)throw Error("عدد السجلات يتطلب ترحيلًا خاصًا");
+    const collections=["grades","studentAchievements","studentCertificates","guidanceIncidents","liveClassAttendance","messageLogs","examSchedules"];
+    const linked=[];
+    for(const collectionName of collections){
+      const snap=await db.collection(collectionName).where("studentCode","==",original).get();
+      snap.docs.forEach(doc=>linked.push({collectionName,doc}));
+    }
+    if(linked.length>240)throw Error("عدد السجلات كبير ويحتاج ترحيلًا خاصًا؛ لم يتم تغيير شيء");
     const batch=db.batch();
     const oldData=oldSnap.data()||{};
-    for(const gradeDoc of gradesSnap.docs){
-      const data=gradeDoc.data()||{};
-      const newGradeId=data.testId?String(data.testId)+"_"+code:null;
-      if(!newGradeId)throw Error("يوجد سجل درجة بلا معرف اختبار");
-      const newGradeRef=db.collection("grades").doc(newGradeId);
-      if((await newGradeRef.get()).exists)throw Error("تعارض في سجل درجات الكود الجديد");
-      batch.set(newGradeRef,{...data,studentCode:code});
-      batch.delete(gradeDoc.ref);
+    for(const item of linked){
+      const data=item.doc.data()||{};
+      let target=item.doc.ref;
+      if(item.collectionName==="grades"){
+        if(!data.testId)throw Error("درجة قديمة بلا معرف اختبار؛ أُلغي النقل لحمايتها");
+        target=db.collection("grades").doc(String(data.testId)+"_"+code);
+      }else if(item.collectionName==="liveClassAttendance" && data.classId){
+        target=db.collection("liveClassAttendance").doc(String(data.classId)+"_"+code.replace(/[^0-9A-Za-z_-]/g,"_"));
+      }
+      if(target.path!==item.doc.ref.path){
+        if((await target.get()).exists)throw Error("تعارض في سجل مرتبط بالكود الجديد: "+item.collectionName);
+        batch.set(target,{...data,studentCode:code});
+        batch.delete(item.doc.ref);
+      }else{
+        batch.update(item.doc.ref,{studentCode:code});
+      }
     }
-    batch.set(newRef,{...oldData,code,name,grade,section,guardianPhone:phone,phone:phone,previousCode:original});
+    batch.set(newRef,{...oldData,code,name,grade,section,guardianPhone:phone,phone:phone,previousCodes:[...new Set([...(Array.isArray(oldData.previousCodes)?oldData.previousCodes:[]),original])]});
     batch.delete(oldRef);
     await batch.commit();
-    try{await writeAuditLog("student_code_change","student",code,name,oldData,{previousCode:original,code,migratedGrades:gradesSnap.size});}catch(e){console.warn(e);}
-    alert("تم نقل الطالب و"+gradesSnap.size+" سجل درجات بنجاح");
+    try{await writeAuditLog("student_code_change","student",code,name,oldData,{previousCode:original,code,migratedRecords:linked.length});}catch(e){console.warn("Audit log failed",e);}
+    alert("تم تغيير الكود ونقل "+linked.length+" سجلًا مرتبطًا بنجاح");
     clearStudentForm();
     await loadStudents();
   }catch(e){
-    console.error(e);
-    alert("لم يتم تغيير الكود: "+e.message);
+    console.error("Student code change failed",e);
+    alert("لم يتم تغيير كود الطالب: "+e.message);
   }
   return;
 }
