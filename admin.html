@@ -3615,7 +3615,38 @@ return;
 
 
 if(original && original!==code){
-  alert("لحماية درجات الطالب وسجلاته، لا يمكن تغيير كود الطالب من شاشة التعديل العادية حاليًا. لم يتم حفظ التغيير. يرجى إجراء نقل آمن للكود والسجلات المرتبطة به.");
+  if(!confirm("تأكيد تغيير كود الطالب من "+original+" إلى "+code+" ونقل درجاته؟"))return;
+  try{
+    const oldRef=db.collection("students").doc(original);
+    const newRef=db.collection("students").doc(code);
+    const oldSnap=await oldRef.get();
+    const newSnap=await newRef.get();
+    if(!oldSnap.exists)throw Error("الطالب الأصلي غير موجود");
+    if(newSnap.exists)throw Error("الكود الجديد مستخدم بالفعل");
+    const gradesSnap=await db.collection("grades").where("studentCode","==",original).get();
+    if(gradesSnap.size>400)throw Error("عدد السجلات يتطلب ترحيلًا خاصًا");
+    const batch=db.batch();
+    const oldData=oldSnap.data()||{};
+    for(const gradeDoc of gradesSnap.docs){
+      const data=gradeDoc.data()||{};
+      const newGradeId=data.testId?String(data.testId)+"_"+code:null;
+      if(!newGradeId)throw Error("يوجد سجل درجة بلا معرف اختبار");
+      const newGradeRef=db.collection("grades").doc(newGradeId);
+      if((await newGradeRef.get()).exists)throw Error("تعارض في سجل درجات الكود الجديد");
+      batch.set(newGradeRef,{...data,studentCode:code});
+      batch.delete(gradeDoc.ref);
+    }
+    batch.set(newRef,{...oldData,code,name,grade,section,guardianPhone:phone,phone:phone,previousCode:original});
+    batch.delete(oldRef);
+    await batch.commit();
+    try{await writeAuditLog("student_code_change","student",code,name,oldData,{previousCode:original,code,migratedGrades:gradesSnap.size});}catch(e){console.warn(e);}
+    alert("تم نقل الطالب و"+gradesSnap.size+" سجل درجات بنجاح");
+    clearStudentForm();
+    await loadStudents();
+  }catch(e){
+    console.error(e);
+    alert("لم يتم تغيير الكود: "+e.message);
+  }
   return;
 }
 
