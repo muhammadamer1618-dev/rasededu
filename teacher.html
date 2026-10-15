@@ -3181,10 +3181,9 @@ snap.forEach(doc=>{
 const data=doc.data()||{};
 
 
-if(
-data.grade===selectedGrade &&
-data.section===selectedSection
-){
+// Keep the student's previously recorded mark visible after a class transfer.
+// The student code and test ID identify the grade; the stored class is historical.
+if(currentStudents.some(student=>String(student.code)===String(data.studentCode))){
 
 savedGrades[
 String(data.studentCode)
