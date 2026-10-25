@@ -160,6 +160,13 @@ text-align:center;
 
 
 <link rel="stylesheet" href="rased-theme.css">
+<script>
+(function(){
+  const role=sessionStorage.getItem("currentUserRole")||localStorage.getItem("currentUserRole")||"";
+  const user=sessionStorage.getItem("currentUserEmail")||localStorage.getItem("currentUserEmail")||sessionStorage.getItem("currentUser")||localStorage.getItem("currentUser")||"";
+  if(role!=="manager"||!user)location.replace("../index.html");
+})();
+</script>
 </head>
 
 <body>
@@ -225,7 +232,7 @@ text-align:center;
 مقارنة النتائج
 </a>
 
-<a href="monitor-dashboard.html">
+<a href="monitoring.html">
 <span>📋</span>
 حالة الرصد
 </a>
