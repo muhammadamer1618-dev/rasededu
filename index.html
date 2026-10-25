@@ -1321,24 +1321,6 @@ async function login(){
     }
 
 
-    /* =========================================
-       MANAGER SPECIAL ACCOUNT
-       المشرف العام
-       ========================================= */
-    if(
-        originalUsername.toLowerCase()==="manager" &&
-        password==="123456"
-    ){
-        rasedLoginAuthRemove("currentUserPermissions");
-        rasedLoginAuthRemove("currentUserType");
-        rasedLoginAuthSet("currentUserRole","manager");
-        rasedLoginAuthSet("currentUser","manager");
-        rasedLoginAuthSet("currentUserName","أحمد سمير");
-        location.href="manager.html";
-        return;
-    }
-
-
     setLoading(true);
 
 
@@ -1393,6 +1375,18 @@ async function login(){
             )
             .trim()
             .toLowerCase();
+        
+        if(userRole==="manager"){
+            rasedLoginAuthRemove("currentUserPermissions");
+            rasedLoginAuthRemove("currentUserType");
+            rasedLoginAuthSet("currentUserRole","manager");
+            rasedLoginAuthSet("currentUser",result.username);
+            rasedLoginAuthSet("currentUserEmail",result.username);
+            rasedLoginAuthSet("currentUserName",data.name||"المشرف العام");
+            location.href="manager.html";
+            return;
+        }
+
 
 
         /*
