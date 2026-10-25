@@ -14,7 +14,9 @@ header{background:linear-gradient(135deg,#082942,#0c3d63 60%,#166291);color:#fff
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px}.stat small{display:block;color:var(--muted);font-size:10px;font-weight:800}.stat b{display:block;color:#173f61;font-size:22px;margin-top:2px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 9px 26px #143a5a0b;overflow:hidden;margin-bottom:14px}.phead{padding:14px 16px;border-bottom:1px solid #e8edf1;display:flex;justify-content:space-between;gap:10px;align-items:center}.ptitle{font-size:17px;font-weight:900;color:#173f61}.psub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}.pbody{padding:15px}.issues{display:flex;flex-direction:column;gap:8px}.issue{display:grid;grid-template-columns:105px 1fr auto;gap:10px;align-items:center;border:1px solid #e1e8ee;border-radius:13px;padding:10px;background:#fbfcfd}.sev{border-radius:999px;padding:5px 8px;text-align:center;font-size:9.5px;font-weight:900}.sev.high{background:#ffebe9;color:#a4322c}.sev.medium{background:#fff2ce;color:#866000}.sev.low{background:#eaf4fb;color:#165b87}.ititle{font-size:12px;font-weight:900;color:#24455d}.idesc{font-size:10.5px;color:#72828f;font-weight:700;margin-top:2px;line-height:1.55}.go{border:0;background:#eaf2f7;color:#1f506f;border-radius:9px;padding:7px 10px;font-weight:900;font-size:10px;cursor:pointer}.empty{text-align:center;padding:28px;color:#7b8b97;font-weight:800}
 @media(max-width:900px){.head{grid-template-columns:1fr}.center{text-align:right}.stats{grid-template-columns:1fr 1fr}}@media(max-width:540px){.stats{grid-template-columns:1fr}.score{grid-template-columns:1fr}.issue{grid-template-columns:1fr}.sev{justify-self:start}}
-</style></head><body>
+</style>
+<link rel="stylesheet" href="rased-theme.css">
+</head><body>
 <header><div class="head"><div class="brand"><img src="logo.jpeg"><div><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد</p></div></div><div class="center"><small>سلامة النظام</small><h2>جودة البيانات</h2></div><div class="actions"><button class="hbtn" onclick="location.href='control-center.html'">🎛️ مركز التحكم</button><button class="hbtn" onclick="loadAll()">⟳ إعادة الفحص</button></div></div></header>
 <main class="wrap">
 <section class="score"><div class="ring" id="ring"><b id="quality">100%</b></div><div><h3>مؤشر جودة البيانات</h3><p>يفحص راصد البيانات الأساسية ويكشف القيم الناقصة والتعارضات والمراجع المفقودة قبل أن تؤثر في التقارير أو النتائج.</p></div></section>
@@ -90,4 +92,6 @@ function render(){
 }
 async function loadAll(){try{const s=await Promise.all([db.collection("students").get(),db.collection("teachers").get(),db.collection("tests").get(),db.collection("grades").get(),db.collection("subjects").get()]);students=s[0].docs.map(d=>({id:d.id,...d.data()}));teachers=s[1].docs.map(d=>({id:d.id,email:d.data().email||d.id,...d.data()}));tests=s[2].docs.map(d=>({id:d.id,...d.data()}));grades=s[3].docs.map(d=>({id:d.id,...d.data()}));subjects=s[4].docs.map(d=>({id:d.id,...d.data()}));analyze();render()}catch(e){console.error(e);issues.innerHTML='<div class="empty">تعذر فحص البيانات حاليًا.</div>'}}
 (async()=>{if(!protect())return;await loadAll()})();
-</script></body></html>
+</script>
+<footer class="rased-credit" lang="ar" dir="rtl">تصميم محمد عامر أحمد</footer>
+</body></html>

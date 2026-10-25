@@ -79,7 +79,9 @@
   color:#42586c;
   font-size:12px;
 }
-</style></head><body><div class="head"><img src="logo.jpeg"><h1>مراجعة تقارير الأنشطة</h1><div id="supervisorTypeText">نظام راصد - الإشراف</div></div><div class="wrap"><div class="card"><div class="title">🔎 البحث والتصفية</div><div class="body"><div class="filters">
+</style>
+<link rel="stylesheet" href="rased-theme.css">
+</head><body><div class="head"><img src="logo.jpeg"><h1>مراجعة تقارير الأنشطة</h1><div id="supervisorTypeText">نظام راصد - الإشراف</div></div><div class="wrap"><div class="card"><div class="title">🔎 البحث والتصفية</div><div class="body"><div class="filters">
 <div><span class="filter-label">بحث</span><input id="q" placeholder="اسم النشاط أو المعلم أو المادة" oninput="render()"></div>
 <div><span class="filter-label">المعلم / المنفذ</span><select id="teacherFilter" onchange="render()"><option value="">كل المعلمين والمنفذين</option></select></div>
 <div><span class="filter-label">الفصل</span><select id="classFilter" onchange="render()"><option value="">كل الفصول</option></select></div>
@@ -395,4 +397,6 @@ function applySupervisorTypeLabel(){
   const target=el('supervisorTypeText');
   if(target)target.textContent='نظام راصد - '+label;
 }
-async function startSupervisorPage(){if(!protect())return;applySupervisorTypeLabel();try{await loadSupervisorPermissions();await load()}catch(e){console.error(e);if(e.message!=='NO_ACTIVITY_VIEW_PERMISSION')alert('تعذر تحميل صفحة المشرف:\n'+e.message)}}startSupervisorPage();</script></body></html>
+async function startSupervisorPage(){if(!protect())return;applySupervisorTypeLabel();try{await loadSupervisorPermissions();await load()}catch(e){console.error(e);if(e.message!=='NO_ACTIVITY_VIEW_PERMISSION')alert('تعذر تحميل صفحة المشرف:\n'+e.message)}}startSupervisorPage();</script>
+<footer class="rased-credit" lang="ar" dir="rtl">تصميم محمد عامر أحمد</footer>
+</body></html>

@@ -62,6 +62,8 @@ body::before{content:"";position:fixed;inset:0 0 auto 0;height:8px;background:li
   *{-webkit-print-color-adjust:economy!important;print-color-adjust:economy!important}
 }
 </style>
+
+<link rel="stylesheet" href="rased-theme.css">
 </head>
 <body>
 <div class="actions"><button class="btn light" onclick="history.back()">↩ رجوع</button><button class="btn" onclick="printActivityReport()">🖨️ طباعة التقرير</button></div>
@@ -193,5 +195,7 @@ async function load(){
 }
 load().then(async()=>{const p=new URLSearchParams(location.search);if(p.get('print')==='1'){await waitForReportImages();setTimeout(()=>window.print(),180)}}).catch(e=>{console.error(e);document.getElementById('report').textContent='تعذر تحميل التقرير.'});
 </script>
+
+<footer class="rased-credit" lang="ar" dir="rtl">تصميم محمد عامر أحمد</footer>
 </body>
 </html>

@@ -18,7 +18,9 @@ header{background:linear-gradient(135deg,#082942,#0d3f67 60%,#176292);color:#fff
 .modal{display:none;position:fixed;inset:0;background:#071c2d99;z-index:999;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}.mcard{width:min(920px,97vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px}.mhead{background:#123f68;color:#fff;padding:13px 15px;display:flex;justify-content:space-between}.mhead h3{margin:0}.close{border:0;background:#ffffff1c;color:#fff;width:34px;height:34px;border-radius:9px;font-size:18px}.mbody{padding:15px}.diff{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{border:1px solid #dbe4eb;border-radius:12px;padding:11px;background:#f9fbfc}.box h4{margin:0 0 7px;color:#174968}.box pre{white-space:pre-wrap;word-break:break-word;font-family:monospace;font-size:10px;line-height:1.55;margin:0;direction:ltr;text-align:left}
 @media(max-width:950px){.head{grid-template-columns:1fr}.center{text-align:right}.filters{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.diff{grid-template-columns:1fr}}@media(max-width:520px){.filters,.stats{grid-template-columns:1fr}}
 @media print{header,.filters,.details,.actions{display:none!important}.wrap{width:100%;margin:0}.panel,.stat{box-shadow:none}.table{overflow:visible}table{min-width:0}th{position:static}}
-</style></head><body>
+</style>
+<link rel="stylesheet" href="rased-theme.css">
+</head><body>
 <header><div class="head"><div class="brand"><img src="logo.jpeg"><div><h1>مدارس الفلاح الأهلية</h1><p>نظام راصد</p></div></div><div class="center"><small>الحوكمة والمتابعة</small><h2>سجل التدقيق المركزي</h2></div><div class="actions"><button class="hbtn" onclick="location.href='control-center.html'">🎛️ مركز التحكم</button><button class="hbtn" onclick="window.print()">🖨 طباعة</button><button class="hbtn" style="border-color:#ffb9b4;background:#9f2f2b55" onclick="openPurge()">🗑️ إدارة السجل</button></div></div></header>
 <main class="wrap">
 <section class="stats"><div class="stat"><small>إجمالي العمليات</small><b id="sTotal">0</b></div><div class="stat"><small>عمليات اليوم</small><b id="sToday">0</b></div><div class="stat"><small>عمليات الحذف</small><b id="sDelete">0</b></div><div class="stat"><small>المستخدمون النشطون</small><b id="sActors">0</b></div></section>
@@ -183,4 +185,6 @@ function openDetails(id){
   modal.classList.add("open")
 }
 function closeModal(){modal.classList.remove("open")}document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});(async()=>{if(!protect())return;try{await load()}catch(e){console.error(e);body.innerHTML='<tr><td colspan="7"><div class="empty">تعذر تحميل سجل التدقيق.</div></td></tr>'}})();
-</script></body></html>
+</script>
+<footer class="rased-credit" lang="ar" dir="rtl">تصميم محمد عامر أحمد</footer>
+</body></html>
