@@ -1609,7 +1609,7 @@ onclick="clearTeacherForm()">
 <tr>
 
 <th style="width:55px">#</th>
-<th style="width:55px">تحديد</th>
+
 <th>اسم المعلم</th>
 <th>اسم المستخدم</th>
 <th>رقم الجوال</th>
@@ -1643,33 +1643,6 @@ onclick="deleteAllTeachers()">
 </div>
 </div>
 
-
-<!-- =========================================
-     الإرسال الجماعي للمعلمين
-========================================= -->
-
-<div class="box" id="bulkTeacherSendSection">
-<div class="box-title">📨 الإرسال الجماعي للمعلمين</div>
-<div class="box-body">
-
-<div class="note">
-حدد المعلمين من جدول إدارة المعلمين بالأعلى، ثم أرسل بيانات الدخول الخاصة بكل معلم عبر إضافة Rased Sender.
-</div>
-
-<div class="actions" style="margin-top:14px">
-<button class="btn-light" onclick="selectAllBulkTeachers(true)">☑️ تحديد الكل</button>
-<button class="btn-light" onclick="selectAllBulkTeachers(false)">⬜ إلغاء التحديد</button>
-<button class="btn-primary" onclick="bulkSendTeacherCredentials()">📲 إرسال بيانات الدخول للمحددين</button>
-</div>
-
-<div id="bulkTeacherCount" style="margin-top:12px;font-weight:700">تم تحديد: 0 معلم</div>
-
-<div id="bulkTeacherProgress" class="note" style="display:none;margin-top:12px">
-<div id="bulkTeacherProgressText">جاهز للإرسال.</div>
-</div>
-
-</div>
-</div>
 
 <!-- =========================================
      الإسناد
@@ -5138,7 +5111,7 @@ if(!teachers.length){
 
 body.innerHTML=
 
-"<tr><td colspan='7'>لا يوجد معلمون</td></tr>";
+"<tr><td colspan='6'>لا يوجد معلمون</td></tr>";
 
 return;
 
@@ -5161,9 +5134,7 @@ tr.innerHTML=`
 
 <td class="admin-row-number">${index+1}</td>
 
-<td style="text-align:center">
-<input type="checkbox" class="bulkTeacherCheck" value="${escapeHtml(teacher.email)}" onchange="updateBulkTeacherCount()">
-</td>
+
 
 <td>
 
@@ -5229,198 +5200,9 @@ body.appendChild(tr);
 
 });
 
-updateBulkTeacherCount();
+
 
 }
-
-
-function getSelectedBulkTeachers(){
-
-return Array.from(document.querySelectorAll(".bulkTeacherCheck:checked"))
-.map(el=>el.value);
-
-}
-
-
-function updateBulkTeacherCount(){
-
-const el=document.getElementById("bulkTeacherCount");
-if(!el) return;
-
-el.textContent="تم تحديد: "+getSelectedBulkTeachers().length+" معلم";
-
-}
-
-
-function selectAllBulkTeachers(checked){
-
-document.querySelectorAll(".bulkTeacherCheck").forEach(el=>{
-el.checked=checked;
-});
-
-updateBulkTeacherCount();
-
-}
-
-
-function rasedExtensionRequest(type,payload={}){
-
-return new Promise((resolve,reject)=>{
-
-const requestId="rased_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-
-const timer=setTimeout(()=>{
-window.removeEventListener("message",handler);
-reject(new Error("لم يتم العثور على إضافة Rased Sender. تأكد من تثبيتها وتفعيلها ثم أعد تحميل الصفحة."));
-},5000);
-
-function handler(event){
-if(event.source!==window) return;
-const data=event.data;
-if(!data || data.source!=="RASED_EXTENSION" || data.requestId!==requestId) return;
-
-if(type==="PING" && data.type==="PONG"){
-clearTimeout(timer);
-window.removeEventListener("message",handler);
-resolve(data);
-return;
-}
-
-if(type==="START_BULK_SEND" && data.type==="START_RESULT"){
-clearTimeout(timer);
-window.removeEventListener("message",handler);
-if(data.ok) resolve(data);
-else reject(new Error(data.error||"تعذر بدء الإرسال"));
-}
-}
-
-window.addEventListener("message",handler);
-window.postMessage({source:"RASED_SITE",type,requestId,...payload},"*");
-
-});
-
-}
-
-
-async function bulkSendTeacherCredentials(){
-
-const usernames=getSelectedBulkTeachers();
-
-if(!usernames.length){
-alert("حدد معلمًا واحدًا على الأقل من جدول المعلمين.");
-return;
-}
-
-const selected=teachers.filter(t=>usernames.includes(t.email));
-const queue=[];
-const missingPhones=[];
-const missingPasswords=[];
-
-for(const teacher of selected){
-
-const phone=normalizeTeacherPhone(teacher.phone||"");
-if(!phone){
-missingPhones.push(teacher.name||teacher.email);
-continue;
-}
-
-let password="";
-try{
-const userDoc=await db.collection("users").doc(teacher.email).get();
-password=userDoc.exists ? (userDoc.data().password||"") : "";
-}catch(error){
-console.error(error);
-}
-
-if(!password){
-missingPasswords.push(teacher.name||teacher.email);
-continue;
-}
-
-const message=`مدارس الفلاح الأهلية
-نظام راصد
-
-أ/ ${teacher.name||""}
-تم إنشاء حسابكم في نظام راصد.
-
-اسم المستخدم:
-${teacher.email}
-
-كلمة المرور:
-${password}
-
-يرجى الاحتفاظ ببيانات الدخول.`;
-
-queue.push({
-phone,
-message,
-teacherName:teacher.name||teacher.email,
-username:teacher.email
-});
-
-}
-
-if(!queue.length){
-let msg="لا توجد بيانات صالحة للإرسال.";
-if(missingPhones.length) msg+="\n\nبدون رقم جوال: "+missingPhones.join("، ");
-if(missingPasswords.length) msg+="\n\nبدون كلمة مرور: "+missingPasswords.join("، ");
-alert(msg);
-return;
-}
-
-let warning="سيتم إرسال بيانات الدخول إلى "+queue.length+" معلم عبر WhatsApp Web.";
-if(missingPhones.length) warning+="\n\nسيتم تجاوز "+missingPhones.length+" معلم لعدم وجود رقم جوال.";
-if(missingPasswords.length) warning+="\nسيتم تجاوز "+missingPasswords.length+" معلم لعدم وجود كلمة مرور.";
-warning+="\n\nمتابعة؟";
-
-if(!confirm(warning)) return;
-
-const progress=document.getElementById("bulkTeacherProgress");
-const text=document.getElementById("bulkTeacherProgressText");
-progress.style.display="block";
-text.textContent="جاري الاتصال بإضافة Rased Sender...";
-
-try{
-await rasedExtensionRequest("PING");
-await rasedExtensionRequest("START_BULK_SEND",{queue});
-text.textContent="بدأ الإرسال الجماعي. لا تغلق صفحة راصد أو WhatsApp Web حتى الانتهاء.";
-}catch(error){
-text.textContent=error.message;
-alert(error.message);
-}
-
-}
-
-
-window.addEventListener("message",event=>{
-
-if(event.source!==window) return;
-const data=event.data;
-if(!data || data.source!=="RASED_EXTENSION" || data.type!=="BULK_PROGRESS") return;
-
-const box=document.getElementById("bulkTeacherProgress");
-const text=document.getElementById("bulkTeacherProgressText");
-if(!box || !text) return;
-box.style.display="block";
-
-const sent=Number(data.sentCount||0);
-const failed=Number(data.failedCount||0);
-const total=Number(data.total||0);
-const name=data.teacherName ? " — "+data.teacherName : "";
-
-if(data.status==="finished"){
-text.textContent=`اكتمل الإرسال ✅ | تم: ${sent} | فشل: ${failed} | الإجمالي: ${total}`;
-return;
-}
-
-if(data.status==="failed"){
-text.textContent=`جاري الإرسال | تم: ${sent} | فشل: ${failed} | الإجمالي: ${total}${name}`;
-return;
-}
-
-text.textContent=`جاري الإرسال... | تم: ${sent} | فشل: ${failed} | الإجمالي: ${total}${name}`;
-
-});
 
 
 function normalizeTeacherPhone(phone){
