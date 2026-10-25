@@ -270,10 +270,12 @@
       const notice=document.createElement("div");
       notice.style.cssText="padding:8px 10px;background:#fff5d9;color:#654400;font-size:13px";
       notice.textContent="تعذر مزود القاعات الأساسي ("+reason+"). تعمل القاعة الآن عبر مزود بديل، وسيُسجّل الدخول والخروج عند الانضمام الفعلي.";
-      container.appendChild(notice);
+      const frameHost=document.createElement("div");
+      frameHost.style.cssText="width:100%;height:min(65vh,600px);min-height:420px;max-height:600px;background:#0b1f25;position:relative";
+      container.append(notice,frameHost);
       const api=new window.JitsiMeetExternalAPI("meet.jit.si",{
         roomName:key,
-        parentNode:container,
+        parentNode:frameHost,
         width:"100%",
         height:"100%",
         userInfo:{
