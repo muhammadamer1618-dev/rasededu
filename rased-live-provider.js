@@ -248,6 +248,21 @@
     return token;
   }
 
+  function openEmbeddedFallback(container,key,reason,user){
+    container.innerHTML="";
+    const notice=document.createElement("div");
+    notice.style.cssText="padding:10px;background:#fff2cf;color:#583c00;font-size:13px";
+    notice.textContent="تعذر الاتصال بمزود القاعات المخصص ("+reason+"). محاولة فتح القاعة داخل راصد؛ لا يُحتسب الحضور تلقائيًا في الوضع البديل.";
+    const iframe=document.createElement("iframe");
+    iframe.src="https://meet.jit.si/"+encodeURIComponent(key)+"#config.prejoinPageEnabled=false&config.disableDeepLinking=true&userInfo.displayName="+encodeURIComponent(String(user?.name||user?.email||"مستخدم راصد"));
+    iframe.title="القاعة المباشرة داخل راصد";
+    iframe.allow="camera; microphone; fullscreen; display-capture; autoplay";
+    iframe.referrerPolicy="strict-origin-when-cross-origin";
+    iframe.style.cssText="display:block;width:100%;height:100%;min-height:480px;border:0;background:#0b1f25";
+    container.append(notice,iframe);
+    return {mode:"embedded-fallback",roomKey:key,dispose(){container.innerHTML=""}};
+  }
+
   async function mount(opts){
 
     const {
@@ -274,8 +289,13 @@
       );
     }
 
-    const cfg=
-      await loadConfig(db,true);
+    let cfg;
+    try {
+      cfg=await loadConfig(db,true);
+    } catch(error) {
+      console.warn("Room provider settings unavailable; trying default in-page room",error);
+      cfg={type:"none"};
+    }
 
     const status=
       configStatus(cfg);
@@ -311,7 +331,23 @@
 
     if(useDemo){
 
-      await loadDemoExternalApi();
+      try {
+        await loadDemoExternalApi();
+      } catch(error) {
+        console.warn("External meeting API failed; trying embedded room",error);
+        const iframe=document.createElement("iframe");
+        iframe.src="https://meet.jit.si/"+encodeURIComponent(key)+"#config.prejoinPageEnabled=false&config.disableDeepLinking=true&userInfo.displayName="+encodeURIComponent(String(user?.name||user?.email||"مستخدم راصد"));
+        iframe.title="قاعة راصد المباشرة";
+        iframe.allow="camera; microphone; fullscreen; display-capture; autoplay";
+        iframe.referrerPolicy="strict-origin-when-cross-origin";
+        iframe.style.cssText="width:100%;height:100%;min-height:480px;border:0;display:block;background:#0c2028";
+        container.appendChild(iframe);
+        const note=document.createElement("div");
+        note.style.cssText="padding:8px;background:#fff5d9;color:#654400";
+        note.textContent="تم تشغيل القاعة بطريقة بديلة. لا يُحتسب الحضور تلقائيًا حتى نتأكد من دخول المشارك.";
+        container.prepend(note);
+        return {mode:"embedded-fallback",roomKey:key,dispose(){iframe.remove();note.remove();}};
+      }
 
       const api=
         new window.JitsiMeetExternalAPI(
@@ -433,11 +469,15 @@
             ""
           );
 
-      await loadExternalApi(
-        appId
-      );
+      try {
+        await loadExternalApi(appId);
+      } catch(error) {
+        console.error("JaaS External API unavailable",error);
+        return openEmbeddedFallback(container,key,"مكتبة مزود القاعات",user);
+      }
 
-      const token=
+      let token;
+      try { token=
         await requestJaasToken(
           cfg,
           {
@@ -466,6 +506,10 @@
             context
           }
         );
+      } catch(error) {
+        console.error("JaaS token endpoint unavailable",error);
+        return openEmbeddedFallback(container,key,"خدمة تصريح الدخول",user);
+      }
 
       const fullRoom=
         appId+"/"+key;
