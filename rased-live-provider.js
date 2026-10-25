@@ -150,12 +150,12 @@
 
   let demoExternalApiPromise=null;
 
-  function loadDemoExternalApi(){
-    if(window.JitsiMeetExternalAPI){
+  function loadDemoExternalApi(force=false){
+    if(window.JitsiMeetExternalAPI&&!force){
       return Promise.resolve();
     }
 
-    if(demoExternalApiPromise){
+    if(demoExternalApiPromise&&!force){
       return demoExternalApiPromise;
     }
 
@@ -261,6 +261,60 @@
     iframe.style.cssText="display:block;width:100%;height:100%;min-height:480px;border:0;background:#0b1f25";
     container.append(notice,iframe);
     return {mode:"embedded-fallback",roomKey:key,dispose(){container.innerHTML=""}};
+  }
+
+  async function mountTrackedFallback(container,key,user,role,onJoined,onLeft,onError,reason){
+    try{
+      await loadDemoExternalApi(true);
+      container.innerHTML="";
+      const notice=document.createElement("div");
+      notice.style.cssText="padding:8px 10px;background:#fff5d9;color:#654400;font-size:13px";
+      notice.textContent="تعذر مزود القاعات الأساسي ("+reason+"). تعمل القاعة الآن عبر مزود بديل، وسيُسجّل الدخول والخروج عند الانضمام الفعلي.";
+      container.appendChild(notice);
+      const api=new window.JitsiMeetExternalAPI("meet.jit.si",{
+        roomName:key,
+        parentNode:container,
+        width:"100%",
+        height:"100%",
+        userInfo:{
+          displayName:user?.name||user?.email||"مستخدم راصد",
+          email:user?.email||""
+        },
+        configOverwrite:{
+          prejoinPageEnabled:false,
+          disableDeepLinking:true,
+          startWithAudioMuted:role==="observer",
+          startWithVideoMuted:role==="observer"
+        },
+        interfaceConfigOverwrite:{MOBILE_APP_PROMO:false}
+      });
+      let joined=false;
+      const leave=(event,reasonText)=>{
+        if(!joined)return;
+        joined=false;
+        try{onLeft({mode:"demo-fallback",event,reason:reasonText})}catch(error){console.error("Fallback room leave handler failed",error)}
+      };
+      api.addEventListener("videoConferenceJoined",event=>{
+        if(joined)return;
+        joined=true;
+        try{onJoined({mode:"demo-fallback",event})}catch(error){console.error("Fallback room join handler failed",error)}
+      });
+      api.addEventListener("videoConferenceLeft",event=>leave(event,"conference-left"));
+      api.addEventListener("readyToClose",event=>leave(event,"ready-to-close"));
+      return {
+        mode:"demo-fallback",
+        roomKey:key,
+        dispose(){
+          try{api.dispose()}catch{}
+          leave(null,"dispose");
+          container.innerHTML="";
+        }
+      };
+    }catch(error){
+      console.error("Tracked fallback provider unavailable",error);
+      try{onError(error)}catch{}
+      return openEmbeddedFallback(container,key,reason,user);
+    }
   }
 
   async function mount(opts){
@@ -473,7 +527,7 @@
         await loadExternalApi(appId);
       } catch(error) {
         console.error("JaaS External API unavailable",error);
-        return openEmbeddedFallback(container,key,"مكتبة مزود القاعات",user);
+        return mountTrackedFallback(container,key,user,role,onJoined,onLeft,onError,"مكتبة مزود القاعات");
       }
 
       let token;
@@ -508,7 +562,7 @@
         );
       } catch(error) {
         console.error("JaaS token endpoint unavailable",error);
-        return openEmbeddedFallback(container,key,"خدمة تصريح الدخول",user);
+        return mountTrackedFallback(container,key,user,role,onJoined,onLeft,onError,"خدمة تصريح الدخول");
       }
 
       const fullRoom=
