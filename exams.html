@@ -4,7 +4,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:#f4f7fb;color:#1f2937}header{background:linear-gradient(135deg,#0c2745,#174f7c);color:white;text-align:center;padding:22px}.logo{width:80px;height:80px;object-fit:contain;background:#fff;border-radius:50%;padding:5px}header h1{margin:6px 0}header p{margin:0;color:#f4d77b;font-weight:bold}.wrap{max-width:950px;margin:20px auto;padding:12px}.card{background:#fff;border:1px solid #d7e0e8;border-radius:14px;margin-bottom:14px;overflow:hidden}.title{padding:13px;background:#eef4fa;color:#123c63;font-weight:bold}.body{padding:16px}input{width:100%;padding:11px;border:1px solid #bdc9d4;border-radius:8px;font:inherit}button{border:0;border-radius:8px;padding:11px 16px;font:inherit;font-weight:bold;background:#174f7c;color:#fff;cursor:pointer;margin-top:10px}.hidden{display:none}.info,.exam{padding:12px;border:1px solid #d7e0e8;border-radius:9px;margin-top:10px}.q{padding:14px;border:1px solid #d7e0e8;border-radius:9px;margin:10px 0}.opt{display:block;padding:8px;margin:5px 0;border:1px solid #e0e5ea;border-radius:7px}.opt input{width:auto}.text-answer{width:100%;padding:10px;border:1px solid #bdc9d4;border-radius:8px;margin-top:8px}.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin:7px 0}.passage{padding:12px;background:#f8fafc;border:1px solid #d7e0e8;border-radius:8px;line-height:1.9;margin:10px 0}.question-image{display:block;max-width:100%;max-height:420px;object-fit:contain;margin:12px auto;border:1px solid #d7e0e8;border-radius:10px;background:#fff}.q[dir="ltr"]{text-align:left}.q[dir="rtl"]{text-align:right}.q[dir="ltr"] .opt{text-align:left}.q[dir="rtl"] .opt{text-align:right}.timer{text-align:center;color:#dc3545;font-size:20px;font-weight:bold}.deadline-open{color:#198754;font-weight:bold}.deadline-ended{color:#dc3545;font-weight:bold}.footer{text-align:center;color:#687786;font-size:11px;padding:15px}
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:#f4f7fb;color:#1f2937}header{background:linear-gradient(135deg,#0c2745,#174f7c);color:white;text-align:center;padding:22px}.logo{width:80px;height:80px;object-fit:contain;background:#fff;border-radius:50%;padding:5px}header h1{margin:6px 0}header p{margin:0;color:#f4d77b;font-weight:bold}.wrap{max-width:950px;margin:20px auto;padding:12px}.card{background:#fff;border:1px solid #d7e0e8;border-radius:14px;margin-bottom:14px;overflow:hidden}.title{padding:13px;background:#eef4fa;color:#123c63;font-weight:bold}.body{padding:16px}input{width:100%;padding:11px;border:1px solid #bdc9d4;border-radius:8px;font:inherit}button{border:0;border-radius:8px;padding:11px 16px;font:inherit;font-weight:bold;background:#174f7c;color:#fff;cursor:pointer;margin-top:10px}.hidden{display:none}.info,.exam{padding:12px;border:1px solid #d7e0e8;border-radius:9px;margin-top:10px}.q{padding:14px;border:1px solid #d7e0e8;border-radius:9px;margin:10px 0}.opt{display:block;padding:8px;margin:5px 0;border:1px solid #e0e5ea;border-radius:7px}.opt input{width:auto}.text-answer{width:100%;padding:10px;border:1px solid #bdc9d4;border-radius:8px;margin-top:8px}.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin:7px 0}.match-side{display:flex;align-items:center;gap:8px}.match-image{max-width:95px;max-height:70px;object-fit:contain;border:1px solid #d7e0e8;border-radius:7px;background:#fff}.passage{padding:12px;background:#f8fafc;border:1px solid #d7e0e8;border-radius:8px;line-height:1.9;margin:10px 0}.question-image{display:block;max-width:100%;max-height:420px;object-fit:contain;margin:12px auto;border:1px solid #d7e0e8;border-radius:10px;background:#fff}.q[dir="ltr"]{text-align:left}.q[dir="rtl"]{text-align:right}.q[dir="ltr"] .opt{text-align:left}.q[dir="rtl"] .opt{text-align:right}.timer{text-align:center;color:#dc3545;font-size:20px;font-weight:bold}.deadline-open{color:#198754;font-weight:bold}.deadline-ended{color:#dc3545;font-weight:bold}.footer{text-align:center;color:#687786;font-size:11px;padding:15px}
 </style>
 <link rel="stylesheet" href="rased-theme.css">
 </head><body>
@@ -283,8 +283,8 @@ function renderStudentQuestion(q,i,seenPassages){
    let words=String(q.correctText||"").split(/\s+/).filter(Boolean).sort(()=>Math.random()-.5);
    body+=`<div class="info">${words.map(esc).join(" — ")}</div><input class="text-answer" id="ans_${q.id}" placeholder="اكتب الجملة بالترتيب الصحيح">`;
  }else if(t==="matching"){
-   let rights=(q.pairs||[]).map(p=>p.right).sort(()=>Math.random()-.5);
-   body+=(q.pairs||[]).map((p,j)=>`<div class="match-grid"><b>${esc(p.left)}</b><select class="match-answer" data-q="${q.id}" data-index="${j}"><option value="">اختر</option>${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("")}</select></div>`).join("");
+   let rights=(q.pairs||[]).map((p,index)=>({index,...p})).sort(()=>Math.random()-.5);
+   body+=(q.pairs||[]).map((p,j)=>`<div class="match-grid"><div class="match-side">${p.leftImageUrl?`<img class="match-image" src="${esc(p.leftImageUrl)}" alt="صورة الطرف الأول">`:""}<b>${esc(p.left)}</b></div><select class="match-answer" data-q="${q.id}" data-index="${j}"><option value="">اختر</option>${rights.map(r=>`<option value="${r.index}">${r.rightImageUrl?"🖼️ ":""}${esc(r.right)}</option>`).join("")}</select></div>`).join("");
  }
  return `<div class="q" dir="${d}"><b>${i+1}) ${esc(q.text)}</b>${body}</div>`;
 }
@@ -298,7 +298,7 @@ function gradeQuestion(q){
    answer=document.getElementById("ans_"+q.id)?.value||"";correct=normalized(answer)===normalized(q.correctText);
  }else if(t==="matching"){
    answer=[...document.querySelectorAll(`.match-answer[data-q="${CSS.escape(q.id)}"]`)].map(x=>x.value);
-   correct=(q.pairs||[]).length>0&&(q.pairs||[]).every((p,i)=>normalized(answer[i])===normalized(p.right));
+   correct=(q.pairs||[]).length>0&&(q.pairs||[]).every((p,i)=>Number(answer[i])===i);
  }
  return {answer,correct};
 }
@@ -384,4 +384,4 @@ function logout(){st=null;code.value="";view("login")}
   }catch(e){console.error("[Rased Student Auto Login]",e)}
 })();
 </script>
-</body></html>
+</body></html> 
