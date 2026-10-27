@@ -998,9 +998,52 @@ async function loadExams(){
    let e=examsData[i],qc=await db.collection("onlineExams").doc(e.id).collection("questions").get();
    let cls=examTargetText(e);
    const toggleBtn=examHasPublication(e)?` <button class="light" onclick="toggleExam('${e.id}',${e.active!==false})">${e.active!==false?"إيقاف":"تفعيل"}</button>`:"";
-   examRows.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.subjectName)}</td><td>${esc(cls)}</td><td>${esc(e.fullMark)}</td><td>${esc(e.durationMinutes)} د</td><td>${esc(publishTimeText(e))}</td><td>${e.deadline?esc(new Date(e.deadline).toLocaleString("en-GB-u-ca-gregory", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false})):"بدون موعد"}</td><td>${esc(examAdminStatus(e))}</td><td>${qc.size}</td><td><button class="primary" onclick="editExam('${e.id}')">تعديل</button> <button class="green" onclick="openQuestions('${e.id}')">الأسئلة</button> <button class="gold" onclick="openPublish('${e.id}')">📢 النشر</button> <button class="gold" onclick="showResults('${e.id}')">النتائج</button>${toggleBtn} <button class="gold" onclick="deleteExamResults('${e.id}')">حذف النتائج</button> <button class="red" onclick="deleteExam('${e.id}')">حذف</button></td></tr>`);
+   examRows.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.subjectName)}</td><td>${esc(cls)}</td><td>${esc(e.fullMark)}</td><td>${esc(e.durationMinutes)} د</td><td>${esc(publishTimeText(e))}</td><td>${e.deadline?esc(new Date(e.deadline).toLocaleString("en-GB-u-ca-gregory", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false})):"بدون موعد"}</td><td>${esc(examAdminStatus(e))}</td><td>${qc.size}</td><td><button class="primary" onclick="editExam('${e.id}')">تعديل</button> <button class="light" onclick="copyExam('${e.id}')">📄 نسخ</button> <button class="green" onclick="openQuestions('${e.id}')">الأسئلة</button> <button class="gold" onclick="openPublish('${e.id}')">📢 النشر</button> <button class="gold" onclick="showResults('${e.id}')">النتائج</button>${toggleBtn} <button class="gold" onclick="deleteExamResults('${e.id}')">حذف النتائج</button> <button class="red" onclick="deleteExam('${e.id}')">حذف</button></td></tr>`);
  }
 }
+async function copyExam(id){
+ const source=examsData.find(x=>x.id===id);
+ if(!source||!canManageExam(source)){alert("لا يمكنك نسخ اختبار يخص معلماً آخر.");return;}
+ try{await requireOwnedExam(id)}catch(e){alert(e.message);return}
+ if(!confirm(`نسخ الاختبار "${source.name||""}" مع أسئلته؟`))return;
+ try{
+   const data={
+     name:`${source.name||"اختبار"} - نسخة`,
+     subjectId:source.subjectId||"",
+     subjectName:source.subjectName||"",
+     fullMark:Number(source.fullMark||10),
+     durationMinutes:Number(source.durationMinutes||15),
+     maxAttempts:Number(source.maxAttempts===undefined?1:source.maxAttempts),
+     publishAt:"",
+     deadline:"",
+     active:false,
+     targetType:"none",
+     classes:[],
+     targetStudents:[],
+     targetStudentCodes:[],
+     teacherEmail:currentUser||source.teacherEmail||"",
+     teacherName:currentTeacher?.name||localStorage.getItem("currentUserName")||source.teacherName||"",
+     createdByRole:role||source.createdByRole||"admin",
+     copiedFromExamId:id,
+     createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+   };
+   const newRef=await db.collection("onlineExams").add(data);
+   const qs=await db.collection("onlineExams").doc(id).collection("questions").get();
+   let batch=db.batch(),count=0;
+   for(const q of qs.docs){
+     batch.set(newRef.collection("questions").doc(),{...q.data(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+     count++;
+     if(count>=400){await batch.commit();batch=db.batch();count=0;}
+   }
+   if(count)await batch.commit();
+   await loadExams();
+   selectedExamId=newRef.id;
+   openQuestions(newRef.id);
+   alert("تم نسخ الاختبار مع أسئلته. عدّل النسخة ثم استخدم النشر عند الانتهاء.");
+ }catch(error){console.error(error);alert("تعذر نسخ الاختبار: "+(error.message||error));}
+}
+
 function editExam(id){
  let e=examsData.find(x=>x.id===id);
  if(!e||!canManageExam(e)){alert("لا يمكنك تعديل اختبار يخص معلماً آخر.");return;}
