@@ -22,7 +22,7 @@ button{border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:bol
 .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.classes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chip{display:flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #ccd6df;border-radius:18px;background:#fafcff;font-size:12px}.chip input{width:auto}
 table{width:100%;border-collapse:collapse;min-width:850px}th,td{border:1px solid #d4dde5;padding:8px;text-align:center;font-size:12px}th{background:var(--blue);color:#fff}.table-wrap{overflow:auto}
 .qbox{border:1px solid #d7e0e8;border-radius:10px;padding:12px;margin:10px 0;background:#fbfdff}.qhead{display:flex;justify-content:space-between;gap:8px;align-items:center}.qhead b{color:var(--navy)}
-.option-row{display:grid;grid-template-columns:42px 1fr 72px;gap:7px;align-items:center;margin:7px 0}.option-row input[type=radio]{width:20px;height:20px}.option-row.truefalse{grid-template-columns:42px 1fr}.q-image-preview{display:block;max-width:320px;max-height:220px;object-fit:contain;border:1px solid #d7e0e8;border-radius:10px;margin-top:8px;background:#fff}.image-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.image-tools input[type=file]{max-width:420px}.small-note{font-size:10px;color:#687786;margin-top:4px}.type-panel{margin-top:12px;padding:12px;border:1px solid #d7e0e8;border-radius:10px;background:#fafcff}.pair-row{display:grid;grid-template-columns:1fr 1fr 80px;gap:7px;align-items:end;margin:7px 0}.type-badge{display:inline-block;padding:4px 8px;border-radius:15px;background:#e7f1ff;color:#174f7c;font-size:11px;font-weight:bold;margin-inline-start:6px}
+.option-row{display:grid;grid-template-columns:42px 1fr 72px;gap:7px;align-items:center;margin:7px 0}.option-row input[type=radio]{width:20px;height:20px}.option-row.truefalse{grid-template-columns:42px 1fr}.q-image-preview{display:block;max-width:320px;max-height:220px;object-fit:contain;border:1px solid #d7e0e8;border-radius:10px;margin-top:8px;background:#fff}.image-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.image-tools input[type=file]{max-width:420px}.small-note{font-size:10px;color:#687786;margin-top:4px}.type-panel{margin-top:12px;padding:12px;border:1px solid #d7e0e8;border-radius:10px;background:#fafcff}.pair-row{display:grid;grid-template-columns:1fr 1fr 80px;gap:7px;align-items:end;margin:7px 0}.pair-image-tools{margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.pair-image-tools input{max-width:170px!important;padding:4px!important}.pair-image-thumb{max-width:110px;max-height:70px;object-fit:contain;border:1px solid #d7e0e8;border-radius:7px;background:#fff}.pair-image-remove{font-size:10px;padding:4px 7px!important}.type-badge{display:inline-block;padding:4px 8px;border-radius:15px;background:#e7f1ff;color:#174f7c;font-size:11px;font-weight:bold;margin-inline-start:6px}
 .note{background:#fff8db;color:#715d00;padding:10px;border-radius:8px;font-size:12px;line-height:1.7}.hidden{display:none!important}.empty{text-align:center;color:#788794;padding:25px}.stat{font-weight:bold;color:var(--blue)}
 
 .pdf-import{margin:14px 0;border:1px solid #c9d9e6;border-radius:12px;background:linear-gradient(180deg,#f8fbfe,#fff);overflow:hidden}
@@ -1604,9 +1604,17 @@ function renderPdfImportPreview(){
         <div style="display:grid;gap:6px;margin-top:8px">
           <label>أزواج التوصيل</label>
           ${(q.pairs||[]).map((p,j)=>`
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              <input type="text" value="${esc(p.left||"")}" placeholder="الطرف الأول" oninput="updatePdfPair(${i},${j},'left',this.value)">
-              <input type="text" value="${esc(p.right||"")}" placeholder="الطرف المقابل" oninput="updatePdfPair(${i},${j},'right',this.value)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start">
+              <div>
+                <input type="text" value="${esc(p.left||"")}" placeholder="الطرف الأول" oninput="updatePdfPair(${i},${j},'left',this.value)">
+                <input type="file" accept="image/*" onchange="loadPdfPairImage(${i},${j},'leftImageUrl',this)">
+                ${p.leftImageUrl?`<img class="pair-image-thumb" src="${esc(p.leftImageUrl)}" alt="صورة الطرف الأول">`:""}
+              </div>
+              <div>
+                <input type="text" value="${esc(p.right||"")}" placeholder="الطرف المقابل" oninput="updatePdfPair(${i},${j},'right',this.value)">
+                <input type="file" accept="image/*" onchange="loadPdfPairImage(${i},${j},'rightImageUrl',this)">
+                ${p.rightImageUrl?`<img class="pair-image-thumb" src="${esc(p.rightImageUrl)}" alt="صورة الطرف المقابل">`:""}
+              </div>
             </div>
           `).join("")}
           <button type="button" class="light" onclick="addPdfPair(${i})">➕ إضافة زوج</button>
@@ -1687,6 +1695,17 @@ function updatePdfPair(i,j,key,value){
   q.pairs=Array.isArray(q.pairs)?q.pairs:[];
   q.pairs[j]=q.pairs[j]||{left:"",right:""};
   q.pairs[j][key]=value;
+}
+
+async function loadPdfPairImage(i,j,key,input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  try{
+    pdfImportQuestions[i].pairs=Array.isArray(pdfImportQuestions[i].pairs)?pdfImportQuestions[i].pairs:[];
+    pdfImportQuestions[i].pairs[j]=pdfImportQuestions[i].pairs[j]||{left:"",right:""};
+    pdfImportQuestions[i].pairs[j][key]=await questionImageToDataUrl(file);
+    renderPdfImportPreview();
+  }catch(error){ alert("تعذر تجهيز صورة طرف التوصيل: "+(error.message||error)); }
 }
 
 function addPdfPair(i){
@@ -1860,7 +1879,9 @@ async function importSelectedPdfQuestions(){
         }else if(q.type==="matching"){
           data.pairs=(q.pairs||[]).map(p=>({
             left:String(p?.left||"").trim(),
-            right:String(p?.right||"").trim()
+            right:String(p?.right||"").trim(),
+            leftImageUrl:String(p?.leftImageUrl||""),
+            rightImageUrl:String(p?.rightImageUrl||"")
           }));
         }
 
@@ -1967,11 +1988,19 @@ async function uploadQuestionImage(examId){
  };
 }
 
-function addPair(left="",right=""){
+function addPair(left="",right="",leftImageUrl="",rightImageUrl=""){
  const row=document.createElement("div");
  row.className="pair-row";
- row.innerHTML=`<div><label>الطرف الأول</label><input class="pairLeft" value="${esc(left)}"></div><div><label>المطابقة الصحيحة</label><input class="pairRight" value="${esc(right)}"></div><button type="button" class="red" onclick="this.parentElement.remove()">حذف</button>`;
+ row.innerHTML=`<div><label>الطرف الأول</label><input class="pairLeft" value="${esc(left)}"><div class="pair-image-tools"><input class="pairImageFile" type="file" accept="image/*" onchange="previewPairImage(this)"><img class="pair-image-thumb ${leftImageUrl?"":"hidden"}" data-side="left" src="${esc(leftImageUrl||"")}" alt="صورة الطرف الأول"><input type="hidden" class="pairLeftImage" value="${esc(leftImageUrl||"")}"></div></div><div><label>المطابقة الصحيحة</label><input class="pairRight" value="${esc(right)}"><div class="pair-image-tools"><input class="pairImageFile" type="file" accept="image/*" onchange="previewPairImage(this)"><img class="pair-image-thumb ${rightImageUrl?"":"hidden"}" data-side="right" src="${esc(rightImageUrl||"")}" alt="صورة الطرف المقابل"><input type="hidden" class="pairRightImage" value="${esc(rightImageUrl||"")}"></div></div><button type="button" class="red" onclick="this.parentElement.remove()">حذف</button>`;
  document.getElementById("pairsBox").appendChild(row);
+}
+function previewPairImage(input){
+ const file=input?.files?.[0]; if(!file)return;
+ if(!file.type.startsWith("image/")){input.value="";return alert("اختر صورة فقط.");}
+ if(file.size>8*1024*1024){input.value="";return alert("حجم الصورة يجب ألا يتجاوز 8MB.");}
+ const tools=input.closest(".pair-image-tools");
+ const img=tools?.querySelector(".pair-image-thumb");
+ if(img){img.src=URL.createObjectURL(file);img.classList.remove("hidden");}
 }
 
 function renderQuestionEditor(q=null){
@@ -1992,7 +2021,7 @@ function renderQuestionEditor(q=null){
  }else if(t==="matching"){
    answerBox.innerHTML=`<div id="pairsBox"></div><button type="button" class="light" onclick="addPair()">➕ إضافة زوج</button><div class="note" style="margin-top:8px">أدخل عنصر الطرف الأول وما يقابله في الطرف الثاني.</div>`;
    const pairs=Array.isArray(q?.pairs)&&q.pairs.length?q.pairs:[{left:"",right:""},{left:"",right:""}];
-   pairs.forEach(p=>addPair(p.left||"",p.right||""));
+   pairs.forEach(p=>addPair(p.left||"",p.right||"",p.leftImageUrl||"",p.rightImageUrl||""));
  }
 }
 
@@ -2043,11 +2072,18 @@ async function saveQuestion(){
    if(!correct)return alert("اكتب الإجابة الصحيحة.");
    data.correctText=correct;
  }else if(type==="matching"){
-   const lefts=[...document.querySelectorAll(".pairLeft")];
-   const rights=[...document.querySelectorAll(".pairRight")];
-   const pairs=lefts.map((x,i)=>({left:x.value.trim(),right:rights[i]?.value.trim()||""})).filter(p=>p.left||p.right);
-   if(pairs.length<2||pairs.some(p=>!p.left||!p.right))return alert("أدخل زوجين صحيحين على الأقل في سؤال التوصيل.");
-   data.pairs=pairs;
+   const rows=[...document.querySelectorAll("#pairsBox .pair-row")];
+   const pairs=[];
+   for(const row of rows){
+     const fileInputs=[...row.querySelectorAll(".pairImageFile")];
+     const leftFile=fileInputs[0]?.files?.[0], rightFile=fileInputs[1]?.files?.[0];
+     const leftImageUrl=leftFile?await questionImageToDataUrl(leftFile):(row.querySelector(".pairLeftImage")?.value||"");
+     const rightImageUrl=rightFile?await questionImageToDataUrl(rightFile):(row.querySelector(".pairRightImage")?.value||"");
+     pairs.push({left:row.querySelector(".pairLeft")?.value.trim()||"",right:row.querySelector(".pairRight")?.value.trim()||"",leftImageUrl,rightImageUrl});
+   }
+   const complete=pairs.filter(p=>p.left||p.right||p.leftImageUrl||p.rightImageUrl);
+   if(complete.length<2||complete.some(p=>!p.left&&!p.leftImageUrl||!p.right&&!p.rightImageUrl))return alert("أدخل زوجين صحيحين على الأقل، مع نص أو صورة لكل طرف.");
+   data.pairs=complete;
  }
 
  const id=editingQuestionId.value;
@@ -2068,7 +2104,7 @@ function questionAnswerPreview(q){
  if(["mcq","truefalse","reading"].includes(t)){
    return `<ol>${(q.options||[]).map((o,j)=>`<li ${j===Number(q.correctIndex)?'style="font-weight:bold;color:#198754"':""}>${esc(o)} ${j===Number(q.correctIndex)?"✓":""}</li>`).join("")}</ol>`;
  }
- if(t==="matching")return `<div>${(q.pairs||[]).map(p=>`${esc(p.left)} ↔ <b>${esc(p.right)}</b>`).join("<br>")}</div>`;
+ if(t==="matching")return `<div>${(q.pairs||[]).map(p=>`<div style="display:flex;gap:8px;align-items:center;margin:5px 0">${p.leftImageUrl?`<img class="pair-image-thumb" src="${esc(p.leftImageUrl)}">`:""}<span>${esc(p.left)}</span><span>↔</span>${p.rightImageUrl?`<img class="pair-image-thumb" src="${esc(p.rightImageUrl)}">`:""}<b>${esc(p.right)}</b></div>`).join("")}</div>`;
  return `<div style="margin-top:8px">الإجابة الصحيحة: <b>${esc(q.correctText||"")}</b></div>`;
 }
 
