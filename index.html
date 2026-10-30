@@ -775,6 +775,14 @@ body{
 @media(max-width:700px){.portal-grid{gap:28px;width:94vw}.portal-card{width:clamp(160px,38vw,230px);height:clamp(160px,38vw,230px);padding:16px}.card-icon{width:66px;height:66px;font-size:28px;margin-bottom:9px}.portal-card h2{font-size:21px}.portal-card h2::after{width:40px;margin-top:8px;height:3px}}
 @media(max-width:430px){.portal-grid{gap:18px}.portal-card{width:42vw;height:42vw;border-width:3px;box-shadow:0 0 0 5px rgba(255,240,184,.95),0 14px 28px rgba(0,76,63,.2)}.portal-card::before{inset:8px}.card-icon{width:54px;height:54px;font-size:23px;border-width:3px}.portal-card h2{font-size:17px}}
 </style>
+<style id="alfalahGateCornersPolish">
+.corner-right{top:18px;right:0;padding:13px 28px 13px 18px;background:linear-gradient(135deg,rgba(0,63,53,.98),rgba(0,102,83,.94));border-left:3px solid #d9aa3b;border-bottom:3px solid #d9aa3b;border-radius:0 0 0 28px;box-shadow:0 10px 24px rgba(0,63,53,.2);font-size:16px}
+.corner-left{bottom:26px;left:0;padding:13px 18px 13px 28px;background:linear-gradient(315deg,rgba(0,63,53,.98),rgba(0,102,83,.94));border-right:3px solid #d9aa3b;border-top:3px solid #d9aa3b;border-radius:0 28px 0 0;box-shadow:0 -10px 24px rgba(0,63,53,.16);font-size:16px}
+.portal-grid{position:relative}
+.portal-grid::before,.portal-grid::after{content:"";position:absolute;top:8%;bottom:8%;width:3px;border-radius:4px;background:linear-gradient(180deg,transparent,#d9aa3b 18%,#d9aa3b 82%,transparent);opacity:.5;pointer-events:none}
+.portal-grid::before{left:-7vw}.portal-grid::after{right:-7vw}
+@media(max-width:700px){.corner-right{top:8px;padding:9px 16px 9px 10px;border-radius:0 0 0 18px;font-size:12px}.corner-left{bottom:12px;padding:9px 10px 9px 16px;border-radius:0 18px 0 0;font-size:12px}.portal-grid::before{left:-4vw}.portal-grid::after{right:-4vw}}
+</style>
 </head>
 
 <body>
