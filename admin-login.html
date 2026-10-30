@@ -755,6 +755,38 @@ body{
 </style>
 
 <link rel="stylesheet" href="rased-theme.css">
+<style id="generalManagerPortalTheme">
+:root{--portal-green:#004c3f;--portal-green2:#006653;--portal-gold:#c9972c;--portal-cream:#f7f1e4;--portal-text:#17372f}
+html,body{min-height:100%;background:linear-gradient(135deg,#f9f3e6,#fffdf8 48%,#f5eddd);font-family:Tajawal,Tahoma,Arial,sans-serif}
+body{color:var(--portal-text)}
+.page{min-height:100vh;height:auto;padding:22px 18px 14px;background:radial-gradient(circle at 10% 12%,rgba(201,151,44,.14),transparent 28%),linear-gradient(135deg,#f9f3e6,#fffdf8 48%,#f5eddd)}
+.top-accent{height:7px;background:linear-gradient(90deg,var(--portal-green),var(--portal-gold),var(--portal-green));border-radius:0 0 12px 12px}
+.main{width:min(1050px,94vw);margin:auto;display:flex;align-items:center;justify-content:center;flex:1}
+.login-card{width:100%;max-width:980px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:3px solid rgba(201,151,44,.8);border-radius:28px;background:#fffdf8;box-shadow:0 0 0 6px rgba(255,243,204,.86),0 25px 60px rgba(0,76,63,.2)}
+.brand-side{background:linear-gradient(145deg,#0c725f,#005747 46%,#003f35);color:#fff;min-height:560px;padding:42px 34px;display:flex;flex-direction:column;justify-content:space-between;text-align:center}
+.logo-shell,.small-logo-shell{border-color:var(--portal-gold)!important;background:#fff!important;box-shadow:0 0 0 5px rgba(255,226,140,.28),0 10px 24px rgba(0,0,0,.2)!important}
+.logo{width:100px;height:100px;object-fit:contain}
+.school,.small-school{color:#f0cf79!important;font-weight:900}
+.rased-title,.small-rased{color:#fff!important;font-weight:900}
+.rased-title span,.small-rased span{color:#f0cf79!important}
+.brand-line{background:linear-gradient(90deg,transparent,#f0cf79,transparent)!important}
+.brand-description{color:#e4f2ed!important}
+.feature{border-color:rgba(240,207,121,.7)!important;background:rgba(0,0,0,.12)!important;color:#fff!important}
+.brand-bottom{color:#f0cf79!important}
+.login-side{background:linear-gradient(180deg,#fffefb,#f8f1e4)!important;padding:44px 42px}
+.welcome{color:#ad7b15!important;font-weight:900}
+.login-heading h2{color:var(--portal-green)!important;font-weight:900}
+.login-heading p,.security-note{color:#6a776f!important}
+.form-label{color:var(--portal-green)!important;font-weight:900}
+.input-wrap{border-color:#d8cbb1!important;background:#fff!important}
+.input-wrap:focus-within{border-color:var(--portal-gold)!important;box-shadow:0 0 0 3px rgba(201,151,44,.14)!important}
+.form-input{color:var(--portal-text)!important}
+.login-btn{background:linear-gradient(145deg,var(--portal-green2),var(--portal-green))!important;border:0!important;box-shadow:0 10px 20px rgba(0,76,63,.2)}
+.login-btn:hover{filter:brightness(1.06)}
+.login-message{color:#b42318}
+.footer{color:var(--portal-green)!important;font-weight:800}
+@media(max-width:760px){.login-card{grid-template-columns:1fr}.brand-side{display:none}.login-side{padding:30px 22px}.main{width:min(560px,94vw)}}
+</style>
 </head>
 
 <body>
