@@ -30,20 +30,9 @@
       /(?:^|\/)admin\.html$/i.test(String(location.pathname||""));
   }
 
-  function isMaintenanceActive(data,now){
-    if(!data || (data.enabled!==true && data.scheduled!==true))return false;
-    // Scheduled maintenance is inert until its future startAt; older clients see enabled=false.
-    const current=Number(now||Date.now());
-    if(data.scheduled===true && !data.startAt)return false;
-    if(data.startAt){
-      const begins=Date.parse(String(data.startAt));
-      if(!Number.isFinite(begins)||current<begins)return false;
-    }
-    if(data.returnAt){
-      const end=Date.parse(String(data.returnAt));
-      if(!Number.isFinite(end)||current>=end)return false;
-    }
-    return true;
+  function isMaintenanceActive(data){
+    // Manual control only: ignore any previously saved schedules and end times.
+    return Boolean(data && data.enabled===true && data.scheduled!==true && !data.startAt);
   }
 
   function ensureStyles(){
@@ -88,43 +77,19 @@
     }
     overlay.querySelector(".rased-maintenance-message").textContent=
       String(data?.message||"الموقع مغلق للتحسين أو الصيانة.");
-    const returnAt=String(data?.returnAt||"").trim();
     const returnLine=overlay.querySelector(".rased-maintenance-return");
-    if(returnLine){
-      if(returnAt){
-        const d=new Date(returnAt);
-        returnLine.textContent=Number.isNaN(d.getTime())
-          ?"سيعود الموقع للعمل تلقائيًا بعد انتهاء الصيانة."
-          :"العودة المتوقعة: "+d.toLocaleString("ar-SA");
-      }else{
-        returnLine.textContent="سيعود الموقع للعمل بعد انتهاء الصيانة.";
-      }
-    }
+    if(returnLine)returnLine.textContent="سيعود الموقع للعمل عند إعادة فتحه من لوحة الإدارة.";
     document.body.classList.add("rased-maintenance-active");
   }
 
-  let latestSettings=null;
-  let boundaryTimer=null;
   function render(data){
-    latestSettings=data||null;
-    if(boundaryTimer!==null){clearTimeout(boundaryTimer);boundaryTimer=null;}
-    const active=isMaintenanceActive(latestSettings,Date.now());
-    if(active)showOverlay(latestSettings);
+    const active=isMaintenanceActive(data);
+    if(active)showOverlay(data);
     else removeOverlay();
-    window.dispatchEvent(new CustomEvent("rased:maintenance",{detail:{active,data:latestSettings}}));
-    // Firestore data will not change exactly at a scheduled boundary. Recheck locally.
-    const now=Date.now();
-    const boundaries=[latestSettings?.startAt,latestSettings?.returnAt]
-      .map(v=>v?Date.parse(String(v)):NaN)
-      .filter(v=>Number.isFinite(v)&&v>now);
-    if(boundaries.length){
-      const delay=Math.min(Math.min(...boundaries)-now+120,2147483000);
-      boundaryTimer=setTimeout(()=>render(latestSettings),Math.max(100,delay));
-    }
+    window.dispatchEvent(new CustomEvent("rased:maintenance",{
+      detail:{active,data:data||null}
+    }));
   }
-  document.addEventListener("visibilitychange",()=>{
-    if(!document.hidden&&latestSettings)render(latestSettings);
-  });
 
   function loadScript(src){
     return new Promise((resolve,reject)=>{
