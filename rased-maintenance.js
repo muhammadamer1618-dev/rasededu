@@ -32,10 +32,14 @@
 
   function isMaintenanceActive(data,now){
     if(!data || data.enabled!==true)return false;
+    const current=Number(now||Date.now());
+    if(data.startAt){
+      const begins=Date.parse(String(data.startAt));
+      if(!Number.isFinite(begins)||current<begins)return false;
+    }
     if(data.returnAt){
       const end=Date.parse(String(data.returnAt));
-      if(!Number.isFinite(end))return false;
-      if(end<=Number(now||Date.now()))return false;
+      if(!Number.isFinite(end)||current>=end)return false;
     }
     return true;
   }
@@ -97,13 +101,28 @@
     document.body.classList.add("rased-maintenance-active");
   }
 
+  let latestSettings=null;
+  let boundaryTimer=null;
   function render(data){
-    if(isMaintenanceActive(data,Date.now()))showOverlay(data);
+    latestSettings=data||null;
+    if(boundaryTimer!==null){clearTimeout(boundaryTimer);boundaryTimer=null;}
+    const active=isMaintenanceActive(latestSettings,Date.now());
+    if(active)showOverlay(latestSettings);
     else removeOverlay();
-    window.dispatchEvent(new CustomEvent("rased:maintenance",{
-      detail:{active:isMaintenanceActive(data,Date.now()),data:data||null}
-    }));
+    window.dispatchEvent(new CustomEvent("rased:maintenance",{detail:{active,data:latestSettings}}));
+    // Firestore data will not change exactly at a scheduled boundary. Recheck locally.
+    const now=Date.now();
+    const boundaries=[latestSettings?.startAt,latestSettings?.returnAt]
+      .map(v=>v?Date.parse(String(v)):NaN)
+      .filter(v=>Number.isFinite(v)&&v>now);
+    if(boundaries.length){
+      const delay=Math.min(Math.min(...boundaries)-now+120,2147483000);
+      boundaryTimer=setTimeout(()=>render(latestSettings),Math.max(100,delay));
+    }
   }
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden&&latestSettings)render(latestSettings);
+  });
 
   function loadScript(src){
     return new Promise((resolve,reject)=>{
