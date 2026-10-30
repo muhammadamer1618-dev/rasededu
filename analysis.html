@@ -172,5 +172,6 @@ async function applyIncoming(){if(!incoming.subjectId)return;if(isTeacher){const
 async function start(){if(!protectPage())return;try{await loadCurrentTeacher();await loadSubjects();renderMode();await applyIncoming()}catch(error){console.error(error);alert("حدث خطأ أثناء تحميل صفحة التحليل:\n"+error.message)}}
 start();
 </script>
+<script src="rased-maintenance.js"></script>
 </body>
 </html>

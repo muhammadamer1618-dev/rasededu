@@ -312,5 +312,6 @@ out.innerHTML=`<div class="note"><b>${esc(name)}</b></div><div class="stats"><di
 async function start(){try{if(!await protect())return;setup();await Promise.all([loadStudents(),loadIncidents()])}catch(e){console.error(e);alert("تعذر تحميل التوجيه الطلابي:\n"+e.message)}}
 start();
 </script>
+<script src="rased-maintenance.js"></script>
 </body>
 </html>
