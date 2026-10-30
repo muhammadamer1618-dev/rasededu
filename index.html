@@ -762,6 +762,19 @@ body{
 .corner-right,.corner-left{z-index:7}
 @media(max-width:600px){.page::before{top:52px;height:170px}.top{padding-top:10px}}
 </style>
+<style id="alfalahGateProfessionalCards">
+.portal-grid{display:flex!important;justify-content:center;align-items:center;gap:clamp(34px,7vw,92px);width:min(980px,92vw);margin:30px auto 16px;flex:1}
+.portal-card{position:relative;width:clamp(220px,28vw,330px);height:clamp(220px,28vw,330px);min-height:0!important;aspect-ratio:1;border-radius:50%!important;padding:26px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 28%,#148a73 0%,#006653 42%,#003f35 100%);border:4px solid #d9aa3b;box-shadow:0 0 0 8px rgba(255,240,184,.95),0 20px 42px rgba(0,76,63,.22),inset 0 2px 0 rgba(255,255,255,.26);transition:transform .3s ease,box-shadow .3s ease,filter .3s ease}
+.portal-card::before{content:"";position:absolute;inset:12px;border:1px solid rgba(255,221,126,.58);border-radius:50%;background:radial-gradient(circle at 50% 8%,rgba(255,255,255,.22),transparent 35%);pointer-events:none}
+.portal-card::after{content:"";position:absolute;inset:30% -10% -10%;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+.portal-card:hover{transform:translateY(-10px) scale(1.045);filter:brightness(1.08);box-shadow:0 0 0 8px rgba(255,240,184,.98),0 30px 58px rgba(0,64,53,.32),inset 0 2px 0 rgba(255,255,255,.3)}
+.card-icon{width:92px;height:92px;border-width:4px;margin-bottom:15px;font-size:38px;box-shadow:0 0 0 5px rgba(255,226,140,.25),0 0 25px rgba(231,189,81,.48),inset 0 0 18px rgba(0,0,0,.3)}
+.portal-card h2{font-size:30px;line-height:1.2;text-shadow:0 3px 8px rgba(0,0,0,.25)}
+.portal-card h2::after{width:58px;height:4px;margin-top:13px}
+.portal-card:hover h2::after{width:78px}
+@media(max-width:700px){.portal-grid{gap:28px;width:94vw}.portal-card{width:clamp(160px,38vw,230px);height:clamp(160px,38vw,230px);padding:16px}.card-icon{width:66px;height:66px;font-size:28px;margin-bottom:9px}.portal-card h2{font-size:21px}.portal-card h2::after{width:40px;margin-top:8px;height:3px}}
+@media(max-width:430px){.portal-grid{gap:18px}.portal-card{width:42vw;height:42vw;border-width:3px;box-shadow:0 0 0 5px rgba(255,240,184,.95),0 14px 28px rgba(0,76,63,.2)}.portal-card::before{inset:8px}.card-icon{width:54px;height:54px;font-size:23px;border-width:3px}.portal-card h2{font-size:17px}}
+</style>
 </head>
 
 <body>
