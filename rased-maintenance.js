@@ -31,8 +31,10 @@
   }
 
   function isMaintenanceActive(data,now){
-    if(!data || data.enabled!==true)return false;
+    if(!data || (data.enabled!==true && data.scheduled!==true))return false;
+    // Scheduled maintenance is inert until its future startAt; older clients see enabled=false.
     const current=Number(now||Date.now());
+    if(data.scheduled===true && !data.startAt)return false;
     if(data.startAt){
       const begins=Date.parse(String(data.startAt));
       if(!Number.isFinite(begins)||current<begins)return false;
