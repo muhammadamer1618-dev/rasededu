@@ -115,6 +115,8 @@
   async function start(){
     if(isBypassed())return;
     try{
+      try{const local=JSON.parse(localStorage.getItem("rased.maintenance.v1")||"null");if(local)render(local)}catch(e){}
+
       if(!window.firebase){
         await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js");
         await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js");
