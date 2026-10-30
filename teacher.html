@@ -4523,7 +4523,7 @@ const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"
 </style></head><body><div class="head"><img src="logo.jpeg"><h1>مدارس الفلاح الأهلية</h1><h2>سجل رسائل أولياء الأمور - المعلم</h2></div><div class="meta"><span><strong>المعلم:</strong> ${escapeHtml(currentTeacher?.name||"")}</span><span><strong>عدد الرسائل:</strong> ${rows.length}</span></div><table><thead><tr><th>م</th><th>التاريخ والوقت</th><th>الطالب</th><th>الفصل</th><th>المادة</th><th>الاختبار / النوع</th><th>الجوال</th><th>نص الرسالة</th></tr></thead><tbody>${body}</tbody></table><div class="foot"><span>نظام راصد - مدارس الفلاح الأهلية</span><span>تصميم محمد عامر أحمد - 2026</span></div><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script>
 <div style="text-align:center;padding:12px"><a href="student-achievements.html" style="display:inline-block;margin:10px;padding:12px 18px;background:#086a55;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold">📁 ملف إنجاز الطالب</a> <a href="smart-certificates.html" style="display:inline-block;margin:10px;padding:12px 18px;background:#9a7527;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold">🏆 الشهادات والتحفيز الذكي</a></div>
 <div style="text-align:center;padding:16px"><a href="staff-files.html" style="display:inline-block;background:#07543f;color:#fff;text-decoration:none;padding:16px 24px;border-radius:14px;font-weight:bold;box-shadow:0 3px 12px #0002">📁 مركز الملفات والتوثيق — رفع وتبادل الملفات</a></div>
-<script src="rased-maintenance.js"></script>
+
 </body></html>`;
 const w=window.open("","_blank");if(!w){alert("اسمح بالنوافذ المنبثقة للطباعة.");return;}w.document.open();w.document.write(html);w.document.close();
 }
@@ -4852,5 +4852,6 @@ start();
 
 </script>
 
+<script src="rased-maintenance.js"></script>
 </body>
 </html>

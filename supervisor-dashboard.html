@@ -188,5 +188,6 @@ function renderMessages(){const q=messageSearch.value.trim().toLowerCase();const
 async function start(){if(!protect())return;try{await verifyAccount();await loadAll()}catch(e){console.error(e);alert("تعذر تحميل بوابة المشرف:\n"+e.message);location.href="index.html"}}start();
 </script>
 <footer class="rased-credit" lang="ar" dir="rtl">تصميم محمد عامر أحمد</footer>
+
 <script src="rased-maintenance.js"></script>
 </body></html>

@@ -2618,7 +2618,7 @@ function printableResultHtml(){
  </head>
  <body>${content.replaceAll('src="logo.jpeg"',`src="${logoUrl}"`)}
  <script>window.addEventListener("load",()=>setTimeout(()=>window.print(),250));<\/script>
- <script src="rased-maintenance.js"></script>
+ 
 </body></html>`;
 }
 
@@ -2705,5 +2705,6 @@ async function start(){
 }
 start();
 </script>
+<script src="rased-maintenance.js"></script>
 </body>
 </html>

@@ -42,6 +42,7 @@ function closeModal(){el("eventModal").classList.remove("show");selectedEvent=nu
 function logout(){["currentUserRole","currentUser","currentUserName","currentUserEmail","currentUserType","currentUserPermissions"].forEach(k=>localStorage.removeItem(k));location.href="index.html"}
 async function start(){try{if(await protect())await loadAll()}catch(e){console.error(e);alert("تعذر تحميل المواد والاجتماعات: "+e.message)}}start();
 </script>
+
 <script src="rased-maintenance.js"></script>
 </body>
 </html>
