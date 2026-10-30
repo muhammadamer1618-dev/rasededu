@@ -42,10 +42,10 @@
     style.textContent=
       "#rasedMaintenanceOverlay{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(135deg,#063b31,#0b6756);font-family:Tahoma,Arial,sans-serif;direction:rtl;text-align:center;color:#fff}"+
       "#rasedMaintenanceOverlay .rased-maintenance-box{width:min(680px,94vw);padding:42px 28px;border:1px solid rgba(255,255,255,.28);border-radius:24px;background:rgba(0,0,0,.18);box-shadow:0 20px 70px rgba(0,0,0,.28)}"+
-      "#rasedMaintenanceOverlay .rased-maintenance-icon{font-size:52px;line-height:1;margin-bottom:18px}"+
+      "#rasedMaintenanceOverlay .rased-maintenance-school-logo{display:block;width:clamp(76px,15vw,108px);height:clamp(76px,15vw,108px);object-fit:contain;background:white;border:3px solid #d7b466;border-radius:50%;padding:6px;margin:0 auto 16px;box-shadow:0 9px 24px rgba(0,0,0,.22)}"+
+      "#rasedMaintenanceOverlay .rased-maintenance-icon{font-size:46px;line-height:1;margin-bottom:12px}"+
       "#rasedMaintenanceOverlay h1{margin:0 0 16px;font-size:clamp(24px,4vw,40px);color:#f7d77a}"+
-      "#rasedMaintenanceOverlay .rased-maintenance-message{margin:0 auto 24px;white-space:pre-wrap;font-size:clamp(17px,2.5vw,24px);line-height:1.8}"+
-      "#rasedMaintenanceOverlay .rased-maintenance-return{margin:0 0 20px;color:#d7eee8;font-size:14px}"+
+      "#rasedMaintenanceOverlay .rased-maintenance-message{margin:0 auto 25px;white-space:pre-wrap;font-size:clamp(24px,3.4vw,34px);line-height:1.6;color:#ff7474;font-weight:900;text-shadow:0 2px 10px rgba(0,0,0,.35)}"+
       "#rasedMaintenanceOverlay .rased-maintenance-credit{padding-top:18px;border-top:1px solid rgba(255,255,255,.22);font-size:14px;font-weight:bold;color:#fff}"+
       "body.rased-maintenance-active{overflow:hidden}";
     document.head.appendChild(style);
@@ -67,18 +67,17 @@
       overlay.setAttribute("aria-modal","true");
       overlay.innerHTML=
         "<div class=\"rased-maintenance-box\">"+
+        "<img class=\"rased-maintenance-school-logo\" src=\"logo.jpeg\" alt=\"شعار مدارس الفلاح الأهلية\">"+
         "<div class=\"rased-maintenance-icon\">🛠️</div>"+
         "<h1>الموقع مغلق مؤقتًا</h1>"+
         "<p class=\"rased-maintenance-message\"></p>"+
-        "<p class=\"rased-maintenance-return\"></p>"+
+        
         "<div class=\"rased-maintenance-credit\">محمد عامر أحمد</div>"+
         "</div>";
       document.body.appendChild(overlay);
     }
     overlay.querySelector(".rased-maintenance-message").textContent=
       String(data?.message||"الموقع مغلق للتحسين أو الصيانة.");
-    const returnLine=overlay.querySelector(".rased-maintenance-return");
-    if(returnLine)returnLine.textContent="سيعود الموقع للعمل عند إعادة فتحه من لوحة الإدارة.";
     document.body.classList.add("rased-maintenance-active");
   }
 
