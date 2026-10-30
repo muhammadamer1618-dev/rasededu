@@ -115,9 +115,10 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 function hydrateAlfalahGateSession(){
  try{
   const gate=JSON.parse(localStorage.getItem("alfalah.gate.session.v1")||"null");
-  if(gate&&gate.username&&gate.rasedRole){
+  const gateRole=gate?.rasedRole||gate?.sourceRole||(gate?.type==="supervision"?"supervisor":"");
+  if(gate&&gate.username&&gateRole){
    sessionStorage.setItem("rasedTabAuthReady","1");
-   sessionStorage.setItem("currentUserRole",String(gate.rasedRole));
+   sessionStorage.setItem("currentUserRole",String(gateRole));
    sessionStorage.setItem("currentUser",String(gate.username));
    sessionStorage.setItem("currentUserEmail",String(gate.username));
    if(gate.name)sessionStorage.setItem("currentUserName",String(gate.name));
