@@ -105,10 +105,22 @@
     }));
   }
 
-  function start(){
+  function loadScript(src){
+    return new Promise((resolve,reject)=>{
+      const existing=[...document.scripts].find(s=>s.src===src);
+      if(existing){existing.addEventListener("load",resolve,{once:true});if(window.firebase)resolve();return;}
+      const tag=document.createElement("script");tag.src=src;tag.onload=resolve;tag.onerror=reject;document.head.appendChild(tag);
+    });
+  }
+  async function start(){
     if(isBypassed())return;
-    if(!window.firebase)return;
     try{
+      if(!window.firebase){
+        await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js");
+        await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js");
+      }else if(!firebase.firestore){
+        await loadScript("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js");
+      }
       if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
       const store=firebase.firestore();
       store.collection(COLLECTION).doc(DOCUMENT).onSnapshot(
