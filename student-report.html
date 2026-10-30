@@ -50,5 +50,5 @@ const strong=subs.filter(x=>x.pct>=85).slice(0,3),need=subs.filter(x=>x.pct<70).
 const timelineRows=results.slice(-10);timeline.innerHTML=timelineRows.map(x=>`<div class="point"><div class="col" style="height:${Math.max(3,x.pct)}%"><span>${x.pct.toFixed(0)}%</span></div><small>${esc(x.test.subjectName||"")}</small></div>`).join("");testsBody.innerHTML=[...results].reverse().map((x,i)=>{const avg=classAvg(x.test,s),diff=avg===null?null:x.pct-avg;return`<tr><td>${i+1}</td><td>${esc(fmtDate(x.date))}</td><td>${esc(x.test.name||"اختبار")}</td><td>${esc(cat(x.test.examCategory))}</td><td>${esc(x.test.subjectName||"—")}</td><td>${x.abs?'<span class="pill low">غائب</span>':'<span class="pill good">حاضر</span>'}</td><td>${x.mark.toFixed(1).replace(".0","")} / ${x.full.toFixed(1).replace(".0","")}</td><td><span class="pill ${pctClass(x.pct)}">${x.pct.toFixed(1)}%</span></td><td>${avg===null?"—":`${diff>=0?"+":""}${diff.toFixed(1)} نقطة`}</td></tr>`}).join("");report.style.display="block";report.scrollIntoView({behavior:"smooth",block:"start"})}
 (async()=>{try{if(!await protect())return;await load()}catch(e){console.error(e);alert("تعذر تحميل التقرير الشامل حاليًا.")}})();
 </script>
-<script src="rased-maintenance.js"></script>
+
 </body></html>
