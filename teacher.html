@@ -4813,7 +4813,8 @@ async function copyGeneratedFileLink(){
 
 function logout(){
 rasedLogoutThisTab();
-location.href="index.html";
+try{localStorage.removeItem("alfalah.gate.session.v1")}catch(e){}
+location.href="../";
 }
 
 /* ======================================================
