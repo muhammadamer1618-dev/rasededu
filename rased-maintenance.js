@@ -47,8 +47,6 @@
       "#rasedMaintenanceOverlay h1{margin:0 0 16px;font-size:clamp(24px,4vw,40px);color:#f7d77a}"+
       "#rasedMaintenanceOverlay .rased-maintenance-message{margin:0 auto 25px;white-space:pre-wrap;font-size:clamp(24px,3.4vw,34px);line-height:1.6;color:#ff7474;font-weight:900;text-shadow:0 2px 10px rgba(0,0,0,.35)}"+
       "#rasedMaintenanceOverlay .rased-maintenance-credit{padding-top:18px;border-top:1px solid rgba(255,255,255,.22);font-size:14px;font-weight:bold;color:#fff}"+
-      "#rasedMaintenanceOverlay .rased-maintenance-admin-link{display:inline-flex;align-items:center;justify-content:center;margin-top:18px;padding:9px 18px;background:#fff9e9;color:#075343;border:1px solid #dbb65d;border-radius:12px;font:bold 13px Tahoma,Arial,sans-serif;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.17)}"+
-      "#rasedMaintenanceOverlay .rased-maintenance-admin-link:focus-visible{outline:3px solid #f2d277;outline-offset:3px}"+
       "body.rased-maintenance-active{overflow:hidden}";
     document.head.appendChild(style);
   }
@@ -75,8 +73,6 @@
         "<p class=\"rased-maintenance-message\"></p>"+
         
         "<div class=\"rased-maintenance-credit\">محمد عامر أحمد</div>"+
-        (["/teacher.html","/supervisor-dashboard.html","/supervisor.html"].some(p=>String(location.pathname||"").endsWith(p))?
-         "<a class=\"rased-maintenance-admin-link\" href=\"https://rasededu.online/rased/admin-login.html\">🔐 لوحة الإدارة</a>":"")+
         "</div>";
       document.body.appendChild(overlay);
     }
