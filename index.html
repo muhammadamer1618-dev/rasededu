@@ -1606,41 +1606,6 @@ async function login(){
 
         /*
             =========================================
-            MONITOR
-            =========================================
-        */
-
-        if(
-            userRole==="monitor"
-        ){
-
-            rasedLoginAuthSet("currentUserRole",
-                "monitor"
-            );
-
-            rasedLoginAuthSet("currentUser",
-                result.username
-            );
-
-            rasedLoginAuthSet("currentUserEmail",
-                result.username
-            );
-
-            rasedLoginAuthSet("currentUserName",
-                data.name||
-                "المتابع"
-            );
-
-            location.href=
-                "monitor-dashboard.html";
-
-            return;
-
-        }
-
-
-        /*
-            =========================================
             TEACHER
             =========================================
         */
