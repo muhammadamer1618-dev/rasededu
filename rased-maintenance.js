@@ -75,7 +75,7 @@
         "<p class=\"rased-maintenance-message\"></p>"+
         
         "<div class=\"rased-maintenance-credit\">محمد عامر أحمد</div>"+
-        (/\\/(?:teacher|supervisor-dashboard|supervisor)\\.html$/i.test(String(location.pathname||""))?
+        (["/teacher.html","/supervisor-dashboard.html","/supervisor.html"].some(p=>String(location.pathname||"").endsWith(p))?
          "<a class=\"rased-maintenance-admin-link\" href=\"https://rasededu.online/rased/admin-login.html\">🔐 لوحة الإدارة</a>":"")+
         "</div>";
       document.body.appendChild(overlay);
