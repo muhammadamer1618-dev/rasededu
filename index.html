@@ -1517,7 +1517,7 @@ async function login(){
             );
 
             location.href=
-                "supervisor-dashboard.html";
+                (supervisorType==="executive_viewer"?"executive-dashboard.html":"supervisor-dashboard.html");
 
             return;
 
