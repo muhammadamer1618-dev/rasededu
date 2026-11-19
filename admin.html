@@ -2357,6 +2357,7 @@ onclick="clearCurrentTeacherAssignments()">
 <select id="supervisorRole" onchange="toggleSupervisorTeacherScope()">
 <option value="general_supervisor">مشرف عام</option>
 <option value="manager">مدير</option>
+<option value="executive_viewer">مديرة المجمعات التعليمية (اطلاع شامل فقط)</option>
 <option value="deputy">وكيل</option>
 <option value="supervisor">مشرف</option>
 </select>
@@ -8893,7 +8894,7 @@ const SUPERVISOR_PERMISSION_DEFS=[
 ];
 
 function supervisorTypeLabel(type){
-return {general_supervisor:"مشرف عام",manager:"مدير",deputy:"وكيل",supervisor:"مشرف"}[String(type||"").toLowerCase()]||"مشرف عام";
+return {general_supervisor:"مشرف عام",manager:"مدير",deputy:"وكيل",supervisor:"مشرف",executive_viewer:"مديرة المجمعات التعليمية"}[String(type||"").toLowerCase()]||"مشرف عام";
 }
 
 function normalizeTeacherEmail(v){return String(v||"").trim().toLowerCase()}
@@ -9056,7 +9057,7 @@ const permissions=readSupervisorPermissions();
 const assignedTeacherEmails=supervisorType==="supervisor"?selectedSupervisorTeacherEmails():[];
 
 if(!name||!username||!password){alert("أدخل الاسم واسم المستخدم وكلمة المرور");return}
-if(!["general_supervisor","manager","deputy","supervisor"].includes(supervisorType)){alert("اختر نوع حساب صحيح.");return}
+if(!["general_supervisor","manager","deputy","supervisor","executive_viewer"].includes(supervisorType)){alert("اختر نوع حساب صحيح.");return}
 if(!/^[a-zA-Z0-9._-]{3,60}$/.test(username)){alert("اسم المستخدم يجب أن يكون 3 أحرف على الأقل، ويحتوي على حروف إنجليزية أو أرقام أو . _ - فقط.");return}
 if(password.length<4){alert("كلمة المرور يجب ألا تقل عن 4 أحرف.");return}
 if(supervisorType==="supervisor"&&!assignedTeacherEmails.length){alert("حدد معلمًا واحدًا على الأقل لهذا المشرف.");return}
