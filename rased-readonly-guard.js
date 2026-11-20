@@ -23,7 +23,7 @@
  if(originalFetch)w.fetch=function(input,init){
   const url=String(typeof input==='string'?input:input&&input.url||'');
   const method=String(init&&init.method||input&&input.method||'GET').toUpperCase();
-  if(enabled()&&method!=='GET'&&method!=='HEAD'&&(/supabase\.co\/rest\/v1|supabase\.co\/storage\/v1|firebasestorage\.googleapis\.com|firebasestorage\.app|firestore\.googleapis\.com.*(?:Write|commit|batchWrite)/i.test(url)))return blocked();
+  if(enabled()&&method!=='GET'&&method!=='HEAD'&&(/supabase\.co\/rest\/v1|supabase\.co\/storage\/v1|firebasestorage\.googleapis\.com|firebasestorage\.app|storage\.googleapis\.com|identitytoolkit\.googleapis\.com.*accounts:update|firestore\.googleapis\.com.*(?:Write|commit|batchWrite)/i.test(url)))return blocked();
   return originalFetch.apply(this,arguments);
  };
  const XHR=w.XMLHttpRequest;
@@ -31,7 +31,7 @@
   const open=XHR.prototype.open,send=XHR.prototype.send;
   XHR.prototype.open=function(method,url){this.__rasedReadonlyMethod=String(method||'GET').toUpperCase();this.__rasedReadonlyUrl=String(url||'');return open.apply(this,arguments);};
   XHR.prototype.send=function(){
-   if(enabled()&&this.__rasedReadonlyMethod!=='GET'&&this.__rasedReadonlyMethod!=='HEAD'&&(/supabase\.co\/rest\/v1|supabase\.co\/storage\/v1|firebasestorage\.googleapis\.com|firebasestorage\.app|firestore\.googleapis\.com.*(?:Write|commit|batchWrite)/i.test(this.__rasedReadonlyUrl))) {
+   if(enabled()&&this.__rasedReadonlyMethod!=='GET'&&this.__rasedReadonlyMethod!=='HEAD'&&(/supabase\.co\/rest\/v1|supabase\.co\/storage\/v1|firebasestorage\.googleapis\.com|firebasestorage\.app|storage\.googleapis\.com|identitytoolkit\.googleapis\.com.*accounts:update|firestore\.googleapis\.com.*(?:Write|commit|batchWrite)/i.test(this.__rasedReadonlyUrl))) {
     try{this.abort();}catch(e){}
     throw new Error('وضع المدير العام للعرض فقط: تم منع عملية الكتابة.');
    }
