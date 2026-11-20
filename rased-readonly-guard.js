@@ -45,6 +45,7 @@
    if(enabled()&&(this===s||this===w.localStorage)){
     const k=String(key);
     if(k==='currentUser'||k==='currentUserEmail')return rawStorageGet.call(s,'rasedExecutiveTarget')||rawStorageGet.call(this,k);
+    if(k==='currentSupervisor'&&this===w.localStorage)return rawStorageGet.call(s,'currentSupervisor');
     if(k==='currentUserName')return rawStorageGet.call(s,'rasedExecutiveTargetName')||rawStorageGet.call(this,k);
     if(k==='currentUserRole')return 'supervisor';
     if(k==='currentUserType'||k==='currentUserPermissions')return rawStorageGet.call(s,k)||rawStorageGet.call(this,k);
@@ -52,7 +53,7 @@
    return rawStorageGet.call(this,key);
   };
  }
- const authKeys=/^(currentUser(?:Role|Email|Name|Type|Permissions)?|alfalah\.gate\.session\.v1)$/;
+ const authKeys=/^(currentUser(?:Role|Email|Name|Type|Permissions)?|currentSupervisor|alfalah\.gate\.session\.v1)$/;
  try{
   const set=w.localStorage.setItem.bind(w.localStorage),remove=w.localStorage.removeItem.bind(w.localStorage);
   w.localStorage.setItem=function(k,v){if(enabled()&&authKeys.test(String(k)))return;return set(k,v);};
